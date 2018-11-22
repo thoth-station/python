@@ -2,6 +2,7 @@
 
 import os
 from setuptools import setup
+from pathlib import Path
 
 
 def get_requirements():
@@ -21,11 +22,6 @@ def get_version():
     raise ValueError("No package version found")
 
 
-def get_long_description():
-    with open('README.rst', 'r') as f:
-        return f.read()
-
-
 setup(
     name='thoth-python',
     version=get_version(),
@@ -38,7 +34,7 @@ setup(
     maintainer='Fridolin Pokorny',
     maintainer_email='fridolin@redhat.com',
     description='A Python ecosystem specific library',
-    long_description=get_long_description(),
+    long_description=Path('README.rst').read_text(),
     url='https://github.com/thoth-station/python',
     license='GPLv3+',
     keywords='python dependency pypi dependencies tool library thoth',
