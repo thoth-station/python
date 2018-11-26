@@ -26,5 +26,5 @@ from .project import Project
 from .source import Source
 
 
-__version__ = '0.0.0'
+__version__ = '0.1.0'
 __author__ = 'Fridolin Pokorny <fridolin@redhat.com>'
