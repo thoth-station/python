@@ -35,9 +35,8 @@ from .pipfile import PipfileMeta
 from .source import Source
 from .package_version import PackageVersion
 from .exceptions import UnableLock
-from ..enums import RecommendationType
-from ..exceptions import InternalError
-from ..exceptions import NotFound
+from .exceptions import InternalError
+from .exceptions import NotFound
 
 _LOGGER = logging.getLogger(__name__)
 
