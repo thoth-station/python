@@ -73,6 +73,17 @@ class Project:
 
         return cls(pipfile, pipfile_lock)
 
+    @classmethod
+    def from_strings(cls, pipfile_str: str, pipfile_lock_str: str = None):
+        """Create project from Pipfile and Pipfile.lock loaded into strings."""
+        pipfile = Pipfile.from_string(pipfile_str)
+
+        pipfile_lock = None
+        if pipfile_lock_str:
+            pipfile_lock = PipfileLock.from_string(pipfile_lock_str, pipfile)
+
+        return cls(pipfile, pipfile_lock)
+
     def to_files(self, pipfile_path: str = None, pipfile_lock_path: str = None,
                  without_pipfile_lock: bool = False):
         """Write the current state of project into Pipfile and Pipfile.lock files."""
