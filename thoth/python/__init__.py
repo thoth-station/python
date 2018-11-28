@@ -21,6 +21,7 @@
 from .packages import Packages
 from .package_version import PackageVersion
 from .pipfile import Pipfile
+from .pipfile import PipfileMeta
 from .pipfile import PipfileLock
 from .project import Project
 from .source import Source
