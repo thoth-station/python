@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 from setuptools import setup
 from pathlib import Path
+from setuptools.command.test import test as TestCommand
 
 
 def get_requirements():
@@ -20,6 +22,25 @@ def get_version():
             return line.split(' = ')[1][1:-2]
 
     raise ValueError("No package version found")
+
+
+class Test(TestCommand):
+    user_options = [
+        ('pytest-args=', 'a', "Arguments to pass into py.test")
+    ]
+
+    def initialize_options(self):
+        super().initialize_options()
+        self.pytest_args = ['tests/', '--timeout=2', '--cov=./thoth', '--capture=no', '--verbose', '-l', '-s']
+
+    def finalize_options(self):
+        super().finalize_options()
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        import pytest
+        sys.exit(pytest.main(self.pytest_args))
 
 
 setup(
@@ -49,5 +70,7 @@ setup(
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: Implementation :: CPython",
-    ]
+    ],
+    cmdclass={'test': Test},
+
 )
