@@ -17,7 +17,8 @@
 
 """Python ecosystem specific routines."""
 
-
+from .digests_fetcher import DigestsFetcherBase
+from .digests_fetcher import PythonDigestsFetcher
 from .packages import Packages
 from .package_version import PackageVersion
 from .pipfile import Pipfile

@@ -29,6 +29,8 @@ from thoth.common import cwd
 from thoth.analyzer import run_command
 from thoth.analyzer import CommandError
 
+from .digests_fetcher import DigestsFetcherBase
+from .digests_fetcher import PythonDigestsFetcher
 from .pipfile import Pipfile
 from .pipfile import PipfileLock
 from .pipfile import PipfileMeta
@@ -271,7 +273,7 @@ class Project:
 
         return report
 
-    def _index_scan(self) -> typing.Tuple[list, dict]:
+    def _index_scan(self, digests_fetcher: DigestsFetcherBase) -> typing.Tuple[list, dict]:
         """Generate full report for packages given the sources configured."""
         report = {}
         findings = []
@@ -280,19 +282,7 @@ class Project:
                 # TODO: can we have the same package in dev packages and packages?
                 raise InternalError(f"Package {package_version.name} already present in the report")
 
-            index_report = {}
-            for source in self.pipfile.meta.sources.values():
-                try:
-                    index_report[source.name] = source.get_package_hashes(
-                        package_version.name,
-                        package_version.locked_version
-                    )
-                except NotFound as exc:
-                    _LOGGER.debug(
-                        f"Package {package_version.name} in version {package_version.version} not "
-                        f"found on index {source.name}: {str(exc)}"
-                    )
-
+            index_report = digests_fetcher.fetch_digests(package_version.name, package_version.locked_version)
             findings.extend(self._check_scan(package_version, index_report))
             report[package_version.name] = index_report
 
@@ -423,9 +413,10 @@ class Project:
 
         return scan_report
 
-    def check_provenance(self, whitelisted_sources: list = None) -> dict:
+    def check_provenance(self, whitelisted_sources: list = None, digests_fetcher: DigestsFetcherBase = None) -> dict:
         """Check provenance/origin of packages that are stated in the project."""
-        findings, _ = self._index_scan()
+        digests_fetcher = digests_fetcher or PythonDigestsFetcher(list(self.pipfile.meta.sources.values()))
+        findings, _ = self._index_scan(digests_fetcher)
         findings.extend(self._check_sources(whitelisted_sources))
         return findings
 
