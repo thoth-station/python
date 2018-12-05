@@ -260,10 +260,15 @@ class Pipfile(_PipfileBase):
         _LOGGER.debug("Parsing Pipfile toml representation from string")
         try:
             parsed = toml.loads(pipfile_content)
+            parsed = parsed.primitive
         except Exception as exc:
-            raise PipfileParseError("Failed to parse provided Pipfile") from exc
+            # We are transparent - Pipfile can be eigher TOML or JSON - try to parse any of these.
+            try:
+                parsed = json.loads(pipfile_content)
+            except Exception as exc:
+                raise PipfileParseError("Failed to parse provided Pipfile") from exc
 
-        return cls.from_dict(parsed.primitive)
+        return cls.from_dict(parsed)
 
     @classmethod
     def from_dict(cls, dict_):
