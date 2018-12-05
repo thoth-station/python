@@ -283,7 +283,6 @@ class Pipfile(_PipfileBase):
     def to_dict(self) -> dict:
         """Return Pipfile representation as dict."""
         _LOGGER.debug("Generating Pipfile")
-        self.sanitize_source_indexes()
         result = {
             'packages': self.packages.to_pipfile(),
             'dev-packages': self.dev_packages.to_pipfile()

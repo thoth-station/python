@@ -110,7 +110,9 @@ class Project:
         if packages_locked:
             pipfile_lock = PipfileLock.from_package_versions(pipfile, packages_locked, meta=meta)
 
-        return cls(pipfile, pipfile_lock)
+        instance = cls(pipfile, pipfile_lock)
+        instance.sanitize_source_indexes()
+        return instance
 
     def to_dict(self):
         """Create a dictionary representation of this project."""
