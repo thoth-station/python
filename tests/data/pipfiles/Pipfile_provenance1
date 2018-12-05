@@ -4,12 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+yaspin = "*"
 
 [dev-packages]
-pytest = "*"
-pytest-timeout = "*"
-pytest-cov = "*"
-flexmock = "*"
 
 [requires]
 python_version = "3.6"

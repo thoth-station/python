@@ -1,2 +1,4 @@
 dist/
 thoth_python.egg-info/
+.coverage
+.eggs/
