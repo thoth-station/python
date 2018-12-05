@@ -22,8 +22,10 @@ import os
 import pytest
 import contoml as toml
 
-from thoth.python.pipfile import Pipfile
-from thoth.python.pipfile import PipfileLock
+from thoth.python import Pipfile
+from thoth.python import PipfileLock
+from thoth.python import PackageVersion
+from thoth.python import Source
 
 from .base import PythonTestCase
 
@@ -57,3 +59,28 @@ class TestPipfileLock(PythonTestCase):
         pipfile_instance = Pipfile.from_string(pipfile_content)
         instance = PipfileLock.from_string(content, pipfile=pipfile_instance)
         assert instance.to_string() == content
+
+    def test_indexes_in_meta(self):
+        pipfile = Pipfile.from_file(os.path.join(self.data_dir, 'pipfiles', 'Pipfile_test2'))
+        package_version = PackageVersion(
+            name='tensorflow',
+            version='==1.9.0',
+            develop=False,
+            index=Source('http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/')
+        )
+        pipfile.add_package_version(package_version)
+        pipfile_dict = pipfile.to_dict()
+
+        assert len(pipfile_dict['source']) == 2
+        assert pipfile_dict['source'] == [
+            {
+                'url': 'https://pypi.org/simple',
+                'verify_ssl': True,
+                'name': 'pypi'
+            },
+            {
+                'url': 'http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/',
+                'verify_ssl': True,
+                'name': 'tensorflow-pypi-thoth-station-ninja'
+            }
+        ]

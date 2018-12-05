@@ -21,6 +21,7 @@ import json
 import hashlib
 import logging
 import typing
+from itertools import chain
 
 import contoml as toml
 import attr
@@ -189,6 +190,36 @@ class _PipfileBase:
         else:
             self.packages.add_package_version(package_version)
 
+    def sanitize_source_indexes(self):
+        """Make sure all indexes used by packages are registerd in meta."""
+        _LOGGER.debug("Checking source indexes used")
+        def _index_check(package_version: PackageVersion, source: Source):
+            if source is package_version.index:
+                return
+
+            if source.name == package_version.index.name and source.url != package_version.index.url:
+                raise InternalError(
+                    f"Found package source index {source} with different name but same URL "
+                    f"as for package {package_version.name} in "
+                    f"version {package_version.version}: {package_version.index}"
+                )
+            elif source.name == package_version.index.name and source.verify_ssl != package_version.index.verify_ssl:
+                raise InternalError(
+                    f"Found package source index {source} with different SSL verifycation settings "
+                    f"but same URL as for package {package_version.name} in "
+                    f"version {package_version.version}: {package_version.index}"
+                )
+
+        for package_version in chain(self.packages.packages.values(), self.dev_packages.packages.values()):
+            if not package_version.index:
+                continue
+
+            if package_version.index.name not in self.meta.sources:
+                for source in self.meta.sources.values():
+                    _index_check(package_version, source)
+                self.meta.sources[package_version.index.name] = package_version.index
+            else:
+                _index_check(package_version, self.meta.sources[package_version.index.name])
 
 @attr.s(slots=True)
 class Pipfile(_PipfileBase):
@@ -252,6 +283,7 @@ class Pipfile(_PipfileBase):
     def to_dict(self) -> dict:
         """Return Pipfile representation as dict."""
         _LOGGER.debug("Generating Pipfile")
+        self.sanitize_source_indexes()
         result = {
             'packages': self.packages.to_pipfile(),
             'dev-packages': self.dev_packages.to_pipfile()
@@ -345,6 +377,7 @@ class PipfileLock(_PipfileBase):
             raise InternalError("Pipfile has to be provided when generating Pipfile.lock to compute SHA hashes")
 
         self.meta.set_hash(pipfile.hash())
+        self.sanitize_source_indexes()
 
         content = {
             '_meta': self.meta.to_dict(is_lock=True),
