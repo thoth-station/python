@@ -51,7 +51,7 @@ class Source:
     def default_name(self):
         """Create a name for source based on url if not explicitly provided."""
         parsed_url = urlparse(self.url)
-        return parsed_url.netloc.split('.')[0]
+        return parsed_url.netloc.replace('.', '-')
 
     @warehouse.default
     def warehouse_default(self):

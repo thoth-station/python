@@ -65,7 +65,7 @@ class TestProject(PythonTestCase):
 
         assert 'selinon' in project.pipfile.dev_packages.packages
         assert project.pipfile.dev_packages['selinon'].version == '==1.0.0'
-        assert project.pipfile.dev_packages['selinon'].index == 'foo'
+        assert project.pipfile.dev_packages['selinon'].index == 'foo-bar'
         assert project.pipfile.dev_packages['selinon'].develop is True
         # Do not add the package to the lock - lock has to be explicitly done.
         assert 'selinon' not in project.pipfile_lock.dev_packages.packages
