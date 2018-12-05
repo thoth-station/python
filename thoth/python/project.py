@@ -420,6 +420,12 @@ class Project:
         findings.extend(self._check_sources(whitelisted_sources))
         return findings
 
+    def sanitize_source_indexes(self):
+        """Make sure all the indexes are correctly propagated to Pipfile and Pipfile.lock metadata."""
+        self.pipfile.sanitize_source_indexes()
+        if self.pipfile_lock:
+            self.pipenv_lock.sanitize_source_indexes()
+
     def add_source(self, url: str, verify_ssl: bool = True, name: str = None,
                    warehouse: bool = False, warehouse_api_url: str = None) -> Source:
         """Add a package source (index) to the project."""
