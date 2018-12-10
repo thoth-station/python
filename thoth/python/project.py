@@ -282,7 +282,8 @@ class Project:
         for package_version in chain(self.pipfile_lock.packages, self.pipfile_lock.dev_packages):
             if package_version.name in report:
                 # TODO: can we have the same package in dev packages and packages?
-                raise InternalError(f"Package {package_version.name} already present in the report")
+                _LOGGER.warning(f"Package {package_version.name} already present in the report")
+                continue
 
             index_report = digests_fetcher.fetch_digests(package_version.name, package_version.locked_version)
             findings.extend(self._check_scan(package_version, index_report))
@@ -322,18 +323,18 @@ class Project:
         if package_version.index:
             source = package_version.index.to_dict()
 
-        if package_version.index and index_report.get(package_version.index.name) and len(hashes) > 1:
+        if package_version.index and index_report.get(package_version.index.url) and len(hashes) > 1:
             # Is installed from different source - which one?
             used_package_version_hashes = set(h[len('sha256:'):] for h in package_version.hashes)
-            configured_index_hashes = set(h['sha256'] for h in index_report[package_version.index.name])
+            configured_index_hashes = set(h['sha256'] for h in index_report[package_version.index.url])
 
             # Find other sources from which artifacts can be installed.
             other_sources = {}
             for artifact_hash in package_version.hashes:
                 artifact_hash = artifact_hash[len('sha256:'):]  # Remove pipenv-specific hash formatting.
 
-                for index_name, index_info in index_report.items():
-                    if index_name == package_version.index.name:
+                for index_url, index_info in index_report.items():
+                    if index_url == package_version.index.url:
                         # Skip index that is assigned to the package, we are inspecting from the other sources.
                         continue
 
@@ -345,10 +346,10 @@ class Project:
                     if not artifact_entry:
                         continue
 
-                    if index_name not in other_sources:
-                        other_sources[index_name] = []
+                    if index_url not in other_sources:
+                        other_sources[index_url] = []
 
-                    other_sources[index_name].extend(artifact_entry)
+                    other_sources[index_url].extend(artifact_entry)
 
             if not set(used_package_version_hashes).issubset(set(configured_index_hashes)):
                 # Source is different from the configured one.
@@ -380,7 +381,7 @@ class Project:
                     'sources': other_sources
                 })
 
-        if package_version.index and not index_report.get(package_version.index.name):
+        if package_version.index and not index_report.get(package_version.index.url):
             # Configured index does not provide the given package.
             scan_report.append({
                 'type': 'ERROR',
@@ -398,7 +399,7 @@ class Project:
         # Changed hashes?
         for digest in package_version.hashes:
             digest = digest[len('sha256:'):]
-            for index_name, index_info in index_report.items():
+            for index_info in index_report.values():
                 if any(item['sha256'] == digest for item in index_info):
                     break
             else:
