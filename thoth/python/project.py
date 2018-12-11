@@ -386,8 +386,8 @@ class Project:
                 'type': 'ERROR',
                 'id': 'MISSING-PACKAGE',
                 'justification': f'Source index {package_version.index.name!r} explicitly '
-                                 f'assigned to package {package_version.name!r} but package '
-                                 f'was not found on the given index - was it removed?',
+                                 f'assigned to package {package_version.name!r} but there was not found '
+                                 f'any record for the given package',
                 'source': source,
                 'package_locked': package_version.to_pipfile_lock(),
                 'package_name': package_version.name,
@@ -405,7 +405,7 @@ class Project:
                 scan_report.append({
                     'type': 'ERROR',
                     'id': 'INVALID-ARTIFACT-HASH',
-                    'justification': 'Artifact stated in lock was not found on index - was it removed?',
+                    'justification': 'Hash for the given artifact was not found',
                     'source': source,
                     'package_locked': package_version.to_pipfile_lock(),
                     'package_name': package_version.name,
