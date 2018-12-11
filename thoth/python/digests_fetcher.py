@@ -47,7 +47,7 @@ class PythonDigestsFetcher(DigestsFetcherBase):
 
         for source in self._sources:
             try:
-                report[source.name] = source.get_package_hashes(package_name, package_version)
+                report[source.url] = source.get_package_hashes(package_name, package_version)
             except NotFound as exc:
                 _LOGGER.debug(
                     f"Package {package_name} in version {package_version} not "
