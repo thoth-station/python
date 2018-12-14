@@ -224,6 +224,10 @@ class PackageVersion:
 
         return {self.name: result}
 
+    def to_tuple(self) -> tuple:
+        """Return a tuple representing this Python package."""
+        return self.name, self.version, self.index.url
+
     def to_pipfile(self):
         """Generate Pipfile entry for the given package."""
         _LOGGER.debug("Generating Pipfile entry for package %r", self.name)
