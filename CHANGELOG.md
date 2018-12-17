@@ -23,3 +23,8 @@
 * Source code import
 * Add long description for PyPI
 * Initial project import
+
+## Release 0.4.2 (2018-12-17T14:16:16)
+* Make linter happy again
+* Automatic update of dependency pytest from 4.0.1 to 4.0.2
+* Introduce to_tuple method
