@@ -221,6 +221,7 @@ class _PipfileBase:
             else:
                 _index_check(package_version, self.meta.sources[package_version.index.name])
 
+
 @attr.s(slots=True)
 class Pipfile(_PipfileBase):
     """A Pipfile representation - representation of direct dependencies of an application."""
