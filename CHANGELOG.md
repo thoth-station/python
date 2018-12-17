@@ -28,3 +28,6 @@
 * Make linter happy again
 * Automatic update of dependency pytest from 4.0.1 to 4.0.2
 * Introduce to_tuple method
+
+## Release 0.4.3 (2018-12-17T16:03:54)
+* Introduce to_tuple_locked for locked packages
