@@ -226,7 +226,11 @@ class PackageVersion:
 
     def to_tuple(self) -> tuple:
         """Return a tuple representing this Python package."""
-        return self.name, self.version, self.index.url
+        return self.name, self.locked_version, self.index.url
+
+    def to_tuple_locked(self) -> tuple:
+        """Return a tuple representing this Python package - used for locked packages."""
+        return self.name, self.locked_version, self.index.url
 
     def to_pipfile(self):
         """Generate Pipfile entry for the given package."""
