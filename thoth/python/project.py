@@ -339,7 +339,7 @@ class Project:
                         continue
 
                     artifact_entry = [
-                        (i['name'], i['sha256']) for i in index_info
+                        (i.get('name'), i['sha256']) for i in index_info
                         if i['sha256'] == artifact_hash
                     ]
 
