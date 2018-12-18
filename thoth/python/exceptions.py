@@ -17,6 +17,7 @@
 
 """Exceptions used in the thoth-python package."""
 
+
 class ThothPythonException(Exception):
     """A base class for thoth-python exceptions."""
 

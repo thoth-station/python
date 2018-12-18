@@ -4,6 +4,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+requests = "*"
+click = "*"
+thoth-analyzer = "*"
+thoth-common = "*"
+attrs = "*"
+contoml = "*"
+beautifulsoup4 = "*"
+lxml = "*"
+semantic_version = "*"
 
 [dev-packages]
 pytest = "*"
