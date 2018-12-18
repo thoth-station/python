@@ -60,7 +60,7 @@ class PipfileMeta:
             dict_['source'] = dict_.pop('sources')
 
         if 'source' not in dict_:
-            raise PipfileParseError(f"Sources not found in Pipfile/Pipfile.lock metadata: {dict_}")
+            dict_['source'] = []
 
         sources = {d['name']: Source.from_dict(d) for d in dict_.pop('source')}
         requires = dict_.pop('requires', None)
@@ -244,7 +244,7 @@ class Pipfile(_PipfileBase):
         return cls(
             packages=Packages.from_package_versions([pv for pv in packages if not pv.develop], develop=False),
             dev_packages=Packages.from_package_versions([pv for pv in packages if pv.develop], develop=True),
-            meta=meta
+            meta=meta or PipfileMeta.from_dict({})
         )
 
     @classmethod
