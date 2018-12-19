@@ -29,11 +29,6 @@ from .exceptions import PipfileParseError
 from .exceptions import InternalError
 from .source import Source
 
-if typing.TYPE_CHECKING:
-    # Avoid cyclic imports.
-    from .pipfile import PipfileMeta
-
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -134,16 +129,22 @@ class PackageVersion:
                     f"Cannot get semantic version for not-locked package {self.name} in version {self.version}"
                 )
 
-            try:
-                self._semantic_version = semver.Version(self.locked_version)
-            except Exception as exc:
-                self._semantic_version = semver.Version.coerce(self.locked_version)
-                _LOGGER.warning(
-                    f"Cannot determine semantic version for package {self.name} in version {self.locked_version}, "
-                    f"approximated version is {self._semantic_version}: {str(exc)})"
-                )
-
+        self._semantic_version = self.parse_semantic_version(self.locked_version)
         return self._semantic_version
+
+    @staticmethod
+    def parse_semantic_version(version_identifier: str) -> semver.Version:
+        """Parse the given version identifier into a semver representation."""
+        try:
+            semantic_version = semver.Version(version_identifier)
+        except Exception as exc:
+            semantic_version = semver.Version.coerce(version_identifier)
+            _LOGGER.debug(
+                f"Cannot determine semantic version {version_identifier}, "
+                f"approximated version is {semantic_version}: {str(exc)}"
+            )
+
+        return semantic_version
 
     @property
     def version_specification(self) -> semver.Spec:
