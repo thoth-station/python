@@ -69,7 +69,7 @@ class PipfileMeta:
         hash_ = dict_.pop('hash', None)
 
         if dict_:
-            _LOGGER.warning(f"Metadata ingnored in Pipfile or Pipfile.lock: {dict_}")
+            _LOGGER.warning("Metadata ignored in Pipfile or Pipfile.lock: %s", dict_)
 
         return cls(
             sources=sources,
