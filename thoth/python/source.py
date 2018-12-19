@@ -60,6 +60,9 @@ class Source:
 
     def get_api_url(self):
         """Construct URL to Warehouse instance."""
+        if not self.warehouse:
+            raise NotImplementedError("Cannot retrieve API url for non-warehouse repository")
+
         if self.warehouse_api_url:
             return self.warehouse_api_url
 
@@ -140,7 +143,7 @@ class Source:
     @lru_cache(maxsize=10)
     def get_packages(self) -> set:
         """List packages available on the source package index."""
-        _LOGGER.debug(f"Discovering packages available on {self.url} (simple index name: {self.name}")
+        _LOGGER.debug(f"Discovering packages available on {self.url} (simple index name: {self.name})")
         response = requests.get(self.url, verify=self.verify_ssl)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'lxml')
