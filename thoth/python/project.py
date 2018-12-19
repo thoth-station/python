@@ -114,6 +114,30 @@ class Project:
         instance.sanitize_source_indexes()
         return instance
 
+    def set_allow_prereleases(self, allow_prereleases: bool = True) -> None:
+        """Allow or disallow pre-releases for this project."""
+        self.pipfile.meta.pipenv['allow_prereleases'] = allow_prereleases
+
+    @property
+    def prereleases_allowed(self) -> bool:
+        """Check if pre-releases are allowed for this project."""
+        return self.pipfile.meta.pipenv.get('allow_prereleases', False) if self.pipfile.meta.pipenv else False
+
+    def set_python_version(self, python_version: str = None) -> None:
+        """Set version of Python used in the project."""
+        if python_version is None:
+            self.pipfile.meta.requires.pop('python_version')
+        else:
+            if self.pipfile.meta.requires is None:
+                self.pipfile.meta.requires = {}
+
+            self.pipfile.meta.requires['python_version'] = python_version
+
+    @property
+    def python_version(self) -> str:
+        """Get Python version used in this project."""
+        return self.pipfile.meta.requires.get('python_version', None)
+
     def to_dict(self):
         """Create a dictionary representation of this project."""
         return {
