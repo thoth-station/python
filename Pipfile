@@ -10,7 +10,7 @@ thoth-analyzer = "*"
 thoth-common = "*"
 attrs = "*"
 contoml = "*"
-beautifulsoup4 = "*"
+beautifulsoup4 = "==4.6.3"
 lxml = "*"
 semantic_version = "*"
 

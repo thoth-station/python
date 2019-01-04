@@ -5,6 +5,8 @@ attrs
 semantic_version
 contoml
 requests
-beautifulsoup4
+# Pin to this specific version otherwise bs4 fails to parse simple API package
+# listing (got # stuck with high CPU consumption)
+beautifulsoup4==4.6.3
 semantic-version
 lxml
