@@ -205,7 +205,7 @@ class _PipfileBase:
                 )
             elif source.name == package_version.index.name and source.verify_ssl != package_version.index.verify_ssl:
                 raise InternalError(
-                    f"Found package source index {source} with different SSL verifycation settings "
+                    f"Found package source index {source} with different SSL verification settings "
                     f"but same URL as for package {package_version.name} in "
                     f"version {package_version.version}: {package_version.index}"
                 )
