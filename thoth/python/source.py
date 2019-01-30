@@ -47,6 +47,8 @@ class Source:
     warehouse = attr.ib(type=bool)
     warehouse_api_url = attr.ib(default=None, type=str)
 
+    _NORMALIZED_PACKAGE_NAME_RE = re.compile('[a-z-]+')
+
     @name.default
     def default_name(self):
         """Create a name for source based on url if not explicitly provided."""
@@ -140,6 +142,12 @@ class Source:
 
         return result
 
+    @classmethod
+    def is_normalized_python_package_name(cls, package_name: str) -> bool:
+        """Check if the given Python package name is normalized."""
+        # https://www.python.org/dev/peps/pep-0503/#normalized-names
+        return cls._NORMALIZED_PACKAGE_NAME_RE.match(package_name) is not None
+
     @lru_cache(maxsize=10)
     def get_packages(self) -> set:
         """List packages available on the source package index."""
@@ -155,7 +163,17 @@ class Source:
             # According to PEP-503, package names must have trailing '/', but check this explicitly
             if not package_parts[-1]:
                 package_parts = package_parts[:-1]
-            packages.add(package_parts[-1])
+            package_name = package_parts[-1]
+
+            # Discard links to parent dirs (package name of URL does not match the text.
+            link_text = link.text
+            if link_text.endswith('/'):
+                # Link names should end with trailing / according to PEEP:
+                #   https://www.python.org/dev/peps/pep-0503/
+                link_text = link_text[:-1]
+
+            if self.is_normalized_python_package_name(package_name) and package_name == link_text:
+                packages.add(package_name)
 
         return packages
 
