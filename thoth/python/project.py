@@ -20,11 +20,9 @@
 import logging
 import typing
 from itertools import chain
-from copy import deepcopy
 import tempfile
 
 import attr
-import semantic_version as semver
 from thoth.common import cwd
 from thoth.analyzer import run_command
 from thoth.analyzer import CommandError
