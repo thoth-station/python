@@ -24,6 +24,7 @@ import tempfile
 
 import attr
 from thoth.common import cwd
+from thoth.common import RuntimeEnvironment
 from thoth.analyzer import run_command
 from thoth.analyzer import CommandError
 
@@ -47,6 +48,7 @@ class Project:
 
     pipfile = attr.ib(type=Pipfile)
     pipfile_lock = attr.ib(type=PipfileLock)
+    runtime_environment = attr.ib(type=RuntimeEnvironment, default=attr.Factory(RuntimeEnvironment.from_dict))
     _graph_db = attr.ib(default=None)
     _workdir = attr.ib(default=None)
 
@@ -60,15 +62,14 @@ class Project:
         return self._workdir
 
     @classmethod
-    def from_files(cls, pipfile_path: str = None, pipfile_lock_path: str = None, *,
-                   without_pipfile_lock: bool = False):
+    def from_files(cls, pipfile_path: str = None, pipfile_lock_path: str = None, *, without_pipfile_lock: bool = False):
         """Create project from Pipfile and Pipfile.lock files."""
-        with open(pipfile_path or 'Pipfile', 'r') as pipfile_file:
+        with open(pipfile_path or "Pipfile", "r") as pipfile_file:
             pipfile = Pipfile.from_string(pipfile_file.read())
 
         pipfile_lock = None
         if not without_pipfile_lock:
-            with open(pipfile_lock_path or 'Pipfile.lock', 'r') as pipfile_lock_file:
+            with open(pipfile_lock_path or "Pipfile.lock", "r") as pipfile_lock_file:
                 pipfile_lock = PipfileLock.from_string(pipfile_lock_file.read(), pipfile)
 
         return cls(pipfile, pipfile_lock)
@@ -84,20 +85,22 @@ class Project:
 
         return cls(pipfile, pipfile_lock)
 
-    def to_files(self, pipfile_path: str = None, pipfile_lock_path: str = None,
-                 without_pipfile_lock: bool = False):
+    def to_files(self, pipfile_path: str = None, pipfile_lock_path: str = None, without_pipfile_lock: bool = False):
         """Write the current state of project into Pipfile and Pipfile.lock files."""
-        with open(pipfile_path or 'Pipfile', 'w') as pipfile_file:
+        with open(pipfile_path or "Pipfile", "w") as pipfile_file:
             pipfile_file.write(self.pipfile.to_string())
 
         if not without_pipfile_lock:
-            with open(pipfile_lock_path or 'Pipfile.lock', 'w') as pipfile_lock_file:
+            with open(pipfile_lock_path or "Pipfile.lock", "w") as pipfile_lock_file:
                 pipfile_lock_file.write(self.pipfile_lock.to_string())
 
     @classmethod
-    def from_package_versions(cls, packages: typing.List[PackageVersion],
-                              packages_locked: typing.List[PackageVersion] = None,
-                              meta: PipfileMeta = None):
+    def from_package_versions(
+        cls,
+        packages: typing.List[PackageVersion],
+        packages_locked: typing.List[PackageVersion] = None,
+        meta: PipfileMeta = None,
+    ):
         """Create project from PackageVersion objects.
 
         If locked packages are omitted, the lock has to be explicitly performed to generate
@@ -114,33 +117,33 @@ class Project:
 
     def set_allow_prereleases(self, allow_prereleases: bool = True) -> None:
         """Allow or disallow pre-releases for this project."""
-        self.pipfile.meta.pipenv['allow_prereleases'] = allow_prereleases
+        self.pipfile.meta.pipenv["allow_prereleases"] = allow_prereleases
 
     @property
     def prereleases_allowed(self) -> bool:
         """Check if pre-releases are allowed for this project."""
-        return self.pipfile.meta.pipenv.get('allow_prereleases', False) if self.pipfile.meta.pipenv else False
+        return self.pipfile.meta.pipenv.get("allow_prereleases", False) if self.pipfile.meta.pipenv else False
 
     def set_python_version(self, python_version: str = None) -> None:
         """Set version of Python used in the project."""
         if python_version is None:
-            self.pipfile.meta.requires.pop('python_version')
+            self.pipfile.meta.requires.pop("python_version")
         else:
             if self.pipfile.meta.requires is None:
                 self.pipfile.meta.requires = {}
 
-            self.pipfile.meta.requires['python_version'] = python_version
+            self.pipfile.meta.requires["python_version"] = python_version
 
     @property
     def python_version(self) -> str:
         """Get Python version used in this project."""
-        return self.pipfile.meta.requires.get('python_version', None)
+        return self.pipfile.meta.requires.get("python_version", None)
 
     def to_dict(self):
         """Create a dictionary representation of this project."""
         return {
-            'requirements': self.pipfile.to_dict(),
-            'requirements_locked': self.pipfile_lock.to_dict() if self.pipfile_lock else None
+            "requirements": self.pipfile.to_dict(),
+            "requirements_locked": self.pipfile_lock.to_dict() if self.pipfile_lock else None,
         }
 
     def get_outdated_package_versions(self, devel: bool = True) -> dict:
@@ -184,14 +187,13 @@ class Project:
         """Perform pipenv lock on the current state of project."""
         with cwd(self.workdir):
             self.pipfile.to_file()
-            _LOGGER.debug('Running pipenv lock')
+            _LOGGER.debug("Running pipenv lock")
 
             try:
-                result = run_command('pipenv lock', env={'PIPENV_IGNORE_VIRTUALENVS': '1'})
+                result = run_command("pipenv lock", env={"PIPENV_IGNORE_VIRTUALENVS": "1"})
             except CommandError as exc:
                 _LOGGER.exception(
-                    "Unable to lock application stack (return code: %d):\n%s\n",
-                    exc.return_code, exc.stdout, exc.stderr
+                    "Unable to lock application stack (return code: %d):\n%s\n", exc.return_code, exc.stdout, exc.stderr
                 )
                 raise UnableLock("Failed to perform lock") from exc
 
@@ -247,7 +249,7 @@ class Project:
 
             # We do operations on the package we passed via parameters so the original package is
             # not adjusted if referenced elsewhere.
-            if to_exclude_package.version != '*':
+            if to_exclude_package.version != "*":
                 package_version.version = f"{package_version.version},{to_exclude_package.version}"
             _LOGGER.debug("Package with excluded version %r", package_version)
             section[package_version.name] = package_version
@@ -280,20 +282,24 @@ class Project:
         report = []
         for source in self.pipfile.meta.sources.values():
             if whitelisted_sources and source.url not in whitelisted_sources:
-                report.append({
-                    'type': 'ERROR',
-                    'id': 'SOURCE-NOT-WHITELISTED',
-                    'justification': f'Provided index {source.name!r} is not stated in the '
-                                     f'whitelisted package sources listing',
-                    'source': source.to_dict(),
-                })
+                report.append(
+                    {
+                        "type": "ERROR",
+                        "id": "SOURCE-NOT-WHITELISTED",
+                        "justification": f"Provided index {source.name!r} is not stated in the "
+                        f"whitelisted package sources listing",
+                        "source": source.to_dict(),
+                    }
+                )
             elif not source.verify_ssl:
-                report.append({
-                    'type': 'WARNING',
-                    'id': 'INSECURE-SOURCE',
-                    'justification': f'Source {source.name!r} does not use SSL/TLS verification',
-                    'source': source.to_dict(),
-                })
+                report.append(
+                    {
+                        "type": "WARNING",
+                        "id": "INSECURE-SOURCE",
+                        "justification": f"Source {source.name!r} does not use SSL/TLS verification",
+                        "source": source.to_dict(),
+                    }
+                )
 
         return report
 
@@ -321,24 +327,26 @@ class Project:
         hashes = []
         pipenv_style_hashes = []
         for entry in index_report.values():
-            hashes.append([item['sha256'] for item in entry])
+            hashes.append([item["sha256"] for item in entry])
             pipenv_style_hashes.append([f"sha256:{item['sha256']}" for item in entry])
 
         if not package_version.index and len(index_report.keys()) > 1:
             # Are there indexes with different artifacts present? - suggest to specify index explicitly.
             if set(chain(*hashes)) != set(hashes[0]):
                 sources_reported = ", ".join(index_report.keys())
-                scan_report.append({
-                    'type': 'WARNING',
-                    'id': 'DIFFERENT-ARTIFACTS-ON-SOURCES',
-                    'justification': f'Configured sources ({sources_reported}) have different artifacts '
-                                     f'available, specify explicitly source to be used',
-                    'indexes': list(index_report.keys()),
-                    'package_locked': package_version.to_pipfile_lock(),
-                    'package_name': package_version.name,
-                    'package_version': package_version.version,
-                    'sources': index_report
-                })
+                scan_report.append(
+                    {
+                        "type": "WARNING",
+                        "id": "DIFFERENT-ARTIFACTS-ON-SOURCES",
+                        "justification": f"Configured sources ({sources_reported}) have different artifacts "
+                        f"available, specify explicitly source to be used",
+                        "indexes": list(index_report.keys()),
+                        "package_locked": package_version.to_pipfile_lock(),
+                        "package_name": package_version.name,
+                        "package_version": package_version.version,
+                        "sources": index_report,
+                    }
+                )
 
         # Source for reports.
         source = None
@@ -347,23 +355,20 @@ class Project:
 
         if package_version.index and index_report.get(package_version.index.url) and len(hashes) > 1:
             # Is installed from different source - which one?
-            used_package_version_hashes = set(h[len('sha256:'):] for h in package_version.hashes)
-            configured_index_hashes = set(h['sha256'] for h in index_report[package_version.index.url])
+            used_package_version_hashes = set(h[len("sha256:") :] for h in package_version.hashes)
+            configured_index_hashes = set(h["sha256"] for h in index_report[package_version.index.url])
 
             # Find other sources from which artifacts can be installed.
             other_sources = {}
             for artifact_hash in package_version.hashes:
-                artifact_hash = artifact_hash[len('sha256:'):]  # Remove pipenv-specific hash formatting.
+                artifact_hash = artifact_hash[len("sha256:") :]  # Remove pipenv-specific hash formatting.
 
                 for index_url, index_info in index_report.items():
                     if index_url == package_version.index.url:
                         # Skip index that is assigned to the package, we are inspecting from the other sources.
                         continue
 
-                    artifact_entry = [
-                        (i.get('name'), i['sha256']) for i in index_info
-                        if i['sha256'] == artifact_hash
-                    ]
+                    artifact_entry = [(i.get("name"), i["sha256"]) for i in index_info if i["sha256"] == artifact_hash]
 
                     if not artifact_entry:
                         continue
@@ -375,66 +380,74 @@ class Project:
 
             if not set(used_package_version_hashes).issubset(set(configured_index_hashes)):
                 # Source is different from the configured one.
-                scan_report.append({
-                    'type': 'ERROR',
-                    'id': 'ARTIFACT-DIFFERENT-SOURCE',
-                    'justification': f'Artifacts are installed from different '
-                                     f'sources ({",".join(other_sources.keys())}) not respecting configuration',
-                    'source': source,
-                    'package_locked': package_version.to_pipfile_lock(),
-                    'package_name': package_version.name,
-                    'package_version': package_version.version,
-                    'indexes': list(other_sources.keys()),
-                    'sources': other_sources
-                })
+                scan_report.append(
+                    {
+                        "type": "ERROR",
+                        "id": "ARTIFACT-DIFFERENT-SOURCE",
+                        "justification": f"Artifacts are installed from different "
+                        f'sources ({",".join(other_sources.keys())}) not respecting configuration',
+                        "source": source,
+                        "package_locked": package_version.to_pipfile_lock(),
+                        "package_name": package_version.name,
+                        "package_version": package_version.version,
+                        "indexes": list(other_sources.keys()),
+                        "sources": other_sources,
+                    }
+                )
             elif other_sources:
                 # Warn about possible installation from another source.
-                scan_report.append({
-                    'type': 'INFO',
-                    'id': 'ARTIFACT-POSSIBLE-DIFFERENT-SOURCE',
-                    'justification': f'Artifacts can be installed from different sources '
-                                     f'({",".join(other_sources.keys())}) not respecting configuration '
-                                     f'that expects {package_version.index.name!r}',
-                    'source': source,
-                    'package_locked': package_version.to_pipfile_lock(),
-                    'package_name': package_version.name,
-                    'package_version': package_version.version,
-                    'indexes': list(other_sources.keys()),
-                    'sources': other_sources
-                })
+                scan_report.append(
+                    {
+                        "type": "INFO",
+                        "id": "ARTIFACT-POSSIBLE-DIFFERENT-SOURCE",
+                        "justification": f"Artifacts can be installed from different sources "
+                        f'({",".join(other_sources.keys())}) not respecting configuration '
+                        f"that expects {package_version.index.name!r}",
+                        "source": source,
+                        "package_locked": package_version.to_pipfile_lock(),
+                        "package_name": package_version.name,
+                        "package_version": package_version.version,
+                        "indexes": list(other_sources.keys()),
+                        "sources": other_sources,
+                    }
+                )
 
         if package_version.index and not index_report.get(package_version.index.url):
             # Configured index does not provide the given package.
-            scan_report.append({
-                'type': 'ERROR',
-                'id': 'MISSING-PACKAGE',
-                'justification': f'Source index {package_version.index.name!r} explicitly '
-                                 f'assigned to package {package_version.name!r} but there was not found '
-                                 f'any record for the given package',
-                'source': source,
-                'package_locked': package_version.to_pipfile_lock(),
-                'package_name': package_version.name,
-                'package_version': package_version.version,
-                'sources': index_report
-            })
+            scan_report.append(
+                {
+                    "type": "ERROR",
+                    "id": "MISSING-PACKAGE",
+                    "justification": f"Source index {package_version.index.name!r} explicitly "
+                    f"assigned to package {package_version.name!r} but there was not found "
+                    f"any record for the given package",
+                    "source": source,
+                    "package_locked": package_version.to_pipfile_lock(),
+                    "package_name": package_version.name,
+                    "package_version": package_version.version,
+                    "sources": index_report,
+                }
+            )
 
         # Changed hashes?
         for digest in package_version.hashes:
-            digest = digest[len('sha256:'):]
+            digest = digest[len("sha256:") :]
             for index_info in index_report.values():
-                if any(item['sha256'] == digest for item in index_info):
+                if any(item["sha256"] == digest for item in index_info):
                     break
             else:
-                scan_report.append({
-                    'type': 'ERROR',
-                    'id': 'INVALID-ARTIFACT-HASH',
-                    'justification': 'Hash for the given artifact was not found',
-                    'source': source,
-                    'package_locked': package_version.to_pipfile_lock(),
-                    'package_name': package_version.name,
-                    'package_version': package_version.version,
-                    'digest': digest
-                })
+                scan_report.append(
+                    {
+                        "type": "ERROR",
+                        "id": "INVALID-ARTIFACT-HASH",
+                        "justification": "Hash for the given artifact was not found",
+                        "source": source,
+                        "package_locked": package_version.to_pipfile_lock(),
+                        "package_name": package_version.name,
+                        "package_version": package_version.version,
+                        "digest": digest,
+                    }
+                )
 
         return scan_report
 
@@ -451,16 +464,22 @@ class Project:
         if self.pipfile_lock:
             self.pipfile_lock.sanitize_source_indexes()
 
-    def add_source(self, url: str, verify_ssl: bool = True, name: str = None,
-                   warehouse: bool = False, warehouse_api_url: str = None) -> Source:
+    def add_source(
+        self,
+        url: str,
+        verify_ssl: bool = True,
+        name: str = None,
+        warehouse: bool = False,
+        warehouse_api_url: str = None,
+    ) -> Source:
         """Add a package source (index) to the project."""
         if name:
-            source = Source(name=name, url=url, verify_ssl=verify_ssl,
-                            warehouse=warehouse, warehouse_api_url=warehouse_api_url)
+            source = Source(
+                name=name, url=url, verify_ssl=verify_ssl, warehouse=warehouse, warehouse_api_url=warehouse_api_url
+            )
         else:
             # Do not provide source index name so that attrs correctly compute default based on URL.
-            source = Source(url=url, verify_ssl=verify_ssl,
-                            warehouse=warehouse, warehouse_api_url=warehouse_api_url)
+            source = Source(url=url, verify_ssl=verify_ssl, warehouse=warehouse, warehouse_api_url=warehouse_api_url)
 
         self.pipfile.meta.add_source(source)
         if self.pipfile_lock:
@@ -468,8 +487,9 @@ class Project:
 
         return source
 
-    def add_package(self, package_name: str, package_version: str = None, *,
-                    source: Source = None, develop: bool = False):
+    def add_package(
+        self, package_name: str, package_version: str = None, *, source: Source = None, develop: bool = False
+    ):
         """Add the given package to project.
 
         This method will add packages only to Pipfile, locking has to be explicitly done once package is added.
@@ -487,10 +507,10 @@ class Project:
 
     def test_indexes_in_meta(self):
         package_version = PackageVersion(
-            name='tensorflow',
-            version='==1.9.0',
+            name="tensorflow",
+            version="==1.9.0",
             develop=False,
-            index=Source('http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/')
+            index=Source("http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/"),
         )
 
         project = Project.from_package_versions([package_version])
@@ -501,11 +521,11 @@ class Project:
 
         assert pipfile_lock_dict is None
 
-        assert len(pipfile_dict['source']) == 1
-        assert pipfile_dict['source'] == [
+        assert len(pipfile_dict["source"]) == 1
+        assert pipfile_dict["source"] == [
             {
-                'url': 'http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/',
-                'verify_ssl': True,
-                'name': 'tensorflow'
+                "url": "http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/",
+                "verify_ssl": True,
+                "name": "tensorflow",
             }
         ]

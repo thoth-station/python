@@ -22,10 +22,7 @@ import json
 
 import attr
 
-_DEFAULT_WAREHOUSES = (
-    'https://pypi.python.org/simple',
-    'https://pypi.org/simple'
-)
+_DEFAULT_WAREHOUSES = ("https://pypi.python.org/simple", "https://pypi.org/simple")
 
 
 @attr.s(slots=True)
@@ -41,8 +38,8 @@ class _Configuration:
     @warehouses.default
     def warehouses_default(self):
         warehouses = _DEFAULT_WAREHOUSES
-        if 'THOTH_PYTHON_WAREHOUSES' in os.environ:
-            warehouses = os.environ['THOTH_PYTHON_WAREHOUSES'].split(',')
+        if "THOTH_PYTHON_WAREHOUSES" in os.environ:
+            warehouses = os.environ["THOTH_PYTHON_WAREHOUSES"].split(",")
 
         return warehouses
 

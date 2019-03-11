@@ -48,12 +48,12 @@ class PackageVersion:
     def to_dict(self) -> dict:
         """Create a dictionary representation of parameters (useful for later constructor calls)."""
         return {
-            'name': self.name,
-            'version': self.version,
-            'develop': self.develop,
-            'index': self.index,
-            'hashes': self.hashes,
-            'markers': self.markers
+            "name": self.name,
+            "version": self.version,
+            "develop": self.develop,
+            "index": self.index,
+            "hashes": self.hashes,
+            "markers": self.markers,
         }
 
     def __eq__(self, other):
@@ -80,15 +80,12 @@ class PackageVersion:
         # TODO: add hashes to the graph database
         # TODO: we will need to add index information - later on?
         return cls(
-            name=model.package_name,
-            version=model.package_version,
-            develop=develop,
-            index=Source(url=model.index)
+            name=model.package_name, version=model.package_version, develop=develop, index=Source(url=model.index)
         )
 
     def is_locked(self):
         """Check if the given package is locked to a specific version."""
-        return self.version.startswith('==')
+        return self.version.startswith("==")
 
     def duplicate(self):
         """Duplicate the given package safely when performing changes in resolution."""
@@ -98,7 +95,7 @@ class PackageVersion:
             develop=self.develop,
             index=self.index,
             hashes=self.hashes,
-            markers=self.markers
+            markers=self.markers,
         )
 
     def negate_version(self) -> None:
@@ -108,7 +105,7 @@ class PackageVersion:
                 f"Negating version on non-locked package {self.name} with version {self.version} is not supported"
             )
 
-        self.version = '!' + self.version[1:]
+        self.version = "!" + self.version[1:]
 
     @property
     def locked_version(self) -> str:
@@ -118,7 +115,7 @@ class PackageVersion:
                 f"Requested locked version for {self.name} but package has no locked version {self.version}"
             )
 
-        return self.version[len('=='):]
+        return self.version[len("==") :]
 
     @property
     def semantic_version(self) -> semver.Version:
@@ -155,7 +152,9 @@ class PackageVersion:
         return self._version_spec
 
     @staticmethod
-    def _get_index_from_meta(meta: 'PipenvMeta', package_name: str, index_name: typing.Optional[str]) -> typing.Optional[Source]:
+    def _get_index_from_meta(
+        meta: "PipenvMeta", package_name: str, index_name: typing.Optional[str]
+    ) -> typing.Optional[Source]:
         """Get the only index name present in the Pipfile.lock metadata.
 
         If there is no index explicitly assigned to package, there is only one package source
@@ -164,9 +163,7 @@ class PackageVersion:
         if index_name is not None and index_name in meta.sources:
             return meta.sources[index_name]
         elif index_name is not None and index_name not in meta.sources:
-            raise PipfileParseError(
-                f"Configured index {index_name} for package {package_name} not found in metadata"
-            )
+            raise PipfileParseError(f"Configured index {index_name} for package {package_name} not found in metadata")
         # We could also do this branch, but that can be dangerous as SHAs might differ in Pipfile.lock.
         #
         # elif index_name is None and len(meta.sources) == 1:
@@ -177,23 +174,23 @@ class PackageVersion:
         return None
 
     @classmethod
-    def from_pipfile_lock_entry(cls, package_name: str, entry: dict, develop: bool, meta: 'PipenvMeta'):
+    def from_pipfile_lock_entry(cls, package_name: str, entry: dict, develop: bool, meta: "PipenvMeta"):
         """Construct PackageVersion instance from representation as stated in Pipfile.lock."""
         _LOGGER.debug("Parsing entry in Pipfile.lock for package %r: %s", package_name, entry)
         entry = dict(entry)
 
-        if any(not entry.get(conf) for conf in ('version', 'hashes')):
+        if any(not entry.get(conf) for conf in ("version", "hashes")):
             raise PipfileParseError(
                 f"Package {package_name} has missing or empty configuration in the locked entry: {entry}"
             )
 
         instance = cls(
             name=package_name,
-            version=entry.pop('version'),
-            index=cls._get_index_from_meta(meta, package_name, entry.pop('index', None)),
-            hashes=entry.pop('hashes'),
-            markers=entry.pop('markers', None),
-            develop=develop
+            version=entry.pop("version"),
+            index=cls._get_index_from_meta(meta, package_name, entry.pop("index", None)),
+            hashes=entry.pop("hashes"),
+            markers=entry.pop("markers", None),
+            develop=develop,
         )
 
         if entry:
@@ -212,16 +209,13 @@ class PackageVersion:
         # if not self.hashes:
         #     raise InternalError(f"Trying to generate Pipfile.lock without assigned hashes for package: {self}")
 
-        result = {
-            'version': self.version,
-            'hashes': self.hashes,
-        }
+        result = {"version": self.version, "hashes": self.hashes}
 
         if self.markers:
-            result['markers'] = self.markers
+            result["markers"] = self.markers
 
         if self.index:
-            result['index'] = self.index.name
+            result["index"] = self.index.name
 
         return {self.name: result}
 
@@ -238,20 +232,20 @@ class PackageVersion:
         _LOGGER.debug("Generating Pipfile entry for package %r", self.name)
         result = dict()
         if self.index:
-            result['index'] = self.index.name
+            result["index"] = self.index.name
 
         if self.markers:
-            result['markers'] = self.markers
+            result["markers"] = self.markers
 
         if not result:
             # Only version information is available.
             return {self.name: self.version}
 
-        result['version'] = self.version
+        result["version"] = self.version
         return {self.name: result}
 
     @classmethod
-    def from_pipfile_entry(cls, package_name: str, entry: dict, develop: bool, meta: 'PipenvMeta'):
+    def from_pipfile_entry(cls, package_name: str, entry: dict, develop: bool, meta: "PipenvMeta"):
         """Construct PackageVersion instance from representation as stated in Pipfile."""
         _LOGGER.debug("Parsing entry in Pipfile for package %r: %s", package_name, entry)
         # Pipfile holds string for a version:
@@ -262,13 +256,13 @@ class PackageVersion:
         if isinstance(entry, str):
             package_version = entry
         else:
-            if any(vcs in entry for vcs in ('git', 'hg', 'bzr', 'svn')):
+            if any(vcs in entry for vcs in ("git", "hg", "bzr", "svn")):
                 raise UnsupportedConfiguration(
                     f"Package {package_name} uses a version control system instead of package index: {entry}"
                 )
 
-            package_version = entry.pop('version')
-            index = entry.pop('index', None)
+            package_version = entry.pop("version")
+            index = entry.pop("index", None)
             # TODO: raise an error if VCS is in use - we do not do recommendation on these
             if entry:
                 _LOGGER.warning("Unparsed part of Pipfile: %s", entry)
@@ -277,7 +271,7 @@ class PackageVersion:
             name=package_name,
             version=package_version,
             index=cls._get_index_from_meta(meta, package_name, index),
-            develop=develop
+            develop=develop,
         )
 
         return instance
