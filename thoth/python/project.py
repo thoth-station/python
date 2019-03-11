@@ -143,6 +143,43 @@ class Project:
             'requirements_locked': self.pipfile_lock.to_dict() if self.pipfile_lock else None
         }
 
+    def get_configuration_check_report(self) -> typing.Optional[typing.Tuple[dict, typing.List[dict]]]:
+        """Get a report on project configuration for the given runtime environment."""
+        result = []
+        changes_in_config = False
+
+        # We check Python version if there is used Pipfile, it should match runtime configuration.
+        pipfile_python_version = self.pipfile.meta.requires.get("python_version")
+        runtime_python_version = self.runtime_environment.python_version
+
+        # Keep the current runtime environment untouched.
+        recommended_runtime_configuration_entry = RuntimeEnvironment.from_dict(self.runtime_environment.to_dict())
+
+        if not pipfile_python_version and not runtime_python_version:
+            result.append({
+                "type": "WARNING",
+                "justification": "Please specify Python version in Pipfile using `pipenv --python <VERSION>` "
+                                 "and in Thoth's configuration file to have reproducible deployment and"
+                                 "recommendations targeting specific Python version"
+            })
+        elif pipfile_python_version and not runtime_python_version:
+            changes_in_config = True
+            recommended_runtime_configuration_entry.python_version = pipfile_python_version
+            result.append({
+                "type": "WARNING",
+                "justification": "Use Python version in Thoth's configuration file to have "
+                                 "recommendations matching configuration in Pipfile, configured Python version "
+                                 f"in Pipfile is {pipfile_python_version}"
+            })
+
+        # if pipfile_python_version and runtime_python_version:
+        # This case is not related to adjustments in Thoth's configuration but rather in Pipfile - that is handled
+        # in scoring.
+        if not result:
+            return None
+
+        return recommended_runtime_configuration_entry.to_dict(without_none=True) if changes_in_config else None, result
+
     def get_outdated_package_versions(self, devel: bool = True) -> dict:
         """Get outdated packages in the lock file.
 
