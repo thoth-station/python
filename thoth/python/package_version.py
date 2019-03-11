@@ -75,7 +75,7 @@ class PackageVersion:
         return self.semantic_version > other.semantic_version
 
     @classmethod
-    def from_model(model, *, develop: bool = False):
+    def from_model(cls, model, *, develop: bool = False):
         """Convert database model representation to object representation."""
         # TODO: add hashes to the graph database
         # TODO: we will need to add index information - later on?
@@ -155,7 +155,7 @@ class PackageVersion:
         return self._version_spec
 
     @staticmethod
-    def _get_index_from_meta(meta: 'PipenvMeta', package_name: str, index_name: typing.Optional[str]) -> str:
+    def _get_index_from_meta(meta: 'PipenvMeta', package_name: str, index_name: typing.Optional[str]) -> typing.Optional[Source]:
         """Get the only index name present in the Pipfile.lock metadata.
 
         If there is no index explicitly assigned to package, there is only one package source
