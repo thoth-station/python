@@ -26,24 +26,19 @@ from .project import Project
 def fill_package_digests(generated_project: Project) -> Project:
     """Temporary fill package digests stated in Pipfile.lock."""
 
-    for package_version in chain(generated_project.pipfile_lock.packages,
-                                 generated_project.pipfile_lock.dev_packages):
+    for package_version in chain(generated_project.pipfile_lock.packages, generated_project.pipfile_lock.dev_packages):
         if package_version.hashes:
             # Already filled from the last run.
             continue
 
         if package_version.index:
             scanned_hashes = package_version.index.get_package_hashes(
-                package_version.name,
-                package_version.locked_version
+                package_version.name, package_version.locked_version
             )
         else:
             for source in generated_project.pipfile.meta.sources.values():
                 try:
-                    scanned_hashes = source.get_package_hashes(
-                        package_version.name,
-                        package_version.locked_version
-                    )
+                    scanned_hashes = source.get_package_hashes(package_version.name, package_version.locked_version)
                     break
                 except Exception:
                     continue
@@ -51,6 +46,6 @@ def fill_package_digests(generated_project: Project) -> Project:
                 raise ValueError("Unable to find package hashes")
 
         for entry in scanned_hashes:
-            package_version.hashes.append('sha256:' + entry['sha256'])
+            package_version.hashes.append("sha256:" + entry["sha256"])
 
     return generated_project

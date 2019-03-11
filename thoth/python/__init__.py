@@ -29,4 +29,4 @@ from .source import Source
 
 
 __version__ = "0.4.6"
-__author__ = 'Fridolin Pokorny <fridolin@redhat.com>'
+__author__ = "Fridolin Pokorny <fridolin@redhat.com>"

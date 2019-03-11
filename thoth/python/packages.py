@@ -70,9 +70,7 @@ class Packages:
         package_version_map = {}
         for package_version in package_versions:
             if package_version.name in package_version_map:
-                raise InternalError(
-                    f"Atempt adding multiple packages with same name to Packages: {package_version!r}"
-                )
+                raise InternalError(f"Atempt adding multiple packages with same name to Packages: {package_version!r}")
 
             package_version_map[package_version.name] = package_version
             if develop != package_version.develop:
@@ -85,29 +83,21 @@ class Packages:
     @classmethod
     def from_pipfile(cls, packages, develop, meta):
         """Parse Pipfile entry stating list of packages used."""
-        _LOGGER.debug("Parsing Pipfile entry for %s packages", 'develop' if develop else 'default')
+        _LOGGER.debug("Parsing Pipfile entry for %s packages", "develop" if develop else "default")
         package_version = {}
         for package_name, package_info in packages.items():
-            package_version[package_name] = PackageVersion.from_pipfile_entry(
-                package_name,
-                package_info,
-                develop,
-                meta
-            )
+            package_version[package_name] = PackageVersion.from_pipfile_entry(package_name, package_info, develop, meta)
 
         return cls(develop=develop, packages=package_version)
 
     @classmethod
     def from_pipfile_lock(cls, packages, develop, meta):
         """Parse Pipfile.lock entry stating list of packages used."""
-        _LOGGER.debug("Parsing Pipfile.lock entry for %s packages", 'develop' if develop else 'default')
+        _LOGGER.debug("Parsing Pipfile.lock entry for %s packages", "develop" if develop else "default")
         package_version = {}
         for package_name, package_info in packages.items():
             package_version[package_name] = PackageVersion.from_pipfile_lock_entry(
-                package_name,
-                package_info,
-                develop,
-                meta
+                package_name, package_info, develop, meta
             )
 
         return cls(develop=develop, packages=package_version)
@@ -131,9 +121,7 @@ class Packages:
     def add_package_version(self, package_version: PackageVersion):
         """Add the given package version to package list."""
         if (package_version.develop and not self.develop) or (not package_version.develop and self.develop):
-            raise InternalError(
-                f"Adding package {package_version!r} to package listing without proper develop flag"
-            )
+            raise InternalError(f"Adding package {package_version!r} to package listing without proper develop flag")
 
         if package_version.name in self.packages:
             raise InternalError(
