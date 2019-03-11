@@ -161,21 +161,25 @@ class Project:
         recommended_runtime_configuration_entry = RuntimeEnvironment.from_dict(self.runtime_environment.to_dict())
 
         if not pipfile_python_version and not runtime_python_version:
-            result.append({
-                "type": "WARNING",
-                "justification": "Please specify Python version in Pipfile using `pipenv --python <VERSION>` "
-                                 "and in Thoth's configuration file to have reproducible deployment and"
-                                 "recommendations targeting specific Python version"
-            })
+            result.append(
+                {
+                    "type": "WARNING",
+                    "justification": "Please specify Python version in Pipfile using `pipenv --python <VERSION>` "
+                    "and in Thoth's configuration file to have reproducible deployment and"
+                    "recommendations targeting specific Python version",
+                }
+            )
         elif pipfile_python_version and not runtime_python_version:
             changes_in_config = True
             recommended_runtime_configuration_entry.python_version = pipfile_python_version
-            result.append({
-                "type": "WARNING",
-                "justification": "Use Python version in Thoth's configuration file to have "
-                                 "recommendations matching configuration in Pipfile, configured Python version "
-                                 f"in Pipfile is {pipfile_python_version}"
-            })
+            result.append(
+                {
+                    "type": "WARNING",
+                    "justification": "Use Python version in Thoth's configuration file to have "
+                    "recommendations matching configuration in Pipfile, configured Python version "
+                    f"in Pipfile is {pipfile_python_version}",
+                }
+            )
 
         # if pipfile_python_version and runtime_python_version:
         # This case is not related to adjustments in Thoth's configuration but rather in Pipfile - that is handled
