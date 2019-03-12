@@ -63,7 +63,7 @@ class PipfileMeta:
             dict_["source"] = []
 
         sources = {d["name"]: Source.from_dict(d) for d in dict_.pop("source")}
-        requires = dict_.pop("requires", None)
+        requires = dict_.pop("requires", {})
         pipenv = dict_.pop("pipenv", None)
         pipfile_spec = dict_.pop("pipfile-spec", None)
         hash_ = dict_.pop("hash", None)
