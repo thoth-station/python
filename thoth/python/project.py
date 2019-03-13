@@ -62,7 +62,14 @@ class Project:
         return self._workdir
 
     @classmethod
-    def from_files(cls, pipfile_path: str = None, pipfile_lock_path: str = None, *, runtime_environment: RuntimeEnvironment = None, without_pipfile_lock: bool = False):
+    def from_files(
+        cls,
+        pipfile_path: str = None,
+        pipfile_lock_path: str = None,
+        *,
+        runtime_environment: RuntimeEnvironment = None,
+        without_pipfile_lock: bool = False,
+    ):
         """Create project from Pipfile and Pipfile.lock files."""
         with open(pipfile_path or "Pipfile", "r") as pipfile_file:
             pipfile = Pipfile.from_string(pipfile_file.read())
@@ -78,7 +85,9 @@ class Project:
         return cls(pipfile, pipfile_lock)
 
     @classmethod
-    def from_strings(cls, pipfile_str: str, pipfile_lock_str: str = None, *, runtime_environment: RuntimeEnvironment = None):
+    def from_strings(
+        cls, pipfile_str: str, pipfile_lock_str: str = None, *, runtime_environment: RuntimeEnvironment = None
+    ):
         """Create project from Pipfile and Pipfile.lock loaded into strings."""
         pipfile = Pipfile.from_string(pipfile_str)
 
