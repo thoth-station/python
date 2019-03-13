@@ -135,8 +135,10 @@ class Project:
             self.pipfile.meta.requires["python_version"] = python_version
 
     @property
-    def python_version(self) -> str:
+    def python_version(self) -> typing.Optional[str]:
         """Get Python version used in this project."""
+        if not self.pipfile.meta.requires:
+            return None
         return self.pipfile.meta.requires.get("python_version", None)
 
     def to_dict(self):
