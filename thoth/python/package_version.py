@@ -115,7 +115,7 @@ class PackageVersion:
                 f"Requested locked version for {self.name} but package has no locked version {self.version}"
             )
 
-        return self.version[len("==") :]
+        return self.version[len("=="):]
 
     @property
     def semantic_version(self) -> semver.Version:

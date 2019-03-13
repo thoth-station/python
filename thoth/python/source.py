@@ -175,7 +175,7 @@ class Source:
         """Parse package version based on artifact name available on the package source index."""
         if artifact_name.endswith(".tar.gz"):
             # +1 for dash delimiting package name and package version.
-            version = artifact_name[len(package_name) + 1 : -len(".tar.gz")]
+            version = artifact_name[len(package_name) + 1:-len(".tar.gz")]
 
         elif artifact_name.endswith(".whl"):
             # TODO: we will need to improve this based on PEP-0503.
@@ -298,7 +298,7 @@ class Source:
             url_parts = artifact_url.rsplit("#", maxsplit=1)
             if len(url_parts) == 2 and url_parts[1].startswith("sha256="):
                 _LOGGER.debug("Using SHA256 stated in URL: %r", url_parts[1])
-                yield artifact_name, url_parts[1][len("sha256=") :]
+                yield artifact_name, url_parts[1][len("sha256="):]
                 continue
 
             _LOGGER.debug("Downloading artifact from url %r", artifact_url)
