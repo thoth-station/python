@@ -25,7 +25,6 @@ from .project import Project
 
 def fill_package_digests(generated_project: Project) -> Project:
     """Temporary fill package digests stated in Pipfile.lock."""
-
     for package_version in chain(generated_project.pipfile_lock.packages, generated_project.pipfile_lock.dev_packages):
         if package_version.hashes:
             # Already filled from the last run.

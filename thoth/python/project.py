@@ -62,7 +62,14 @@ class Project:
         return self._workdir
 
     @classmethod
-    def from_files(cls, pipfile_path: str = None, pipfile_lock_path: str = None, *, without_pipfile_lock: bool = False):
+    def from_files(
+        cls,
+        pipfile_path: str = None,
+        pipfile_lock_path: str = None,
+        *,
+        runtime_environment: RuntimeEnvironment = None,
+        without_pipfile_lock: bool = False,
+    ):
         """Create project from Pipfile and Pipfile.lock files."""
         with open(pipfile_path or "Pipfile", "r") as pipfile_file:
             pipfile = Pipfile.from_string(pipfile_file.read())
@@ -72,16 +79,24 @@ class Project:
             with open(pipfile_lock_path or "Pipfile.lock", "r") as pipfile_lock_file:
                 pipfile_lock = PipfileLock.from_string(pipfile_lock_file.read(), pipfile)
 
+        if runtime_environment:
+            return cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
+
         return cls(pipfile, pipfile_lock)
 
     @classmethod
-    def from_strings(cls, pipfile_str: str, pipfile_lock_str: str = None):
+    def from_strings(
+        cls, pipfile_str: str, pipfile_lock_str: str = None, *, runtime_environment: RuntimeEnvironment = None
+    ):
         """Create project from Pipfile and Pipfile.lock loaded into strings."""
         pipfile = Pipfile.from_string(pipfile_str)
 
         pipfile_lock = None
         if pipfile_lock_str:
             pipfile_lock = PipfileLock.from_string(pipfile_lock_str, pipfile)
+
+        if runtime_environment:
+            return cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
 
         return cls(pipfile, pipfile_lock)
 
@@ -398,13 +413,13 @@ class Project:
 
         if package_version.index and index_report.get(package_version.index.url) and len(hashes) > 1:
             # Is installed from different source - which one?
-            used_package_version_hashes = set(h[len("sha256:") :] for h in package_version.hashes)
+            used_package_version_hashes = set(h[len("sha256:"):] for h in package_version.hashes)
             configured_index_hashes = set(h["sha256"] for h in index_report[package_version.index.url])
 
             # Find other sources from which artifacts can be installed.
             other_sources = {}
             for artifact_hash in package_version.hashes:
-                artifact_hash = artifact_hash[len("sha256:") :]  # Remove pipenv-specific hash formatting.
+                artifact_hash = artifact_hash[len("sha256:"):]  # Remove pipenv-specific hash formatting.
 
                 for index_url, index_info in index_report.items():
                     if index_url == package_version.index.url:
@@ -474,7 +489,7 @@ class Project:
 
         # Changed hashes?
         for digest in package_version.hashes:
-            digest = digest[len("sha256:") :]
+            digest = digest[len("sha256:"):]
             for index_info in index_report.values():
                 if any(item["sha256"] == digest for item in index_info):
                     break
@@ -549,6 +564,7 @@ class Project:
         self.pipfile.add_package_version(package_version)
 
     def test_indexes_in_meta(self):
+        """Check indexes being adjusted when inserting a new package."""
         package_version = PackageVersion(
             name="tensorflow",
             version="==1.9.0",
