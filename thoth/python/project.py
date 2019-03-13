@@ -165,7 +165,7 @@ class Project:
                 {
                     "type": "WARNING",
                     "justification": "Please specify Python version in Pipfile using `pipenv --python <VERSION>` "
-                    "and in Thoth's configuration file to have reproducible deployment and"
+                    "and in Thoth's configuration file to have reproducible deployment and "
                     "recommendations targeting specific Python version",
                 }
             )
