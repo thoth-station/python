@@ -43,9 +43,11 @@ class Test(TestCommand):
         sys.exit(pytest.main(self.pytest_args))
 
 
+VERSION = get_version()
+
 setup(
     name='thoth-python',
-    version=get_version(),
+    version=VERSION,
     packages=[
         'thoth.python'
     ],
@@ -72,5 +74,9 @@ setup(
         "Programming Language :: Python :: Implementation :: CPython",
     ],
     cmdclass={'test': Test},
-
+    command_options={
+        'build_sphinx': {
+            'version': ('setup.py', VERSION),
+        }
+    }
 )
