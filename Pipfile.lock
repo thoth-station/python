@@ -193,10 +193,10 @@
         },
         "sentry-sdk": {
             "hashes": [
-                "sha256:dc207c083604bae01761866b3145ca9dcf5a45f3de048c4da22eac88889d49e7",
-                "sha256:f94cca2eb41d29fd2bdbedaf9d9a262ab3b4660e5d648d9920fae262e240c368"
+                "sha256:128d4b31667dd7240f88911caba323e8409830dc91f7600876527690ebb409a2",
+                "sha256:5be8e4071b3bbe14e4a6a4d277bab0de6ad9f5931703abea213857e97593d528"
             ],
-            "version": "==0.7.6"
+            "version": "==0.7.8"
         },
         "six": {
             "hashes": [
@@ -299,18 +299,18 @@
         },
         "flexmock": {
             "hashes": [
-                "sha256:41cc082cd40513644ed0237c99d712b6e397cc2cdf13d80163a7e27689302c0c"
+                "sha256:5033ceb974d6452cf8716c2ff5059074b77e546df5c849fb44a53f98dfe0d82c"
             ],
             "index": "pypi",
-            "version": "==0.10.3"
+            "version": "==0.10.4"
         },
         "more-itertools": {
             "hashes": [
-                "sha256:0125e8f60e9e031347105eb1682cef932f5e97d7b9a1a28d9bf00c22a5daef40",
-                "sha256:590044e3942351a1bdb1de960b739ff4ce277960f2425ad4509446dbace8d9d1"
+                "sha256:2112d2ca570bb7c3e53ea1a35cd5df42bb0fd10c45f0fb97178679c3c03d64c7",
+                "sha256:c3e4748ba1aad8dba30a4886b0b1a2004f9a863837b8654e7059eebf727afa5a"
             ],
             "markers": "python_version > '2.7'",
-            "version": "==6.0.0"
+            "version": "==7.0.0"
         },
         "pluggy": {
             "hashes": [
