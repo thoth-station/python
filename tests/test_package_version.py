@@ -180,6 +180,28 @@ class TestPackageVersion(PythonTestCase):
                 meta=_META
             )
 
+    def test_parse_semver(self):
+        package_version = PackageVersion(
+            name="tensorflow",
+            version="==1.9.0",
+            index="https://pypi.org/simple",
+            develop=False
+        )
+        assert package_version.semantic_version.major == 1
+        assert package_version.semantic_version.minor == 9
+        assert package_version.semantic_version.patch == 0
+
+    def test_parse_semver_leading_zeros(self):
+        package_version = PackageVersion(
+            name="pyyaml",
+            version="==3.01.2",
+            index="https://pypi.org/simple",
+            develop=False
+        )
+        assert package_version.semantic_version.major == 3
+        assert package_version.semantic_version.minor == 1
+        assert package_version.semantic_version.patch == 2
+
     def test_sorted(self):
         array = []
         for version in ('==1.0.0', '==0.1.0', '==3.0.0'):

@@ -126,7 +126,14 @@ class PackageVersion:
                     f"Cannot get semantic version for not-locked package {self.name} in version {self.version}"
                 )
 
-        self._semantic_version = self.parse_semantic_version(self.locked_version, _package_name=self.name)
+        try:
+            self._semantic_version = self.parse_semantic_version(self.locked_version, _package_name=self.name)
+        except ValueError:
+            # A simple workaround for leading zeros when parsing semver - e.g. 3.01.2.
+            parts = self.locked_version.split('.')
+            version = ".".join(map(str, map(int, parts)))
+            self._semantic_version = self.parse_semantic_version(version, self.name)
+
         return self._semantic_version
 
     @staticmethod
