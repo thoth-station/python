@@ -220,10 +220,10 @@
         },
         "thoth-common": {
             "hashes": [
-                "sha256:bf61f6c464393e0e9caeeccdde3bdb75eca97eb67ac30c13f97821b100dceb7e"
+                "sha256:91f43b48038d6d19dac8c60fb475306ebaeade7b73e9102314a00a1cb999561a"
             ],
             "index": "pypi",
-            "version": "==0.8.5"
+            "version": "==0.8.7"
         },
         "timestamp": {
             "hashes": [
