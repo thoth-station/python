@@ -191,10 +191,10 @@
         },
         "sentry-sdk": {
             "hashes": [
-                "sha256:1db9c4653e71d39ff3557c0981d5fb5f43a43e3a830fcf5e21a37c97f7bce6bb",
-                "sha256:7e24f3ec1f4c909306d1b97373fe5caa942f54009acdcfa4d1ee6671f626bbe9"
+                "sha256:d491aa6399eaa3eded433972751a9770180730fd8b4c225b0b7f49c4fa2af70b",
+                "sha256:d68003cdffbbfcadaa2c445b72e1050b0a44406f94199866f192986c016b23f5"
             ],
-            "version": "==0.10.1"
+            "version": "==0.10.2"
         },
         "six": {
             "hashes": [
@@ -218,11 +218,11 @@
         },
         "thoth-common": {
             "hashes": [
-                "sha256:44809240f4c2e71c9168d17e3e39280c9af52e9752977b794917c405a081c3ee",
-                "sha256:72349043a14b56ca2778dcd6c924c169495dabcb09a7ecd8fb500a0739a684b3"
+                "sha256:0b3d166c7cfe5feb0438667a88c06f4d80ad7e5c1f5c7b79b11dc6f0127bc48c",
+                "sha256:b1b0e37ac8a70dcb30238aeea966f26609f463f4e7164cef241addd477b9f735"
             ],
             "index": "pypi",
-            "version": "==0.9.3"
+            "version": "==0.9.4"
         },
         "timestamp": {
             "hashes": [
