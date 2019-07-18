@@ -1,0 +1,224 @@
+{
+    "name": "tensorflow_serving_api-1.13.0-py2.py3-none-any",
+    "type": "directory",
+    "contents": [
+        {
+            "name": "tensorflow_serving_api-1.13.0.dist-info",
+            "type": "directory",
+            "contents": [
+                {
+                    "name": "build_info.yaml",
+                    "type": "file",
+                    "sha256": "5d12eb1ff863ef5e7c8738eb32ef8654f83bafa4be532b3578cf77b62b869589"
+                },
+                {
+                    "name": "build_info.json",
+                    "type": "file",
+                    "sha256": "98047d6b243ac75fd28ac0e90e4a426f8317ef6181c8c548549e282deaea69d6"
+                },
+                {
+                    "name": "RECORD",
+                    "type": "file",
+                    "sha256": "5681e59fc4a72475e4188a7796af9ca6cae00be80ce9dcef04f43a3b9b0cde6e"
+                },
+                {
+                    "name": "top_level.txt",
+                    "type": "file",
+                    "sha256": "3745f17f70f65ebdec106c03105813939c00725b69a953d969afd20f7c8fc73c"
+                },
+                {
+                    "name": "WHEEL",
+                    "type": "file",
+                    "sha256": "1d7faff7e9e8524c94a31c99d4f312b92edab94c43011e1505da182ea0f4c70b"
+                },
+                {
+                    "name": "METADATA",
+                    "type": "file",
+                    "sha256": "b4244967383ff3acda2116931dcbcad78f6d246abd04fe5d4d3a0391a7ceb52f"
+                }
+            ]
+        },
+        {
+            "name": "tensorflow_serving",
+            "type": "directory",
+            "contents": [
+                {
+                    "name": "util",
+                    "type": "directory",
+                    "contents": [
+                        {
+                            "name": "status_pb2.py",
+                            "type": "file",
+                            "sha256": "c32470fcd8cc48bf55cc87d0d82e54830b2cd6eed69a6d2280fb3ae1f45ad762"
+                        },
+                        {
+                            "name": "__init__.py",
+                            "type": "file",
+                            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                        }
+                    ]
+                },
+                {
+                    "name": "sources",
+                    "type": "directory",
+                    "contents": [
+                        {
+                            "name": "storage_path",
+                            "type": "directory",
+                            "contents": [
+                                {
+                                    "name": "file_system_storage_path_source_pb2.py",
+                                    "type": "file",
+                                    "sha256": "482a71c5f4c77ec843ddd6f340aafaed51a1c6b3c710eb25e8d6cbd64723d990"
+                                },
+                                {
+                                    "name": "__init__.py",
+                                    "type": "file",
+                                    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "__init__.py",
+                            "type": "file",
+                            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                        }
+                    ]
+                },
+                {
+                    "name": "core",
+                    "type": "directory",
+                    "contents": [
+                        {
+                            "name": "logging_pb2.py",
+                            "type": "file",
+                            "sha256": "4cb300ef6126af811f8e5d58fbf97a6f0fe76fb2fc992d00b4042ccd1030f5b0"
+                        },
+                        {
+                            "name": "__init__.py",
+                            "type": "file",
+                            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                        }
+                    ]
+                },
+                {
+                    "name": "config",
+                    "type": "directory",
+                    "contents": [
+                        {
+                            "name": "model_server_config_pb2.py",
+                            "type": "file",
+                            "sha256": "6d063b3e8228ae5f3d7c23f48cf7bc25a89e48211d93ee2884174a44fa803339"
+                        },
+                        {
+                            "name": "logging_config_pb2.py",
+                            "type": "file",
+                            "sha256": "a1cce6d25bc66ecfa7aaaae9128b350bf0f356c293677a6fa3f3323153234172"
+                        },
+                        {
+                            "name": "log_collector_config_pb2.py",
+                            "type": "file",
+                            "sha256": "d4066dfeb978b375299c06fdd5c8c02f7e29011c55908c1a7d5ae9845028a8f2"
+                        },
+                        {
+                            "name": "__init__.py",
+                            "type": "file",
+                            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                        }
+                    ]
+                },
+                {
+                    "name": "apis",
+                    "type": "directory",
+                    "contents": [
+                        {
+                            "name": "session_service_pb2.py",
+                            "type": "file",
+                            "sha256": "1c33015af39de0ed61b03ddca5a3ed7ed6d8daa5623f151afc60f1058e311151"
+                        },
+                        {
+                            "name": "regression_pb2.py",
+                            "type": "file",
+                            "sha256": "bc1d47fe7ebf0be7ebc8a017dc9a08f3c9ad2cbb6710e077190d1617d586267a"
+                        },
+                        {
+                            "name": "prediction_service_pb2_grpc.py",
+                            "type": "file",
+                            "sha256": "0fc1f5115d72c554e14c536ff759b05e3f7a4fd936da124db93db5ff009b7421"
+                        },
+                        {
+                            "name": "prediction_service_pb2.py",
+                            "type": "file",
+                            "sha256": "dbc715f6ba2b8517867d50c859cdf3c540dbab24fd3a0691dcda220030a50406"
+                        },
+                        {
+                            "name": "prediction_log_pb2.py",
+                            "type": "file",
+                            "sha256": "f86f0bf2dde018fe53b842d894daa7d53f22f6bd40461863b683689df744ce33"
+                        },
+                        {
+                            "name": "predict_pb2.py",
+                            "type": "file",
+                            "sha256": "b01c9b4988ff54413f0686b6ae49989a3f0e98928c11aaeaad9e7f18476a0fb6"
+                        },
+                        {
+                            "name": "model_service_pb2_grpc.py",
+                            "type": "file",
+                            "sha256": "a09c7b1727aafc1c0a268785fc8154cdb8f1805beb7ef4f2c360d8a2a4c2438e"
+                        },
+                        {
+                            "name": "model_service_pb2.py",
+                            "type": "file",
+                            "sha256": "7d5f1aa07d15e19bdb2ea461f689f2365697a6cc9638ecb61b40e8362782678d"
+                        },
+                        {
+                            "name": "model_pb2.py",
+                            "type": "file",
+                            "sha256": "3ab87ccb9fffde923ff396a32bd44711a5abc55404e5b7bc34832d361aa48bf7"
+                        },
+                        {
+                            "name": "model_management_pb2.py",
+                            "type": "file",
+                            "sha256": "0adaa1860e61f547a1d191e7592833c6ad177516d9bca1a41b4ac3b9ba222957"
+                        },
+                        {
+                            "name": "input_pb2.py",
+                            "type": "file",
+                            "sha256": "b5ca303c2bf317003f5103d66f500a25e3643733a0c29906a09856fdee3a4a77"
+                        },
+                        {
+                            "name": "inference_pb2.py",
+                            "type": "file",
+                            "sha256": "b50c468d484cdd43c3fffe314a0d8f2d0e5e480a0f5387f696b35afebf1d9ae5"
+                        },
+                        {
+                            "name": "get_model_status_pb2.py",
+                            "type": "file",
+                            "sha256": "3de8d8cd528b4135b78e965a0ac5b38b65e2ad0329b98f98e1a41eafef77532d"
+                        },
+                        {
+                            "name": "get_model_metadata_pb2.py",
+                            "type": "file",
+                            "sha256": "634a7dbf759e26b3e1a80d09acda3653016202d9768408e6d901d564c49d81a0"
+                        },
+                        {
+                            "name": "classification_pb2.py",
+                            "type": "file",
+                            "sha256": "400dd232e7ffca60d64cd1dd8f61b30236296af514a7450ca07a4746bf17e5cb"
+                        },
+                        {
+                            "name": "__init__.py",
+                            "type": "file",
+                            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                        }
+                    ]
+                },
+                {
+                    "name": "__init__.py",
+                    "type": "file",
+                    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+            ]
+        }
+    ]
+}

@@ -135,7 +135,7 @@ class Source:
         """Calculate hash for all files inside wheel file."""
         doc = {'name': os.path.basename(path)}
         if os.path.isdir(path):
-            doc['type'] = "wheel"
+            doc['type'] = "directory"
             doc['contents'] = [self._construct_contents(os.path.join(path, dir_item)) for dir_item in os.listdir(path)]
         else:
             doc['type'] = "file"
