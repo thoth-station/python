@@ -36,6 +36,7 @@ from .configuration import config
 
 import io
 from zipfile import ZipFile
+import tarfile
 from contextlib import closing
 import os
 import tempfile
@@ -166,11 +167,15 @@ class Source:
         response = requests.get(artifact_url, verify=self.verify_ssl, stream=True)
         response.raise_for_status()
 
-        with closing(response), ZipFile(io.BytesIO(response.content)) as zip:
-            with tempfile.TemporaryDirectory() as tmpdir:
-                zip.extractall(os.path.join(tmpdir, artifact_name))
-                result = self._construct_contents(os.path.join(tmpdir, artifact_name))
-                return result['contents']
+        with closing(response), tempfile.TemporaryDirectory() as tmpdir:
+            if artifact_url.endswith(".whl"):
+                with ZipFile(io.BytesIO(response.content)) as zip:
+                    zip.extractall(os.path.join(tmpdir, artifact_name))
+            elif artifact_url.endswith(".gz"):
+                with tarfile.open(mode="r:gz", fileobj=io.BytesIO(response.content)) as tf:
+                    tf.extractall(os.path.join(tmpdir, artifact_name))
+            result = self._construct_contents(os.path.join(tmpdir, artifact_name))
+            return result['contents']
 
     def _warehouse_get_package_hashes(
         self, package_name: str, package_version: str, with_included_files: bool = False
