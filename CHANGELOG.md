@@ -135,3 +135,36 @@
 * Source code import
 * Add long description for PyPI
 * Initial project import
+
+## Release 0.6.0 (2019-07-22T20:56:03)
+* fix issue #20
+* :pushpin: Automatic update of dependency thoth-common from 0.9.3 to 0.9.4
+* :pushpin: Automatic update of dependency thoth-common from 0.9.2 to 0.9.3
+* :pushpin: Automatic update of dependency thoth-common from 0.9.1 to 0.9.2
+* testing get_package_hashes() with_included_files
+* :pushpin: Automatic update of dependency pytest from 5.0.0 to 5.0.1
+* :pushpin: Automatic update of dependency pytest from 4.6.3 to 5.0.0
+* :pushpin: Automatic update of dependency thoth-common from 0.9.0 to 0.9.1
+* :pushpin: Automatic update of dependency thoth-common from 0.8.11 to 0.9.0
+* gathering hashes for .whl files
+* :pushpin: Automatic update of dependency pytest from 4.6.2 to 4.6.3
+* :pushpin: Automatic update of dependency lxml from 4.3.3 to 4.3.4
+* :pushpin: Automatic update of dependency thoth-common from 0.8.7 to 0.8.11
+* :pushpin: Automatic update of dependency pytest from 4.5.0 to 4.6.2
+* :pushpin: Automatic update of dependency requests from 2.21.0 to 2.22.0
+* :pushpin: Automatic update of dependency thoth-common from 0.8.5 to 0.8.7
+* :pushpin: Automatic update of dependency pytest from 4.4.2 to 4.5.0
+* :pushpin: Automatic update of dependency pytest from 4.4.1 to 4.4.2
+* Minor fix to display correct release in title of docs html
+* :pushpin: Automatic update of dependency pytest-cov from 2.6.1 to 2.7.1
+* Add tests for parsing semver
+* A simple workaround to parse semver with leading zeros
+* :pushpin: Automatic update of dependency pytest from 4.4.0 to 4.4.1
+* :pushpin: Automatic update of dependency thoth-common from 0.8.4 to 0.8.5
+* Automatic update of dependency thoth-common from 0.8.3 to 0.8.4
+* Automatic update of dependency thoth-common from 0.8.2 to 0.8.3
+* Automatic update of dependency thoth-common from 0.8.1 to 0.8.2
+* Automatic update of dependency pytest from 4.3.1 to 4.4.0
+* Automatic update of dependency flexmock from 0.10.3 to 0.10.4
+* Automatic update of dependency lxml from 4.3.2 to 4.3.3
+* Propagate package name to debug message
