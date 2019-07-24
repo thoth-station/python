@@ -132,21 +132,6 @@ class Source:
         response.raise_for_status()
         return response.json()
 
-    def _construct_contents(self, path: str) -> dict:
-        """Calculate hash for all files inside wheel file."""
-        doc = {'name': os.path.basename(path)}
-        if os.path.isdir(path):
-            doc['type'] = "directory"
-            doc['contents'] = [self._construct_contents(os.path.join(path, dir_item)) for dir_item in os.listdir(path)]
-        else:
-            doc['type'] = "file"
-            digest = hashlib.sha256()
-            with open(path, 'rb') as afile:
-                buf = afile.read()
-                digest.update(buf)
-            doc['sha256'] = digest.hexdigest()
-        return doc
-
     def _get_hash(self, artifact_url: str) -> str:
         """Download wheel file and calculate hash for it."""
         _LOGGER.debug("Downloading artifact from url %r", artifact_url)
@@ -161,21 +146,35 @@ class Source:
         _LOGGER.debug("Computed artifact sha256 digest for %r: %s", artifact_url, digest)
         return digest
 
-    def _get_contents(self, artifact_url: str, artifact_name: str) -> dict:
-        """Construct JSON file where each file is maped to its hash value."""
+    def _gather_hashes(self, path: str) -> list:
+        """Calculate checksums and gather hashes of all file in the given artifact."""
+        digests = []
+        for root, dirs, files in os.walk(path):
+            for file_ in files:
+                filepath = os.path.join(root, file_)
+                if os.path.isfile(filepath):
+                    with open(filepath, 'rb') as my_file:
+                        digests.append({
+                            "filepath": filepath[len(path) + 1:],
+                            "sha256": hashlib.sha256(my_file.read()).hexdigest()
+                        })
+        return digests
+
+    def _get_digests(self, artifact_url: str, artifact_name: str) -> list:
+        """Gather digests for all files in the given artifact."""
         _LOGGER.debug("Downloading artifact from url %r", artifact_url)
         response = requests.get(artifact_url, verify=self.verify_ssl, stream=True)
         response.raise_for_status()
 
         with closing(response), tempfile.TemporaryDirectory() as tmpdir:
             if artifact_url.endswith(".whl"):
-                with ZipFile(io.BytesIO(response.content)) as zip:
-                    zip.extractall(os.path.join(tmpdir, artifact_name))
+                with ZipFile(io.BytesIO(response.content)) as zip_:
+                    zip_.extractall(os.path.join(tmpdir, artifact_name))
             elif artifact_url.endswith(".gz"):
                 with tarfile.open(mode="r:gz", fileobj=io.BytesIO(response.content)) as tf:
                     tf.extractall(os.path.join(tmpdir, artifact_name))
-            result = self._construct_contents(os.path.join(tmpdir, artifact_name))
-            return result['contents']
+
+            return self._gather_hashes(os.path.join(tmpdir, artifact_name))
 
     def _warehouse_get_package_hashes(
         self, package_name: str, package_version: str, with_included_files: bool = False
@@ -188,9 +187,9 @@ class Source:
             result.append(
                 {"name": item["filename"], "sha256": item["digests"]["sha256"]}
             )
-            # this checks whether user wants hashes of files inside .whl files
+            # this checks whether to gather digests for all files in the given artifact
             if with_included_files:
-                result[-1]["contents"] = self._get_contents(item["url"], item["filename"])
+                result[-1]["digests"] = self._get_digests(item["url"], item["filename"])
 
         return result
 
@@ -365,7 +364,7 @@ class Source:
             else:
                 digest = self._get_hash(artifact_url)
             yield (
-                artifact_name, digest, self._get_contents(artifact_url, artifact_name) if with_included_files else None
+                artifact_name, digest, self._get_digests(artifact_url, artifact_name) if with_included_files else None
             )
 
     def provides_package_version(self, package_name: str, package_version: str) -> bool:
@@ -386,10 +385,10 @@ class Source:
         result = []
         for artifact_item in artifacts_sha:
             doc = {}
-            doc['name'] = artifact_item[0]
-            doc['sha256'] = artifact_item[1]
+            doc["name"] = artifact_item[0]
+            doc["sha256"] = artifact_item[1]
             if with_included_files:
-                doc['contents'] = artifact_item[2]
+                doc["digests"] = artifact_item[2]
             result.append(doc)
 
         return result

@@ -135,7 +135,7 @@ class TestSource(PythonTestCase):
                 zip.extractall(os.path.join(tmpdir, artifact_name))
                 with open(os.path.join(os.getcwd(), 'tests/data/tensorflow_serving_api-1.13.0-py2.py3-none-any.json')) as json_file:
                     result = json.load(json_file)
-                    flexmock(Source).should_receive("_construct_contents")\
+                    flexmock(Source).should_receive("_gather_hashes")\
                         .with_args(os.path.join(tmpdir, artifact_name)).and_return(result)
 
     def test_get_packages(self):
