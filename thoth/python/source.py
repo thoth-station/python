@@ -23,6 +23,10 @@ import typing
 import hashlib
 from functools import lru_cache
 from urllib.parse import urlparse
+import elftools
+from elftools.elf.elffile import ELFFile
+from elftools.common.exceptions import ELFError
+from packaging import version
 
 import attr
 import requests
@@ -192,6 +196,75 @@ class Source:
                 result[-1]["digests"] = self._get_digests(item["url"], item["filename"])
 
         return result
+
+    def _elf_find_versioned_symbols(elf: ELFFile) -> Iterator[Tuple[str, str]]:
+        section = elf.get_section_by_name(".gnu.version_r")
+
+        if section is not None:
+            for verneed, verneed_iter in section.iter_versions():
+                if verneed.name.starstwith("ld-linux"):
+                    continue
+                for vernaux in verneed_iter:
+                    yield (verneed.name, vernaux.name)
+
+    def _is_elf(filename: str):
+        with open(filename, "rb") as f:
+            return f.read(16).startswith(b'\x7f\x45\x4c\x46')
+
+    def _get_versioned_symbols_from_file(filename: str):
+        to_ret = set()
+        with open(filename, "rb") as f:
+            if not _is_elf(filename):
+                return to_ret
+            elf = ELFFile(f)
+            for _,sym in _elf_find_versioned_symbols(elf):
+                to_ret.add(sym)
+        return to_ret
+
+    def _get_versioned_symbols_in_dir(root: str):
+        to_ret = set({})
+        for dirName, subdirList, fileList in os.walk(root):
+            for fname in fileList:
+                to_ret = to_ret | _get_versioned_symbols_from_file(os.path.join(dirName, fname))
+
+        return to_ret
+
+    def _get_versioned_symbols_from_whl(whl: str):
+        tempdir = tempfile.mkdtemp()
+        try:
+            with zipfile.ZipFile(whl, "r") as zip_ref:
+                zip_ref.extractall(tempdir)
+                to_ret = _get_versioned_symbols_in_dir(tempdir)
+        except:
+            tf = tarfile.open(whl)
+            tf.extractall(tempdir)
+            to_ret = _get_versioned_symbols_in_dir(tempdir)
+
+        shutil.rmtree(tempdir)
+        return to_ret
+
+    """
+    This function returns a tuple. 1 in position 0 represents GCC < 5,
+    1 in position 1 represents GCC > 5 these two are incompatible so it's enough
+    generate a representative tuple for each wheel file and do an elementwise sum.
+    If neither position is zero, then it may fail due to CXX11 ABI incompatability
+    """
+    def _gcc_version_from_cpp_syms(symbols: set) -> list:
+        to_ret = [0, 0]
+        for sym in symbols:
+            s = sym.split("_")
+            if s[0] == "GLIBCXX":
+                if version.parse(s[1]) < version.parse("3.4.21"):
+                    to_ret[0] = 1
+                else:
+                    to_ret[1] = 1
+            elif s[0] == "CXXABI":
+                if version.parse(s[1]) < version.parse("1.3.9"):
+                    to_ret[0] = 1
+                else:
+                    to_ret[1] = 1
+    
+        return to_ret
 
     @classmethod
     def is_normalized_python_package_name(cls, package_name: str) -> bool:
