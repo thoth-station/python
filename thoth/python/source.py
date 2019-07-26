@@ -27,6 +27,7 @@ import elftools
 from elftools.elf.elffile import ELFFile
 from elftools.common.exceptions import ELFError
 from packaging import version
+from typing import Iterator, List, Tuple, Dict, Optional
 
 import attr
 import requests
