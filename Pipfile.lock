@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "233a91ed1f07a61a9201b46e2fc70883766702cc9899aa817420e731088c26ee"
+            "sha256": "7852abe48d66a33718e5b692bda64294d246271489a6380a8346200394cabddc"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -142,6 +142,13 @@
                 "sha256:d7cc528d76e76342423ca640335bd3633420dc1366f258cb31d05e865ef5ca1f"
             ],
             "version": "==0.6.0"
+        },
+        "pyelftools": {
+            "hashes": [
+                "sha256:89c6da6f56280c37a5ff33468591ba9a124e17d71fe42de971818cbff46c1b24"
+            ],
+            "index": "pypi",
+            "version": "==0.25"
         },
         "pytz": {
             "hashes": [
@@ -341,10 +348,10 @@
         },
         "pyparsing": {
             "hashes": [
-                "sha256:1873c03321fc118f4e9746baf201ff990ceb915f433f23b395f5580d1840cb2a",
-                "sha256:9b6323ef4ab914af344ba97510e966d64ba91055d6b9afa6b30799340e89cc03"
+                "sha256:43c5486cefefa536c9aab528881c992328f020eefe4f6d06332449c365218580",
+                "sha256:d6c5ffe9d0305b9b977f7a642d36b9370954d1da7ada4c62393382cbadad4265"
             ],
-            "version": "==2.4.0"
+            "version": "==2.4.1.1"
         },
         "pytest": {
             "hashes": [

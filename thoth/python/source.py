@@ -217,7 +217,7 @@ class Source:
             if not _is_elf(filename):
                 return to_ret
             elf = ELFFile(f)
-            for _,sym in _elf_find_versioned_symbols(elf):
+            for _, sym in _elf_find_versioned_symbols(elf):
                 to_ret.add(sym)
         return to_ret
 
@@ -235,7 +235,7 @@ class Source:
             with zipfile.ZipFile(whl, "r") as zip_ref:
                 zip_ref.extractall(tempdir)
                 to_ret = _get_versioned_symbols_in_dir(tempdir)
-        except:
+        except Exception as e:
             tf = tarfile.open(whl)
             tf.extractall(tempdir)
             to_ret = _get_versioned_symbols_in_dir(tempdir)
@@ -263,7 +263,7 @@ class Source:
                     to_ret[0] = 1
                 else:
                     to_ret[1] = 1
-    
+
         return to_ret
 
     def _get_symbols(self, artifact_url: str, artifact_name: str) -> list:
@@ -294,7 +294,7 @@ class Source:
                     package_name,
                 )
                 continue
-            
+
             syms = self._get_symbols(artifact_url, artifact_name)
             yield (
                 artifact_name, syms, self._gcc_version_from_cpp_syms(syms),
