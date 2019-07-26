@@ -276,10 +276,10 @@ class Source:
             f.write(response.content)
             return _get_versioned_symbols_from_whl(f.name())
 
-    def _download_artifacts_sha(
-        self, package_name: str, package_version: str, with_included_files: bool = False
+    def _download_artifacts_syms(
+        self, package_name: str, package_version: str,
     ) -> typing.Generator[tuple, None, None]:
-        """Download the given artifact from Warehouse and compute its SHA."""
+        """Download the given artifact from Warehouse and compute its symbols."""
         for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
             # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
             artifact_name.lower()
@@ -294,20 +294,10 @@ class Source:
                     package_name,
                 )
                 continue
-
-            url_parts = artifact_url.rsplit("#", maxsplit=1)
-
-            # this checks if sha256 hash is already given on the url
-            if len(url_parts) == 2 and url_parts[1].startswith("sha256="):
-                digest = url_parts[1][len("sha256="):]
-                _LOGGER.debug("Using SHA256 stated in URL: %r", url_parts[1])
-            else:
-                digest = self._get_hash(artifact_url)
             
             syms = self._get_symbols(artifact_url, artifact_name)
             yield (
-                artifact_name, digest, syms if with_included_files else None,
-                self._gcc_version_from_cpp_syms(syms) if with_included_files else None,
+                artifact_name, syms, self._gcc_version_from_cpp_syms(syms),
             )
 
     @classmethod
@@ -499,6 +489,7 @@ class Source:
             return self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
 
         artifacts_sha = self._download_artifacts_sha(package_name, package_version, with_included_files)
+        artifacts_syms = self._download_artifacts_syms(package_name, package_version)
         result = []
         for artifact_item in artifacts_sha:
             doc = {}
