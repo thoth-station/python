@@ -266,6 +266,50 @@ class Source:
     
         return to_ret
 
+    def _get_symbols(self, artifact_url: str, artifact_name: str) -> list:
+        """Gather needed symbols for all files in the given artifact."""
+        _LOGGER.debug("Downloading artifact from url %r", artifact_url)
+        response = requests.get(artifact_url, verify=self.verify_ssl, stream=True)
+        response.raise_for_status()
+
+        with tempfile.NamedTemporaryFile(mode="w+b") as f:
+            f.write(response.content)
+            return _get_versioned_symbols_from_whl(f.name())
+
+    def _download_artifacts_sha(
+        self, package_name: str, package_version: str, with_included_files: bool = False
+    ) -> typing.Generator[tuple, None, None]:
+        """Download the given artifact from Warehouse and compute its SHA."""
+        for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
+            # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
+            artifact_name.lower()
+            if not artifact_name.startswith(f"{package_name}-{package_version}"):
+                # TODO: this logic has to be improved as package version can be a suffix of another package version:
+                #   mypackage-1.0.whl, mypackage-1.0.0.whl, ...
+                # This will require parsing based on PEP or some better logic.
+                _LOGGER.debug(
+                    "Skipping artifact %r as it does not match required version %r for package %r",
+                    artifact_name,
+                    package_version,
+                    package_name,
+                )
+                continue
+
+            url_parts = artifact_url.rsplit("#", maxsplit=1)
+
+            # this checks if sha256 hash is already given on the url
+            if len(url_parts) == 2 and url_parts[1].startswith("sha256="):
+                digest = url_parts[1][len("sha256="):]
+                _LOGGER.debug("Using SHA256 stated in URL: %r", url_parts[1])
+            else:
+                digest = self._get_hash(artifact_url)
+            
+            syms = self._get_symbols(artifact_url, artifact_name)
+            yield (
+                artifact_name, digest, syms if with_included_files else None,
+                self._gcc_version_from_cpp_syms(syms) if with_included_files else None,
+            )
+
     @classmethod
     def is_normalized_python_package_name(cls, package_name: str) -> bool:
         """Check if the given Python package name is normalized."""
