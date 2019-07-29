@@ -165,22 +165,6 @@ class Source:
                         })
         return digests
 
-    def _get_digests(self, artifact_url: str, artifact_name: str) -> list:
-        """Gather digests for all files in the given artifact."""
-        _LOGGER.debug("Downloading artifact from url %r", artifact_url)
-        response = requests.get(artifact_url, verify=self.verify_ssl, stream=True)
-        response.raise_for_status()
-
-        with closing(response), tempfile.TemporaryDirectory() as tmpdir:
-            if artifact_url.endswith(".whl"):
-                with ZipFile(io.BytesIO(response.content)) as zip_:
-                    zip_.extractall(os.path.join(tmpdir, artifact_name))
-            elif artifact_url.endswith(".gz"):
-                with tarfile.open(mode="r:gz", fileobj=io.BytesIO(response.content)) as tf:
-                    tf.extractall(os.path.join(tmpdir, artifact_name))
-
-            return self._gather_hashes(os.path.join(tmpdir, artifact_name))
-
     def _warehouse_get_package_hashes(
         self, package_name: str, package_version: str, with_included_files: bool = False
     ) -> typing.List[dict]:
@@ -198,7 +182,8 @@ class Source:
 
         return result
 
-    def _elf_find_versioned_symbols(elf: ELFFile) -> Iterator[Tuple[str, str]]:
+    def _elf_find_versioned_symbols(self, elf: ELFFile) -> Iterator[Tuple[str, str]]:
+        """Takes an ELFFile object and outputs the required dynamic symbols."""
         section = elf.get_section_by_name(".gnu.version_r")
 
         if section is not None:
@@ -206,100 +191,68 @@ class Source:
                 if verneed.name.starstwith("ld-linux"):
                     continue
                 for vernaux in verneed_iter:
-                    yield (verneed.name, vernaux.name)
+                    yield verneed.name, vernaux.name
 
-    def _is_elf(filename: str):
+    def _is_elf(self, filename: str):
+        """Checks if files magic numbers are <delete>ELF."""
         with open(filename, "rb") as f:
             return f.read(16).startswith(b'\x7f\x45\x4c\x46')
 
-    def _get_versioned_symbols_from_file(filename: str):
+    def _get_versioned_symbols_from_file(self, filename: str):
+        """Given a file get all required dynamic symbols if it's an executable."""
         to_ret = set()
         with open(filename, "rb") as f:
             if not _is_elf(filename):
                 return to_ret
             elf = ELFFile(f)
-            for _, sym in _elf_find_versioned_symbols(elf):
+            for _, sym in self._elf_find_versioned_symbols(elf):
                 to_ret.add(sym)
         return to_ret
 
-    def _get_versioned_symbols_in_dir(root: str):
-        to_ret = set({})
-        for dirName, subdirList, fileList in os.walk(root):
-            for fname in fileList:
-                to_ret = to_ret | _get_versioned_symbols_from_file(os.path.join(dirName, fname))
+    def _get_versioned_symbols_in_dir(self, root: str):
+        """Walk dir and get all dynamic symbols required from all files"""
+        to_ret = set()
+        for dir_name, subdir_list, file_list in os.walk(root):
+            for fname in file_list:
+                to_ret = to_ret | self._get_versioned_symbols_from_file(os.path.join(dir_name, fname))
 
         return to_ret
 
-    def _get_versioned_symbols_from_whl(whl: str):
-        tempdir = tempfile.mkdtemp()
+    def _get_data_from_compressed(self, compressed_file: str, artifact_name: str):
+        """Run extract and call any functions on dir to get desired info"""
         try:
-            with zipfile.ZipFile(whl, "r") as zip_ref:
-                zip_ref.extractall(tempdir)
-                to_ret = _get_versioned_symbols_in_dir(tempdir)
+            tempdir = tempfile.mkdtemp()
+            try:
+                with zipfile.ZipFile(compressed_file, "r") as zip_ref:
+                    zip_ref.extractall(tempdir)
+                    to_ret["syms"] = self._get_versioned_symbols_in_dir(tempdir)
+                    to_ret["hashes"] = self._gather_hashes(tempdir)
+                    # NOTE: If you want to add more functions do it here
+                _LOGGER.debug("File is a .whl file")
+            except Exception as e:
+                tf = tarfile.open(compressed_file)
+                tf.extractall(tempdir)
+                to_ret["syms"] = self._get_versioned_symbols_in_dir(tempdir)
+                to_ret["hashes"] = self._gather_hashes(tmpdir)
+                # NOTE: and here
+                _LOGGER.debug("File is .tar.gz file")
         except Exception as e:
-            tf = tarfile.open(whl)
-            tf.extractall(tempdir)
-            to_ret = _get_versioned_symbols_in_dir(tempdir)
-
-        shutil.rmtree(tempdir)
-        return to_ret
-
-    """
-    This function returns a tuple. 1 in position 0 represents GCC < 5,
-    1 in position 1 represents GCC > 5 these two are incompatible so it's enough
-    generate a representative tuple for each wheel file and do an elementwise sum.
-    If neither position is zero, then it may fail due to CXX11 ABI incompatability
-    """
-    def _gcc_version_from_cpp_syms(symbols: set) -> list:
-        to_ret = [0, 0]
-        for sym in symbols:
-            s = sym.split("_")
-            if s[0] == "GLIBCXX":
-                if version.parse(s[1]) < version.parse("3.4.21"):
-                    to_ret[0] = 1
-                else:
-                    to_ret[1] = 1
-            elif s[0] == "CXXABI":
-                if version.parse(s[1]) < version.parse("1.3.9"):
-                    to_ret[0] = 1
-                else:
-                    to_ret[1] = 1
+            _LOGGER.error("Could not create a temporary file\n%r", e)
+            return
+        finally:
+            shutil.rmtree(tempdir)
 
         return to_ret
 
-    def _get_symbols(self, artifact_url: str, artifact_name: str) -> list:
-        """Gather needed symbols for all files in the given artifact."""
+    def _get_data(self, artifact_url: str, artifact_name: str) -> list:
+        """Download artifact to temp file and retrieve info from it."""
         _LOGGER.debug("Downloading artifact from url %r", artifact_url)
         response = requests.get(artifact_url, verify=self.verify_ssl, stream=True)
         response.raise_for_status()
 
         with tempfile.NamedTemporaryFile(mode="w+b") as f:
             f.write(response.content)
-            return _get_versioned_symbols_from_whl(f.name())
-
-    def _download_artifacts_syms(
-        self, package_name: str, package_version: str,
-    ) -> typing.Generator[tuple, None, None]:
-        """Download the given artifact from Warehouse and compute its symbols."""
-        for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
-            # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
-            artifact_name.lower()
-            if not artifact_name.startswith(f"{package_name}-{package_version}"):
-                # TODO: this logic has to be improved as package version can be a suffix of another package version:
-                #   mypackage-1.0.whl, mypackage-1.0.0.whl, ...
-                # This will require parsing based on PEP or some better logic.
-                _LOGGER.debug(
-                    "Skipping artifact %r as it does not match required version %r for package %r",
-                    artifact_name,
-                    package_version,
-                    package_name,
-                )
-                continue
-
-            syms = self._get_symbols(artifact_url, artifact_name)
-            yield (
-                artifact_name, syms, self._gcc_version_from_cpp_syms(syms),
-            )
+            return self._get_data_from_compressed(f.name(), artifact_name)
 
     @classmethod
     def is_normalized_python_package_name(cls, package_name: str) -> bool:
@@ -444,10 +397,10 @@ class Source:
 
         return artifacts
 
-    def _download_artifacts_sha(
+    def _download_artifacts_data(
         self, package_name: str, package_version: str, with_included_files: bool = False
     ) -> typing.Generator[tuple, None, None]:
-        """Download the given artifact from Warehouse and compute its SHA."""
+        """Download the given artifact from Warehouse and compute desired info."""
         for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
             # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
             artifact_name.lower()
@@ -472,7 +425,7 @@ class Source:
             else:
                 digest = self._get_hash(artifact_url)
             yield (
-                artifact_name, digest, self._get_digests(artifact_url, artifact_name) if with_included_files else None
+                artifact_name, digest, self._get_data(artifact_url, artifact_name) if with_included_files else None
             )
 
     def provides_package_version(self, package_name: str, package_version: str) -> bool:
@@ -484,20 +437,20 @@ class Source:
             return False
 
     @lru_cache(maxsize=10)
-    def get_package_hashes(self, package_name: str, package_version: str, with_included_files: bool = False) -> list:
+    def get_package_data(self, package_name: str, package_version: str, with_included_files: bool = False) -> list:
         """Get information about release hashes available in this source index."""
         if self.warehouse:
             return self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
 
-        artifacts_sha = self._download_artifacts_sha(package_name, package_version, with_included_files)
-        artifacts_syms = self._download_artifacts_syms(package_name, package_version)
+        artifacts_data = self._download_artifacts_data(package_name, package_version, with_included_files)
         result = []
         for artifact_item in artifacts_sha:
             doc = {}
             doc["name"] = artifact_item[0]
             doc["sha256"] = artifact_item[1]
             if with_included_files:
-                doc["digests"] = artifact_item[2]
+                doc["digests"] = artifact_item[2]["hashes"]
+                doc["symbols"] = artifact_item[2]["syms"]
             result.append(doc)
 
         return result
