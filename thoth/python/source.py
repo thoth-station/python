@@ -233,7 +233,7 @@ class Source:
                 tf = tarfile.open(compressed_file)
                 tf.extractall(tempdir)
                 to_ret["syms"] = self._get_versioned_symbols_in_dir(tempdir)
-                to_ret["hashes"] = self._gather_hashes(tmpdir)
+                to_ret["hashes"] = self._gather_hashes(tempdir)
                 # NOTE: and here
                 _LOGGER.debug("File is .tar.gz file")
         except Exception as e:
