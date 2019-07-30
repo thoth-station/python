@@ -24,10 +24,9 @@ import hashlib
 from functools import lru_cache
 from urllib.parse import urlparse
 import elftools
-from elftools.elf.elffile import ELFFile
-from elftools.common.exceptions import ELFError
 from packaging import version
 from typing import Iterator, List, Tuple, Dict, Optional
+import shutil
 
 import attr
 import requests
@@ -38,6 +37,7 @@ from .exceptions import NotFound
 from .exceptions import InternalError
 from .exceptions import VersionIdentifierError
 from .configuration import config
+from .python_artifact import PythonArtifact
 
 import io
 from zipfile import ZipFile
@@ -137,34 +137,6 @@ class Source:
         response.raise_for_status()
         return response.json()
 
-    def _get_hash(self, artifact_url: str) -> str:
-        """Download wheel file and calculate hash for it."""
-        _LOGGER.debug("Downloading artifact from url %r", artifact_url)
-        response = requests.get(artifact_url, verify=self.verify_ssl, stream=True)
-        response.raise_for_status()
-        digest = hashlib.sha256()
-        for chunk in response.iter_content(chunk_size=1024):
-            if chunk:  # filter out keep-alive new chunks
-                digest.update(chunk)
-
-        digest = digest.hexdigest()
-        _LOGGER.debug("Computed artifact sha256 digest for %r: %s", artifact_url, digest)
-        return digest
-
-    def _gather_hashes(self, path: str) -> list:
-        """Calculate checksums and gather hashes of all file in the given artifact."""
-        digests = []
-        for root, dirs, files in os.walk(path):
-            for file_ in files:
-                filepath = os.path.join(root, file_)
-                if os.path.isfile(filepath):
-                    with open(filepath, 'rb') as my_file:
-                        digests.append({
-                            "filepath": filepath[len(path) + 1:],
-                            "sha256": hashlib.sha256(my_file.read()).hexdigest()
-                        })
-        return digests
-
     def _warehouse_get_package_hashes(
         self, package_name: str, package_version: str, with_included_files: bool = False
     ) -> typing.List[dict]:
@@ -181,78 +153,6 @@ class Source:
                 result[-1]["digests"] = self._get_digests(item["url"], item["filename"])
 
         return result
-
-    def _elf_find_versioned_symbols(self, elf: ELFFile) -> Iterator[Tuple[str, str]]:
-        """Takes an ELFFile object and outputs the required dynamic symbols."""
-        section = elf.get_section_by_name(".gnu.version_r")
-
-        if section is not None:
-            for verneed, verneed_iter in section.iter_versions():
-                if verneed.name.starstwith("ld-linux"):
-                    continue
-                for vernaux in verneed_iter:
-                    yield verneed.name, vernaux.name
-
-    def _is_elf(self, filename: str):
-        """Checks if files magic numbers are <delete>ELF."""
-        with open(filename, "rb") as f:
-            return f.read(16).startswith(b'\x7f\x45\x4c\x46')
-
-    def _get_versioned_symbols_from_file(self, filename: str):
-        """Given a file get all required dynamic symbols if it's an executable."""
-        to_ret = set()
-        with open(filename, "rb") as f:
-            if not _is_elf(filename):
-                return to_ret
-            elf = ELFFile(f)
-            for _, sym in self._elf_find_versioned_symbols(elf):
-                to_ret.add(sym)
-        return to_ret
-
-    def _get_versioned_symbols_in_dir(self, root: str):
-        """Walk dir and get all dynamic symbols required from all files"""
-        to_ret = set()
-        for dir_name, subdir_list, file_list in os.walk(root):
-            for fname in file_list:
-                to_ret = to_ret | self._get_versioned_symbols_from_file(os.path.join(dir_name, fname))
-
-        return to_ret
-
-    def _get_data_from_compressed(self, compressed_file: str, artifact_name: str):
-        """Run extract and call any functions on dir to get desired info"""
-        try:
-            tempdir = tempfile.mkdtemp()
-            try:
-                with zipfile.ZipFile(compressed_file, "r") as zip_ref:
-                    zip_ref.extractall(tempdir)
-                    to_ret["syms"] = self._get_versioned_symbols_in_dir(tempdir)
-                    to_ret["hashes"] = self._gather_hashes(tempdir)
-                    # NOTE: If you want to add more functions do it here
-                _LOGGER.debug("File is a .whl file")
-            except Exception as e:
-                tf = tarfile.open(compressed_file)
-                tf.extractall(tempdir)
-                to_ret["syms"] = self._get_versioned_symbols_in_dir(tempdir)
-                to_ret["hashes"] = self._gather_hashes(tempdir)
-                # NOTE: and here
-                _LOGGER.debug("File is .tar.gz file")
-        except Exception as e:
-            _LOGGER.error("Could not create a temporary file\n%r", e)
-            return
-        finally:
-            shutil.rmtree(tempdir)
-
-        return to_ret
-
-    def _get_data(self, artifact_url: str, artifact_name: str) -> list:
-        """Download artifact to temp file and retrieve info from it."""
-        _LOGGER.debug("Downloading artifact from url %r", artifact_url)
-        response = requests.get(artifact_url, verify=self.verify_ssl, stream=True)
-        response.raise_for_status()
-
-        with tempfile.NamedTemporaryFile(mode="w+b") as f:
-            f.write(response.content)
-            return self._get_data_from_compressed(f.name(), artifact_name)
 
     @classmethod
     def is_normalized_python_package_name(cls, package_name: str) -> bool:
@@ -416,16 +316,16 @@ class Source:
                 )
                 continue
 
-            url_parts = artifact_url.rsplit("#", maxsplit=1)
+            artifact = PythonArtifact(artifact_name, artifact_url)
+            
+            symbols = None
+            hashes = None
+            if with_included_files:
+                symbols = artifact.get_versioned_symbols()
+                hashes = artifact.gather_hashes()
 
-            # this checks if sha256 hash is already given on the url
-            if len(url_parts) == 2 and url_parts[1].startswith("sha256="):
-                digest = url_parts[1][len("sha256="):]
-                _LOGGER.debug("Using SHA256 stated in URL: %r", url_parts[1])
-            else:
-                digest = self._get_hash(artifact_url)
             yield (
-                artifact_name, digest, self._get_data(artifact_url, artifact_name) if with_included_files else None
+                artifact_name, artifact.sha, hashes, symbols,
             )
 
     def provides_package_version(self, package_name: str, package_version: str) -> bool:
@@ -449,8 +349,8 @@ class Source:
             doc["name"] = artifact_item[0]
             doc["sha256"] = artifact_item[1]
             if with_included_files:
-                doc["digests"] = artifact_item[2]["hashes"]
-                doc["symbols"] = artifact_item[2]["syms"]
+                doc["digests"] = artifact_item[3]
+                doc["symbols"] = artifact_item[4]
             result.append(doc)
 
         return result
