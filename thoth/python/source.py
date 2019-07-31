@@ -317,7 +317,7 @@ class Source:
                 )
                 continue
 
-            artifact = PythonArtifact(artifact_name, artifact_url)
+            artifact = PythonArtifact(artifact_name, artifact_url, verify_ssl=self.verify_ssl)
 
             symbols = None
             hashes = None
