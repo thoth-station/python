@@ -137,6 +137,7 @@ class Source:
         response.raise_for_status()
         return response.json()
 
+    # TODO: this function likely needs to change to also get symbols
     def _warehouse_get_package_hashes(
         self, package_name: str, package_version: str, with_included_files: bool = False
     ) -> typing.List[dict]:
@@ -317,7 +318,7 @@ class Source:
                 continue
 
             artifact = PythonArtifact(artifact_name, artifact_url)
-            
+
             symbols = None
             hashes = None
             if with_included_files:
@@ -338,7 +339,7 @@ class Source:
 
     @lru_cache(maxsize=10)
     def get_package_data(self, package_name: str, package_version: str, with_included_files: bool = False) -> list:
-        """Get information about release hashes available in this source index."""
+        """Get information about release hashes and symbols available in this source index."""
         if self.warehouse:
             return self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
 
@@ -351,6 +352,24 @@ class Source:
             if with_included_files:
                 doc["digests"] = artifact_item[3]
                 doc["symbols"] = artifact_item[4]
+            result.append(doc)
+
+        return result
+
+    @lru_cache(maxsize=10)
+    def get_package_hashes(self, package_name: str, package_version: str, with_included_files: bool = False) -> list:
+        """Get information about release hashes available in this source index."""
+        if self.warehouse:
+            return self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
+
+        artifacts_data = self._download_artifacts_data(package_name, package_version, with_included_files)
+        result = []
+        for artifact_item in artifacts_sha:
+            doc = {}
+            doc["name"] = artifact_item[0]
+            doc["sha256"] = artifact_item[1]
+            if with_included_files:
+                doc["digests"] = artifact_item[3]
             result.append(doc)
 
         return result

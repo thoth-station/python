@@ -1,4 +1,22 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# thoth-python
+# Copyright(C) 2019 Kevin Postlthwait
+#
+# This program is free software: you can redistribute it and / or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+"""Representation a python module and all the files within."""
+
 import shutil
 import logging
 import requests
@@ -13,8 +31,10 @@ from typing import Iterator, Tuple
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class PythonArtifact:
     def __init__(self, artifact_name, artifact_url, verify_ssl=False):
+        """Create a new Python Artifact"""
         self.verify_ssl = verify_ssl
         self.with_included_files = with_included_files
         self.artifact_name = artifact_name
@@ -49,14 +69,13 @@ class PythonArtifact:
         except Exception as e:
             _LOGGER.error("Could not create temp dir")
 
-
     def _calculate_sha(self, compressed_file) -> str:
         """Calculate SHA256 of compressed file if not present in url."""
         url_parts = self.artifact_url.rsplit("#", maxsplit=1)
         if len(url_parts) == 2 and url_parts[1].startswith("sha256="):
-                digest = url_parts[1][len("sha256="):]
-                _LOGGER.debug("Using SHA256 stated in URL: %r", url_parts[1])
-                return digest
+            digest = url_parts[1][len("sha256="):]
+            _LOGGER.debug("Using SHA256 stated in URL: %r", url_parts[1])
+            return digest
 
         digest = hashlib.sha256()
         chunk = 1024
@@ -73,7 +92,7 @@ class PythonArtifact:
 
     #                       VERSIONED SYMBOLS                                #
     def _elf_find_versioned_symbols(self, elf: ELFFile) -> Iterator[Tuple[str, str]]:
-        """Takes an ELFFile object and outputs the required dynamic symbols."""
+        """Take an ELFFile object and outputs the required dynamic symbols."""
         section = elf.get_section_by_name(".gnu.version_r")
 
         if section is not None:
@@ -84,7 +103,7 @@ class PythonArtifact:
                     yield verneed.name, vernaux.name
 
     def _is_elf(self, filename: str) -> bool:
-        """Checks if files magic numbers are <delete>ELF."""
+        """Check if files magic numbers are <delete>ELF."""
         with open(filename, "rb") as f:
             return f.read(16).startswith(b'\x7f\x45\x4c\x46')
 
@@ -100,7 +119,7 @@ class PythonArtifact:
         return to_ret
 
     def get_versioned_symbols(self) -> set:
-        """Walk dir and get all dynamic symbols required from all files"""
+        """Walk dir and get all dynamic symbols required from all files."""
         to_ret = set()
         for dir_name, _, file_list in os.walk(self.dir_name):
             for fname in file_list:
@@ -122,6 +141,7 @@ class PythonArtifact:
                             "sha256": hashlib.sha256(my_file.read()).hexdigest()
                         })
         return digests
-            
+        
     def __del__(self):
+        """Remove temporary file created by class."""
         shutil.rmtree(self.dir_name)
