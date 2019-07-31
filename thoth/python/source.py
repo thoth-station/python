@@ -362,7 +362,7 @@ class Source:
         if self.warehouse:
             return self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
 
-        artifacts_data = self._download_artifacts_data(package_name, package_version, with_included_files)
+        artifacts_sha = self._download_artifacts_data(package_name, package_version, with_included_files)
         result = []
         for artifact_item in artifacts_sha:
             doc = {}
