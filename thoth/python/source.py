@@ -193,6 +193,7 @@ class Source:
     @staticmethod
     def _parse_artifact_version(package_name: str, artifact_name: str) -> str:
         """Parse package version based on artifact name available on the package source index."""
+
         if artifact_name.endswith(".tar.gz"):
             # +1 for dash delimiting package name and package version.
             version = artifact_name[len(package_name) + 1:-len(".tar.gz")]

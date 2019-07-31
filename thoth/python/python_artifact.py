@@ -37,7 +37,6 @@ class PythonArtifact:
     def __init__(self, artifact_name, artifact_url, verify_ssl=False):
         """Create a new Python Artifact."""
         self.verify_ssl = verify_ssl
-        self.with_included_files = with_included_files
         self.artifact_name = artifact_name
         self.artifact_url = artifact_url
         self._download_artifact(artifact_url)   # initialize self.compressed_file
