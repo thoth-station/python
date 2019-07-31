@@ -34,6 +34,7 @@ _LOGGER = logging.getLogger(__name__)
 
 class PythonArtifact:
     """Python artifacts are compressed modules."""
+
     def __init__(self, artifact_name, artifact_url, verify_ssl=False):
         """Create a new Python Artifact."""
         self.verify_ssl = verify_ssl
