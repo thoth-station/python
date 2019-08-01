@@ -43,7 +43,7 @@ class PythonArtifact:
         self.dir_name = None
 
         if compressed_file_name is not None:
-            self.compressed_file = open(compressed_file_name, "w+b")
+            self.compressed_file = open(compressed_file_name, "r+b")
         else:
             self.compressed_file = None
 
@@ -51,15 +51,15 @@ class PythonArtifact:
 
     def _download_if_necessary(self):
         if self.compressed_file is None:
-            self._download_artifact(self.artifact_url)
+            self._download_artifact()
 
     def _extract_if_necessary(self):
         if self.dir_name is None:
             self._extract_py_module()
 
-    def _download_artifact(self, artifact_url) -> None:
-        _LOGGER.debug("Downloading artifact from url %r", artifact_url)
-        response = requests.get(artifact_url, verify=self.verify_ssl, stream=True)
+    def _download_artifact(self) -> None:
+        _LOGGER.debug("Downloading artifact from url %r", self.artifact_url)
+        response = requests.get(self.artifact_url, verify=self.verify_ssl, stream=True)
         response.raise_for_status()
         self.compressed_file = tempfile.NamedTemporaryFile(mode="w+b")
         self.compressed_file.write(response.content)
