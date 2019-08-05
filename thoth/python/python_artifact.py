@@ -108,25 +108,25 @@ class PythonArtifact:
         with open(filename, "rb") as f:
             return f.read(16).startswith(b'\x7f\x45\x4c\x46')
 
-    def _get_versioned_symbols_from_file(self, filename: str) -> set:
+    def _get_versioned_symbols_from_file(self, result, filename: str):
         """Given a file get all required dynamic symbols if it's an executable."""
-        to_ret = set()
         with open(filename, "rb") as f:
             if not self._is_elf(filename):
-                return to_ret
+                return
             elf = ELFFile(f)
-            for _, sym in self._elf_find_versioned_symbols(elf):
-                to_ret.add(sym)
-        return to_ret
+            for lib, sym in self._elf_find_versioned_symbols(elf):
+                if result.get(lib) is None:
+                    result[lib] = set()
+                result[lib].add(sym)
 
-    def get_versioned_symbols(self) -> set:
+    def get_versioned_symbols(self) -> dict:
         """Walk dir and get all dynamic symbols required from all files."""
-        to_ret = set()
+        result = dict()
         for dir_name, _, file_list in os.walk(self.dir_name):
             for fname in file_list:
-                to_ret = to_ret | self._get_versioned_symbols_from_file(os.path.join(dir_name, fname))
+                self._get_versioned_symbols_from_file(result, os.path.join(dir_name, fname))
 
-        return to_ret
+        return result
 
     #                          Package Digests                                          #
     def gather_hashes(self) -> list:
