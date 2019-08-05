@@ -137,7 +137,6 @@ class Source:
         response.raise_for_status()
         return response.json()
 
-    # TODO: this function likely needs to change to also get symbols
     def _warehouse_get_package_hashes(
         self, package_name: str, package_version: str, with_included_files: bool = False
     ) -> typing.List[dict]:
@@ -151,7 +150,9 @@ class Source:
             )
             # this checks whether to gather digests for all files in the given artifact
             if with_included_files:
-                result[-1]["digests"] = self._get_digests(item["url"], item["filename"])
+                artifact = PythonArtifact(item["filename"], item["url"], verify_ssl=self.verify_ssl)
+                result[-1]["digests"] = artifact.gather_hashes()
+                result[-1]["symbols"] = artifact.get_versioned_symbols()
 
         return result
 
@@ -316,7 +317,6 @@ class Source:
                     package_name,
                 )
                 continue
-
             artifact = PythonArtifact(artifact_name, artifact_url, verify_ssl=self.verify_ssl)
 
             symbols = None
@@ -350,8 +350,8 @@ class Source:
             doc["name"] = artifact_item[0]
             doc["sha256"] = artifact_item[1]
             if with_included_files:
-                doc["digests"] = artifact_item[3]
-                doc["symbols"] = artifact_item[4]
+                doc["digests"] = artifact_item[2]
+                doc["symbols"] = artifact_item[3]
             result.append(doc)
 
         return result
@@ -369,7 +369,7 @@ class Source:
             doc["name"] = artifact_item[0]
             doc["sha256"] = artifact_item[1]
             if with_included_files:
-                doc["digests"] = artifact_item[3]
+                doc["digests"] = artifact_item[2]
             result.append(doc)
 
         return result

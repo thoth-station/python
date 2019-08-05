@@ -35,42 +35,57 @@ _LOGGER = logging.getLogger(__name__)
 class PythonArtifact:
     """Python artifacts are compressed modules."""
 
-    def __init__(self, artifact_name, artifact_url, verify_ssl=False):
+    def __init__(self, artifact_name, artifact_url, compressed_file_name=None, verify_ssl=False):
         """Create a new Python Artifact."""
         self.verify_ssl = verify_ssl
         self.artifact_name = artifact_name
         self.artifact_url = artifact_url
-        self._download_artifact(artifact_url)   # initialize self.compressed_file
+        self.dir_name = None
 
-        self._extract_py_module(self.compressed_file)   # initialize self.dir_name
-        self.compressed_file.seek(0)
+        if compressed_file_name is not None:
+            self.compressed_file = open(compressed_file_name, "r+b")
+        else:
+            self.compressed_file = None
 
-        self.sha = self._calculate_sha(self.compressed_file)
-        self.compressed_file.seek(0)
+        self.sha = self._calculate_sha()
 
-    def _download_artifact(self, artifact_url) -> None:
-        _LOGGER.debug("Downloading artifact from url %r", artifact_url)
-        response = requests.get(artifact_url, verify=self.verify_ssl, stream=True)
+    def _download_if_necessary(self):
+        if self.compressed_file is None:
+            self._download_artifact()
+
+    def _extract_if_necessary(self):
+        self._download_if_necessary()
+        if self.dir_name is None:
+            self._extract_py_module()
+
+    def _download_artifact(self) -> None:
+        _LOGGER.debug("Downloading artifact from url %r", self.artifact_url)
+        response = requests.get(self.artifact_url, verify=self.verify_ssl, stream=True)
         response.raise_for_status()
         self.compressed_file = tempfile.NamedTemporaryFile(mode="w+b")
         self.compressed_file.write(response.content)
         self.compressed_file.seek(0)
 
-    def _extract_py_module(self, compressed_file) -> None:
+    def _extract_py_module(self) -> None:
+
+        self._download_if_necessary()
+
         try:
             self.dir_name = tempfile.mkdtemp()
             try:
-                with zipfile.ZipFile(compressed_file) as zip_ref:
+                with zipfile.ZipFile(self.compressed_file) as zip_ref:
                     zip_ref.extractall(self.dir_name)
                     _LOGGER.debug("Artifact is .whl")
             except Exception as e:
-                tf = tarfile.open(compressed_file.name)
+                tf = tarfile.open(self.compressed_file.name)
                 tf.extractall(self.dir_name)
                 _LOGGER.debug("Artifact is .tar.gz")
         except Exception as e:
             _LOGGER.error("Could not create temp dir")
+        finally:
+            self.compressed_file.seek(0)
 
-    def _calculate_sha(self, compressed_file) -> str:
+    def _calculate_sha(self) -> str:
         """Calculate SHA256 of compressed file if not present in url."""
         url_parts = self.artifact_url.rsplit("#", maxsplit=1)
         if len(url_parts) == 2 and url_parts[1].startswith("sha256="):
@@ -78,17 +93,20 @@ class PythonArtifact:
             _LOGGER.debug("Using SHA256 stated in URL: %r", url_parts[1])
             return digest
 
+        self._download_if_necessary()
+
         digest = hashlib.sha256()
         chunk = 1024
         while True:
             data = self.compressed_file.read(chunk)
-            if data is not None:
+            if data:
                 digest.update(data)
             else:
                 break
 
         digest = digest.hexdigest()
         _LOGGER.debug("Computed artifact sha256 digest for %r: %s", self.artifact_url, digest)
+        self.compressed_file.seek(0)
         return digest
 
     #                       VERSIONED SYMBOLS                                #
@@ -121,6 +139,7 @@ class PythonArtifact:
 
     def get_versioned_symbols(self) -> dict:
         """Walk dir and get all dynamic symbols required from all files."""
+        self._extract_if_necessary()
         result = dict()
         for dir_name, _, file_list in os.walk(self.dir_name):
             for fname in file_list:
@@ -131,6 +150,8 @@ class PythonArtifact:
     #                          Package Digests                                          #
     def gather_hashes(self) -> list:
         """Calculate checksums and gather hashes of all file in the given artifact."""
+        self._extract_if_necessary()
+
         digests = []
         for root, _, files in os.walk(self.dir_name):
             for file_ in files:
@@ -145,4 +166,7 @@ class PythonArtifact:
 
     def __del__(self):
         """Remove temporary file created by class."""
-        shutil.rmtree(self.dir_name)
+        try:
+            shutil.rmtree(self.dir_name)
+        except Exception as e:
+            pass
