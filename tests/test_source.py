@@ -134,11 +134,15 @@ class TestSource(PythonTestCase):
             os.path.join(os.getcwd(), "tests/data/tensorflow_serving_api-1.13.0-py2.py3-f29-any.json")
         ) as json_file:
             result = json.load(json_file)
-            flexmock(Artifact(
-                "tensorflow",
-                "",
-                os.path.join(os.getcwd(), "tests/data/tensorflow_serving_api-1.13.0-py2.py3-f29-any.whl")
-            )).should_receive("gather_hashes").and_return(result)
+
+        artifact = Artifact(
+            "tensorflow",
+            "",
+            os.path.join(os.getcwd(), "tests/data/tensorflow_serving_api-1.13.0-py2.py3-f29-any.whl")
+        )
+        hashes = artifact.gather_hashes()
+
+        assert hashes == result
 
     def test_get_packages(self):
         source_info = {

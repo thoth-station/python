@@ -40,6 +40,7 @@ class Artifact:
     artifact_name = attr.ib(type=str)
     artifact_url = attr.ib(type=str)
     compressed_file = attr.ib(type=str, default=None)
+    dir_name = attr.ib(type=str, default=None)
     verify_ssl = attr.ib(type=bool, default=False)
     sha = attr.ib(type=str, default=None)
 
