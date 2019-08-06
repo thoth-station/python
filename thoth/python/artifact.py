@@ -32,6 +32,7 @@ import attr
 
 _LOGGER = logging.getLogger(__name__)
 
+
 @attr.s(slots=True)
 class Artifact:
     """Python artifacts are compressed modules."""
@@ -43,6 +44,7 @@ class Artifact:
     sha = attr.ib(type=str, default=None)
 
     def __attrs_post_init__(self):
+        """Initialize sha after init."""
         self.sha = self._calculate_sha()
 
     def _download_if_necessary(self):
