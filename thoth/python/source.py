@@ -37,7 +37,7 @@ from .exceptions import NotFound
 from .exceptions import InternalError
 from .exceptions import VersionIdentifierError
 from .configuration import config
-from .python_artifact import PythonArtifact
+from .artifact import Artifact
 
 import io
 from zipfile import ZipFile
@@ -150,7 +150,7 @@ class Source:
             )
             # this checks whether to gather digests for all files in the given artifact
             if with_included_files:
-                artifact = PythonArtifact(item["filename"], item["url"], verify_ssl=self.verify_ssl)
+                artifact = Artifact(item["filename"], item["url"], verify_ssl=self.verify_ssl)
                 result[-1]["digests"] = artifact.gather_hashes()
                 result[-1]["symbols"] = artifact.get_versioned_symbols()
 
@@ -317,7 +317,7 @@ class Source:
                     package_name,
                 )
                 continue
-            artifact = PythonArtifact(artifact_name, artifact_url, verify_ssl=self.verify_ssl)
+            artifact = Artifact(artifact_name, artifact_url, verify_ssl=self.verify_ssl)
 
             symbols = None
             hashes = None
@@ -345,7 +345,7 @@ class Source:
 
         artifacts_data = self._download_artifacts_data(package_name, package_version, with_included_files)
         result = []
-        for artifact_item in artifacts_sha:
+        for artifact_item in artifacts_data:
             doc = {}
             doc["name"] = artifact_item[0]
             doc["sha256"] = artifact_item[1]

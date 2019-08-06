@@ -28,25 +28,21 @@ import os
 from elftools.elf.elffile import ELFFile
 from elftools.common.exceptions import ELFError
 from typing import Iterator, Tuple
+import attr
 
 _LOGGER = logging.getLogger(__name__)
 
-
-class PythonArtifact:
+@attr.s(slots=True)
+class Artifact:
     """Python artifacts are compressed modules."""
 
-    def __init__(self, artifact_name, artifact_url, compressed_file_name=None, verify_ssl=False):
-        """Create a new Python Artifact."""
-        self.verify_ssl = verify_ssl
-        self.artifact_name = artifact_name
-        self.artifact_url = artifact_url
-        self.dir_name = None
+    artifact_name = attr.ib(type=str)
+    artifact_url = attr.ib(type=str)
+    compressed_file = attr.ib(type=str, default=None)
+    verify_ssl = attr.ib(type=bool, default=False)
+    sha = attr.ib(type=str, default=None)
 
-        if compressed_file_name is not None:
-            self.compressed_file = open(compressed_file_name, "r+b")
-        else:
-            self.compressed_file = None
-
+    def __attrs_post_init__(self):
         self.sha = self._calculate_sha()
 
     def _download_if_necessary(self):
@@ -62,9 +58,9 @@ class PythonArtifact:
         _LOGGER.debug("Downloading artifact from url %r", self.artifact_url)
         response = requests.get(self.artifact_url, verify=self.verify_ssl, stream=True)
         response.raise_for_status()
-        self.compressed_file = tempfile.NamedTemporaryFile(mode="w+b")
-        self.compressed_file.write(response.content)
-        self.compressed_file.seek(0)
+        with tempfile.NamedTemporaryFile(mode="w+b", delete=False) as f:
+            self.compressed_file = f.name()
+            f.write(response.content)
 
     def _extract_py_module(self) -> None:
 
@@ -77,13 +73,11 @@ class PythonArtifact:
                     zip_ref.extractall(self.dir_name)
                     _LOGGER.debug("Artifact is .whl")
             except Exception as e:
-                tf = tarfile.open(self.compressed_file.name)
+                tf = tarfile.open(self.compressed_file)
                 tf.extractall(self.dir_name)
                 _LOGGER.debug("Artifact is .tar.gz")
         except Exception as e:
             _LOGGER.error("Could not create temp dir")
-        finally:
-            self.compressed_file.seek(0)
 
     def _calculate_sha(self) -> str:
         """Calculate SHA256 of compressed file if not present in url."""
@@ -95,18 +89,18 @@ class PythonArtifact:
 
         self._download_if_necessary()
 
-        digest = hashlib.sha256()
-        chunk = 1024
-        while True:
-            data = self.compressed_file.read(chunk)
-            if data:
-                digest.update(data)
-            else:
-                break
+        with open(self.compressed_file, "rb") as f:
+            digest = hashlib.sha256()
+            chunk = 1024
+            while True:
+                data = f.read(chunk)
+                if data:
+                    digest.update(data)
+                else:
+                    break
 
         digest = digest.hexdigest()
         _LOGGER.debug("Computed artifact sha256 digest for %r: %s", self.artifact_url, digest)
-        self.compressed_file.seek(0)
         return digest
 
     #                       VERSIONED SYMBOLS                                #
@@ -167,6 +161,8 @@ class PythonArtifact:
     def __del__(self):
         """Remove temporary file created by class."""
         try:
+            if self.compressed_file.startswith("/tmp"):
+                os.remove(self.compressed_file)
             shutil.rmtree(self.dir_name)
         except Exception as e:
             pass
