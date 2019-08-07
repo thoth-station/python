@@ -299,6 +299,27 @@ class Source:
 
         return artifacts
 
+    def get_package_artifacts(self, package_name: str, package_version: str):
+        """Return list of artifacts corresponding to package name and package version."""
+        to_return = []
+        for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
+            # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
+            artifact_name.lower()
+            if not artifact_name.startswith(f"{package_name}-{package_version}"):
+                # TODO: this logic has to be improved as package version can be a suffix of another package version:
+                #   mypackage-1.0.whl, mypackage-1.0.0.whl, ...
+                # This will require parsing based on PEP or some better logic.
+                _LOGGER.debug(
+                    "Skipping artifact %r as it does not match required version %r for package %r",
+                    artifact_name,
+                    package_version,
+                    package_name,
+                )
+                continue
+            to_return.append(Artifact(artifact_name, artifact_url, verify_ssl=self.verify_ssl))
+
+        return to_return
+
     def _download_artifacts_data(
         self, package_name: str, package_version: str, with_included_files: bool = False
     ) -> typing.Generator[tuple, None, None]:
@@ -343,15 +364,15 @@ class Source:
         if self.warehouse:
             return self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
 
-        artifacts_data = self._download_artifacts_data(package_name, package_version, with_included_files)
+        artifacts = self.get_package_artifacts(package_name, package_version)
         result = []
-        for artifact_item in artifacts_data:
+        for artifact in artifacts:
             doc = {}
-            doc["name"] = artifact_item[0]
-            doc["sha256"] = artifact_item[1]
+            doc["name"] = artifact.artifact_name
+            doc["sha256"] = artifact.sha
             if with_included_files:
-                doc["digests"] = artifact_item[2]
-                doc["symbols"] = artifact_item[3]
+                doc["digests"] = artifact.gather_hashes()
+                doc["symbols"] = artifact.get_versioned_symbols()
             result.append(doc)
 
         return result
@@ -362,14 +383,14 @@ class Source:
         if self.warehouse:
             return self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
 
-        artifacts_sha = self._download_artifacts_data(package_name, package_version, with_included_files)
+        artifacts = self.get_package_artifacts(package_name, package_version)
         result = []
-        for artifact_item in artifacts_sha:
+        for artifact in artifacts:
             doc = {}
-            doc["name"] = artifact_item[0]
-            doc["sha256"] = artifact_item[1]
+            doc["name"] = artifact.artifact_name
+            doc["sha256"] = artifact.sha
             if with_included_files:
-                doc["digests"] = artifact_item[2]
+                doc["digests"] = artifact.gather_hashes()
             result.append(doc)
 
         return result
