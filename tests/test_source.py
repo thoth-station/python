@@ -142,7 +142,7 @@ class TestSource(PythonTestCase):
         )
         hashes = artifact.gather_hashes()
 
-        assert hashes == result
+        assert set(tuple(h.items()) for h in hashes) == set(tuple(r.items()) for r in result)
 
     def test_get_packages(self):
         source_info = {
