@@ -168,3 +168,13 @@
 * Automatic update of dependency flexmock from 0.10.3 to 0.10.4
 * Automatic update of dependency lxml from 4.3.2 to 4.3.3
 * Propagate package name to debug message
+
+## Release 0.6.1 (2019-08-12T14:54:10)
+* Normalize Python package names according to PEP-0503
+* :pushpin: Automatic update of dependency lxml from 4.4.0 to 4.4.1
+* Add missing runtime environment in dict reports of project
+* :pushpin: Automatic update of dependency thoth-common from 0.9.5 to 0.9.6
+* :pushpin: Automatic update of dependency lxml from 4.3.5 to 4.4.0
+* :pushpin: Automatic update of dependency lxml from 4.3.4 to 4.3.5
+* Output filepath and sha256 for all files inside artifact
+* :pushpin: Automatic update of dependency thoth-common from 0.9.4 to 0.9.5
