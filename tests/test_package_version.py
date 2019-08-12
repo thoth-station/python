@@ -223,3 +223,13 @@ class TestPackageVersion(PythonTestCase):
 
         vs = PackageVersion(name='tensorflow', version='==2.1.0', develop=False).version_specification
         assert pv in vs
+
+    def test_normalize_python_package_name(self):
+        package_version = PackageVersion(name='Cython', version='0.29.13', develop=False)
+        assert package_version.name == "cython"
+
+        package_version = PackageVersion(name='semantic_version', version='2.6.0', develop=False)
+        assert package_version.name == "semantic-version"
+
+        package_version = PackageVersion(name='delegator.py', version='0.1.1', develop=False)
+        assert package_version.name == "delegator-py"

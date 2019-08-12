@@ -17,6 +17,7 @@
 
 """Representation of packages in the application stack."""
 
+import re
 import logging
 import typing
 from copy import copy
@@ -32,11 +33,21 @@ from .source import Source
 _LOGGER = logging.getLogger(__name__)
 
 
+_RE_NORMALIZE_PYTHON_PACKAGE_NAME = re.compile(r"[-_.]+")
+
+
+def _normalize_python_package_name(package_name: str) -> str:
+    """Normalize Python package name based on PEP-0503."""
+    # Make sure we have normalized names in the graph database according to PEP:
+    #   https://www.python.org/dev/peps/pep-0503/#normalized-names
+    return _RE_NORMALIZE_PYTHON_PACKAGE_NAME.sub("-", package_name).lower()
+
+
 @attr.s(slots=True)
 class PackageVersion:
     """A package version as described in the Pipfile.lock entry."""
 
-    name = attr.ib(type=str)
+    name = attr.ib(type=str, converter=_normalize_python_package_name)
     version = attr.ib(type=str)
     develop = attr.ib(type=bool)
     index = attr.ib(default=None, type=Source)
@@ -73,6 +84,14 @@ class PackageVersion:
             raise ValueError(f"Comparing package versions of different package - {self.name} and {other.name}")
 
         return self.semantic_version > other.semantic_version
+
+    @classmethod
+    def normalize_python_package_name(cls, package_name: str) -> str:
+        """Normalize Python package name based on PEP-0503.
+
+        https://www.python.org/dev/peps/pep-0503/#normalized-names
+        """
+        return _normalize_python_package_name(package_name)
 
     @classmethod
     def from_model(cls, model, *, develop: bool = False):
