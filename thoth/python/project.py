@@ -161,6 +161,7 @@ class Project:
         return {
             "requirements": self.pipfile.to_dict(),
             "requirements_locked": self.pipfile_lock.to_dict() if self.pipfile_lock else None,
+            "runtime_environment": self.runtime_environment.to_dict(),
         }
 
     def get_configuration_check_report(self) -> typing.Optional[typing.Tuple[dict, typing.List[dict]]]:
