@@ -26,7 +26,6 @@ import tarfile
 import hashlib
 import os
 from elftools.elf.elffile import ELFFile
-from elftools.common.exceptions import ELFError
 from typing import Iterator, Tuple
 import attr
 
