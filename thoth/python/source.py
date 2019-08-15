@@ -20,13 +20,8 @@
 import logging
 import re
 import typing
-import hashlib
 from functools import lru_cache
 from urllib.parse import urlparse
-import elftools
-from packaging import version
-from typing import Iterator, List, Tuple, Dict, Optional
-import shutil
 
 import attr
 import requests
@@ -38,13 +33,6 @@ from .exceptions import InternalError
 from .exceptions import VersionIdentifierError
 from .configuration import config
 from .artifact import Artifact
-
-import io
-from zipfile import ZipFile
-import tarfile
-from contextlib import closing
-import os
-import tempfile
 
 _LOGGER = logging.getLogger(__name__)
 
