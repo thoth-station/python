@@ -1,11 +1,11 @@
 [
     {
         "filepath": "tensorflow_serving_api-1.13.0.dist-info/build_info.yaml",
-        "sha256": "5d12eb1ff863ef5e7c8738eb32ef8654f83bafa4be532b3578cf77b62b869589"
+        "sha256": "9e06379a81c8df40838598d6f220087869bdf90f0e92146ac76795a627938adf"
     },
     {
         "filepath": "tensorflow_serving_api-1.13.0.dist-info/build_info.json",
-        "sha256": "98047d6b243ac75fd28ac0e90e4a426f8317ef6181c8c548549e282deaea69d6"
+        "sha256": "afdc77631b2972f9866cff300faabf93dafa977a8d9c5ff7aacdffcab252e368"
     },
     {
         "filepath": "tensorflow_serving_api-1.13.0.dist-info/RECORD",
@@ -21,7 +21,7 @@
     },
     {
         "filepath": "tensorflow_serving_api-1.13.0.dist-info/METADATA",
-        "sha256": "b4244967383ff3acda2116931dcbcad78f6d246abd04fe5d4d3a0391a7ceb52f"
+        "sha256": "bcd7ea508e85b78bf42c2d58d27dba0a1e133b7846a08bcab5ade9f316c4e361"
     },
     {
         "filepath": "tensorflow_serving/__init__.py",

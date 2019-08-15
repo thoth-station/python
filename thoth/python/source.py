@@ -23,6 +23,10 @@ import typing
 import hashlib
 from functools import lru_cache
 from urllib.parse import urlparse
+import elftools
+from packaging import version
+from typing import Iterator, List, Tuple, Dict, Optional
+import shutil
 
 import attr
 import requests
@@ -33,6 +37,7 @@ from .exceptions import NotFound
 from .exceptions import InternalError
 from .exceptions import VersionIdentifierError
 from .configuration import config
+from .artifact import Artifact
 
 import io
 from zipfile import ZipFile
@@ -132,50 +137,6 @@ class Source:
         response.raise_for_status()
         return response.json()
 
-    def _get_hash(self, artifact_url: str) -> str:
-        """Download wheel file and calculate hash for it."""
-        _LOGGER.debug("Downloading artifact from url %r", artifact_url)
-        response = requests.get(artifact_url, verify=self.verify_ssl, stream=True)
-        response.raise_for_status()
-        digest = hashlib.sha256()
-        for chunk in response.iter_content(chunk_size=1024):
-            if chunk:  # filter out keep-alive new chunks
-                digest.update(chunk)
-
-        digest = digest.hexdigest()
-        _LOGGER.debug("Computed artifact sha256 digest for %r: %s", artifact_url, digest)
-        return digest
-
-    def _gather_hashes(self, path: str) -> list:
-        """Calculate checksums and gather hashes of all file in the given artifact."""
-        digests = []
-        for root, dirs, files in os.walk(path):
-            for file_ in files:
-                filepath = os.path.join(root, file_)
-                if os.path.isfile(filepath):
-                    with open(filepath, 'rb') as my_file:
-                        digests.append({
-                            "filepath": filepath[len(path) + 1:],
-                            "sha256": hashlib.sha256(my_file.read()).hexdigest()
-                        })
-        return digests
-
-    def _get_digests(self, artifact_url: str, artifact_name: str) -> list:
-        """Gather digests for all files in the given artifact."""
-        _LOGGER.debug("Downloading artifact from url %r", artifact_url)
-        response = requests.get(artifact_url, verify=self.verify_ssl, stream=True)
-        response.raise_for_status()
-
-        with closing(response), tempfile.TemporaryDirectory() as tmpdir:
-            if artifact_url.endswith(".whl"):
-                with ZipFile(io.BytesIO(response.content)) as zip_:
-                    zip_.extractall(os.path.join(tmpdir, artifact_name))
-            elif artifact_url.endswith(".gz"):
-                with tarfile.open(mode="r:gz", fileobj=io.BytesIO(response.content)) as tf:
-                    tf.extractall(os.path.join(tmpdir, artifact_name))
-
-            return self._gather_hashes(os.path.join(tmpdir, artifact_name))
-
     def _warehouse_get_package_hashes(
         self, package_name: str, package_version: str, with_included_files: bool = False
     ) -> typing.List[dict]:
@@ -189,7 +150,9 @@ class Source:
             )
             # this checks whether to gather digests for all files in the given artifact
             if with_included_files:
-                result[-1]["digests"] = self._get_digests(item["url"], item["filename"])
+                artifact = Artifact(item["filename"], item["url"], verify_ssl=self.verify_ssl)
+                result[-1]["digests"] = artifact.gather_hashes()
+                result[-1]["symbols"] = artifact.get_versioned_symbols()
 
         return result
 
@@ -336,10 +299,9 @@ class Source:
 
         return artifacts
 
-    def _download_artifacts_sha(
-        self, package_name: str, package_version: str, with_included_files: bool = False
-    ) -> typing.Generator[tuple, None, None]:
-        """Download the given artifact from Warehouse and compute its SHA."""
+    def get_package_artifacts(self, package_name: str, package_version: str):
+        """Return list of artifacts corresponding to package name and package version."""
+        to_return = []
         for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
             # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
             artifact_name.lower()
@@ -354,17 +316,38 @@ class Source:
                     package_name,
                 )
                 continue
+            to_return.append(Artifact(artifact_name, artifact_url, verify_ssl=self.verify_ssl))
 
-            url_parts = artifact_url.rsplit("#", maxsplit=1)
+        return to_return
 
-            # this checks if sha256 hash is already given on the url
-            if len(url_parts) == 2 and url_parts[1].startswith("sha256="):
-                digest = url_parts[1][len("sha256="):]
-                _LOGGER.debug("Using SHA256 stated in URL: %r", url_parts[1])
-            else:
-                digest = self._get_hash(artifact_url)
+    def _download_artifacts_data(
+        self, package_name: str, package_version: str, with_included_files: bool = False
+    ) -> typing.Generator[tuple, None, None]:
+        """Download the given artifact from Warehouse and compute desired info."""
+        for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
+            # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
+            artifact_name.lower()
+            if not artifact_name.startswith(f"{package_name}-{package_version}"):
+                # TODO: this logic has to be improved as package version can be a suffix of another package version:
+                #   mypackage-1.0.whl, mypackage-1.0.0.whl, ...
+                # This will require parsing based on PEP or some better logic.
+                _LOGGER.debug(
+                    "Skipping artifact %r as it does not match required version %r for package %r",
+                    artifact_name,
+                    package_version,
+                    package_name,
+                )
+                continue
+            artifact = Artifact(artifact_name, artifact_url, verify_ssl=self.verify_ssl)
+
+            symbols = None
+            hashes = None
+            if with_included_files:
+                symbols = artifact.get_versioned_symbols()
+                hashes = artifact.gather_hashes()
+
             yield (
-                artifact_name, digest, self._get_digests(artifact_url, artifact_name) if with_included_files else None
+                artifact_name, artifact.sha, hashes, symbols,
             )
 
     def provides_package_version(self, package_name: str, package_version: str) -> bool:
@@ -376,19 +359,38 @@ class Source:
             return False
 
     @lru_cache(maxsize=10)
+    def get_package_data(self, package_name: str, package_version: str, with_included_files: bool = False) -> list:
+        """Get information about release hashes and symbols available in this source index."""
+        if self.warehouse:
+            return self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
+
+        artifacts = self.get_package_artifacts(package_name, package_version)
+        result = []
+        for artifact in artifacts:
+            doc = {}
+            doc["name"] = artifact.artifact_name
+            doc["sha256"] = artifact.sha
+            if with_included_files:
+                doc["digests"] = artifact.gather_hashes()
+                doc["symbols"] = artifact.get_versioned_symbols()
+            result.append(doc)
+
+        return result
+
+    @lru_cache(maxsize=10)
     def get_package_hashes(self, package_name: str, package_version: str, with_included_files: bool = False) -> list:
         """Get information about release hashes available in this source index."""
         if self.warehouse:
             return self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
 
-        artifacts_sha = self._download_artifacts_sha(package_name, package_version, with_included_files)
+        artifacts = self.get_package_artifacts(package_name, package_version)
         result = []
-        for artifact_item in artifacts_sha:
+        for artifact in artifacts:
             doc = {}
-            doc["name"] = artifact_item[0]
-            doc["sha256"] = artifact_item[1]
+            doc["name"] = artifact.artifact_name
+            doc["sha256"] = artifact.sha
             if with_included_files:
-                doc["digests"] = artifact_item[2]
+                doc["digests"] = artifact.gather_hashes()
             result.append(doc)
 
         return result

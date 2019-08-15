@@ -26,6 +26,7 @@ import requests
 from flexmock import flexmock
 
 from thoth.python.source import Source
+from thoth.python.artifact import Artifact
 
 from .base import PythonTestCase
 import tempfile
@@ -86,7 +87,7 @@ class TestSource(PythonTestCase):
             'name': 'aicoe',
             'url': 'https://pypi.python.org/simple',
             'verify_ssl': True,
-            'warehouse': False
+            'warehouse': False,
         }
 
         source = Source.from_dict(pypi_index)
@@ -129,14 +130,19 @@ class TestSource(PythonTestCase):
              'sha256': '795a1bdddc832289ab958dc9bd9a1c46b849011cbc81fd89d6fe144efc7aae69'}
         ]
 
-        with ZipFile(os.path.join(os.getcwd(), 'tests/data/tensorflow_serving_api-1.13.0-py2.py3-none-any.whl'), 'r') as zip:
-            with tempfile.TemporaryDirectory() as tmpdir:
-                artifact_name = 'tensorflow_serving_api-1.13.0-py2.py3-none-any'
-                zip.extractall(os.path.join(tmpdir, artifact_name))
-                with open(os.path.join(os.getcwd(), 'tests/data/tensorflow_serving_api-1.13.0-py2.py3-none-any.json')) as json_file:
-                    result = json.load(json_file)
-                    flexmock(Source).should_receive("_gather_hashes")\
-                        .with_args(os.path.join(tmpdir, artifact_name)).and_return(result)
+        with open(
+            os.path.join(os.getcwd(), "tests/data/tensorflow_serving_api-1.13.0-py2.py3-f29-any.json")
+        ) as json_file:
+            result = json.load(json_file)
+
+        artifact = Artifact(
+            "tensorflow",
+            "",
+            os.path.join(os.getcwd(), "tests/data/tensorflow_serving_api-1.13.0-py2.py3-f29-any.whl")
+        )
+        hashes = artifact.gather_hashes()
+
+        assert set(tuple(h.items()) for h in hashes) == set(tuple(r.items()) for r in result)
 
     def test_get_packages(self):
         source_info = {
