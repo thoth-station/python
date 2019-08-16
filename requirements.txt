@@ -10,3 +10,5 @@ requests
 beautifulsoup4==4.6.3
 semantic-version
 lxml
+pyelftools
+packaging
