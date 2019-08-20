@@ -61,7 +61,7 @@ class Artifact:
         response = requests.get(self.artifact_url, verify=self.verify_ssl, stream=True)
         response.raise_for_status()
         with tempfile.NamedTemporaryFile(mode="w+b", delete=False) as f:
-            self.compressed_file = f.name()
+            self.compressed_file = f.name
             f.write(response.content)
 
     def _extract_py_module(self) -> None:
