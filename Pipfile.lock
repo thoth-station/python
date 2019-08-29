@@ -439,11 +439,11 @@
         },
         "semantic-version": {
             "hashes": [
-                "sha256:b2bfae7622c37f1931c9f5e21a5fd37075fd4901b9e4c294fe276b60acf87c9b",
-                "sha256:f146691ecc623183beeda656ff9d17d230a5bba1ea2a0b8d96f893ca1dc065d4"
+                "sha256:2e28e4d2e2b2a0a102ad7fe5c6912700a35681c94c4b4f628b317853d1ebd179",
+                "sha256:35f8b1f37e8a1d0b6e476b3b55546d0de572bb345b4ff8e82faddb799d614888"
             ],
             "index": "pypi",
-            "version": "==2.7.1"
+            "version": "==2.8.0"
         },
         "sentry-sdk": {
             "hashes": [
