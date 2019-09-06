@@ -112,7 +112,7 @@ class Artifact:
 
         if section is not None:
             for verneed, verneed_iter in section.iter_versions():
-                if verneed.name.starstwith("ld-linux"):
+                if verneed.name.startswith("ld-linux"):
                     continue
                 for vernaux in verneed_iter:
                     yield verneed.name, vernaux.name
