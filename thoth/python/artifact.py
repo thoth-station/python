@@ -141,6 +141,9 @@ class Artifact:
             for fname in file_list:
                 self._get_versioned_symbols_from_file(result, os.path.join(dir_name, fname))
 
+        for symbol in result:
+            result[symbol] = list(result[symbol])
+
         return result
 
     #                          Package Digests                                          #
