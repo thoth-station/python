@@ -25,6 +25,7 @@ from thoth.python import Project
 from thoth.python import Source
 from thoth.python import Pipfile
 from thoth.python import PipfileLock
+from thoth.python import PackageVersion
 from thoth.python.exceptions import InternalError
 
 from .base import PythonTestCase
@@ -131,7 +132,6 @@ class TestProject(PythonTestCase):
         assert isinstance(result['idna'][1], semver.Version)
         assert str(result['idna'][1]) == '2.10.0'
 
-
     def test_get_outdated_package_versions_direct(self):
         # See previous test comments for more info.
         # We cannot use flexmock as Source has slots.
@@ -174,3 +174,29 @@ class TestProject(PythonTestCase):
         assert result['requests'][0] is project.pipfile_lock.packages['requests']
         assert isinstance(result['requests'][1], semver.Version)
         assert str(result['requests'][1]) == '3.0.0'
+
+    def test_indexes_in_meta(self):
+        """Check indexes being adjusted when inserting a new package."""
+        package_version = PackageVersion(
+            name="tensorflow",
+            version="==1.9.0",
+            develop=False,
+            index=Source("http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/"),
+        )
+
+        project = Project.from_package_versions([package_version])
+
+        project_dict = project.to_dict()
+        pipfile_dict = project_dict["requirements"]
+        pipfile_lock_dict = project_dict["requirements_locked"]
+
+        assert pipfile_lock_dict is None
+
+        assert len(pipfile_dict["source"]) == 1
+        assert pipfile_dict["source"] == [
+            {
+                "url": "http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/",
+                "verify_ssl": True,
+                "name": "tensorflow-pypi-thoth-station-ninja",
+            }
+        ]
