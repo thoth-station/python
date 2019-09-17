@@ -79,10 +79,11 @@ class Project:
             with open(pipfile_lock_path or "Pipfile.lock", "r") as pipfile_lock_file:
                 pipfile_lock = PipfileLock.from_string(pipfile_lock_file.read(), pipfile)
 
-        if runtime_environment:
-            return cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
-
-        return cls(pipfile, pipfile_lock)
+        return cls(
+            pipfile,
+            pipfile_lock,
+            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({})
+        )
 
     @classmethod
     def from_strings(
@@ -95,10 +96,11 @@ class Project:
         if pipfile_lock_str:
             pipfile_lock = PipfileLock.from_string(pipfile_lock_str, pipfile)
 
-        if runtime_environment:
-            return cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
-
-        return cls(pipfile, pipfile_lock)
+        return cls(
+            pipfile,
+            pipfile_lock,
+            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({})
+        )
 
     def to_files(self, pipfile_path: str = None, pipfile_lock_path: str = None, without_pipfile_lock: bool = False):
         """Write the current state of project into Pipfile and Pipfile.lock files."""
