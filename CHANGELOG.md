@@ -178,3 +178,45 @@
 * :pushpin: Automatic update of dependency lxml from 4.3.4 to 4.3.5
 * Output filepath and sha256 for all files inside artifact
 * :pushpin: Automatic update of dependency thoth-common from 0.9.4 to 0.9.5
+
+## Release 0.6.2 (2019-09-17T09:48:53)
+* Move testcase to its proper location
+* Fix incosistent runtime environment attribute instantiation
+* fix symbols
+* Fix Attribute Error
+* :pushpin: Automatic update of dependency semantic-version from 2.8.1 to 2.8.2
+* :pushpin: Automatic update of dependency pytest from 5.1.1 to 5.1.2
+* :pushpin: Automatic update of dependency semantic-version from 2.8.0 to 2.8.1
+* :pushpin: Automatic update of dependency semantic-version from 2.7.1 to 2.8.0
+* :pushpin: Automatic update of dependency semantic-version from 2.7.0 to 2.7.1
+* :pushpin: Automatic update of dependency semantic-version from 2.6.0 to 2.7.0
+* :pushpin: Automatic update of dependency pytest from 5.1.0 to 5.1.1
+* Fix temporary name assignment
+* Add missing requirements
+* :pushpin: Automatic update of dependency pytest from 5.0.1 to 5.1.0
+* Remove unused imports
+* :pushpin: Automatic update of dependency thoth-common from 0.9.7 to 0.9.8
+* :pushpin: Automatic update of dependency thoth-common from 0.9.6 to 0.9.7
+* Make results of tests agnostic to relative ordering
+* Created function that returns list of artifacts
+* Do not mock Artifact - test it instead
+* Coala errors
+* Addressed a few comments
+* Wheel symbols return now includes library
+* changed testing whl&json files and some minor fixes
+* Altered test and debugged
+* update
+* Propogate verify_ssl
+* Fixed
+* Fixed
+* Variable name change and coala formatting
+* Added back get_hashes to pass test case
+* Created PythonArtifact class
+* Copy paste issue
+* Install packaging
+* Changed based on review, refactored to only download once
+* Add typing
+* Added pyelftools
+* Added call in run func
+* Download wheels
+* Add code from my repo
