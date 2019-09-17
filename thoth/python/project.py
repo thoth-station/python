@@ -565,29 +565,3 @@ class Project:
             name=package_name, version=package_version, develop=develop, index=source.name if source else None
         )
         self.pipfile.add_package_version(package_version)
-
-    def test_indexes_in_meta(self):
-        """Check indexes being adjusted when inserting a new package."""
-        package_version = PackageVersion(
-            name="tensorflow",
-            version="==1.9.0",
-            develop=False,
-            index=Source("http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/"),
-        )
-
-        project = Project.from_package_versions([package_version])
-        project_dict = project.to_dict()
-
-        pipfile_dict = project.pipfile
-        pipfile_lock_dict = project.pipfile_lock
-
-        assert pipfile_lock_dict is None
-
-        assert len(pipfile_dict["source"]) == 1
-        assert pipfile_dict["source"] == [
-            {
-                "url": "http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/",
-                "verify_ssl": True,
-                "name": "tensorflow",
-            }
-        ]
