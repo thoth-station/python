@@ -233,3 +233,28 @@ class TestPackageVersion(PythonTestCase):
 
         package_version = PackageVersion(name='delegator.py', version='0.1.1', develop=False)
         assert package_version.name == "delegator-py"
+
+    def test_normalize_python_package_version(self):
+        package_version = PackageVersion(name='oauth2client', version='1.0beta2', develop=False)
+        assert package_version.version == "1.0b2"
+
+        package_version = PackageVersion(name="regex", version="2019.02.06", develop=False)
+        assert package_version.version == "2019.2.6"
+
+        package_version = PackageVersion(name="xgboost", version="0.7.post2", develop=False)
+        assert package_version.version == "0.7.post2"
+
+        package_version = PackageVersion(name="xgboost", version="0.71", develop=False)
+        assert package_version.version == "0.71"
+
+        package_version = PackageVersion(name="ipywidgets", version="6.0.0.rc3", develop=False)
+        assert package_version.version == "6.0.0rc3"
+
+        package_version = PackageVersion(name="pytz", version="2011b", develop=False)
+        assert package_version.version == "2011b0"
+
+        package_version = PackageVersion(name="gitpython", version="0.3.2.RC1", develop=False)
+        assert package_version.version == "0.3.2rc1"
+
+        package_version = PackageVersion(name="ipywidgets", version="5.0.0.b5", develop=False)
+        assert package_version.version == "5.0.0b5"
