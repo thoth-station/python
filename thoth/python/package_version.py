@@ -23,6 +23,7 @@ import typing
 from copy import copy
 
 import attr
+import pkg_resources
 import semantic_version as semver
 
 from .exceptions import UnsupportedConfiguration
@@ -43,12 +44,17 @@ def _normalize_python_package_name(package_name: str) -> str:
     return _RE_NORMALIZE_PYTHON_PACKAGE_NAME.sub("-", package_name).lower()
 
 
+def _normalize_python_package_version(package_version: str) -> str:
+    """Normalize Python package version based on PEP-440."""
+    return str(pkg_resources.parse_version(package_version))
+
+
 @attr.s(slots=True)
 class PackageVersion:
     """A package version as described in the Pipfile.lock entry."""
 
     name = attr.ib(type=str, converter=_normalize_python_package_name)
-    version = attr.ib(type=str)
+    version = attr.ib(type=str, converter=_normalize_python_package_version)
     develop = attr.ib(type=bool)
     index = attr.ib(default=None, type=Source)
     hashes = attr.ib(default=attr.Factory(list))
@@ -92,6 +98,14 @@ class PackageVersion:
         https://www.python.org/dev/peps/pep-0503/#normalized-names
         """
         return _normalize_python_package_name(package_name)
+
+    @classmethod
+    def normalize_python_package_version(self, package_version: str) -> str:
+        """Normalize Python package version based on PEP-440.
+
+        https://www.python.org/dev/peps/pep-0440/#normalization
+        """
+        return _normalize_python_package_version(package_version)
 
     @classmethod
     def from_model(cls, model, *, develop: bool = False):

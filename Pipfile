@@ -15,6 +15,7 @@ lxml = "*"
 semantic-version = "*"
 pyelftools = "*"
 packaging = "*"
+setuptools = "*"
 
 [dev-packages]
 pytest = "*"
