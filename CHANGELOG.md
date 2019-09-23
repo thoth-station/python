@@ -220,3 +220,9 @@
 * Added call in run func
 * Download wheels
 * Add code from my repo
+
+## Release 0.6.3 (2019-09-23T09:17:38)
+* Normalize Python package versions according to PEP-440
+* :pushpin: Automatic update of dependency packaging from 19.1 to 19.2
+* :pushpin: Automatic update of dependency thoth-common from 0.9.9 to 0.9.10
+* :pushpin: Automatic update of dependency thoth-common from 0.9.8 to 0.9.9
