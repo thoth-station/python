@@ -25,6 +25,8 @@ from copy import copy
 import attr
 import semantic_version as semver
 from packaging.version import parse as parse_version
+from packaging.utils import canonicalize_name
+
 
 from .exceptions import UnsupportedConfiguration
 from .exceptions import PipfileParseError
@@ -41,7 +43,7 @@ def _normalize_python_package_name(package_name: str) -> str:
     """Normalize Python package name based on PEP-0503."""
     # Make sure we have normalized names in the graph database according to PEP:
     #   https://www.python.org/dev/peps/pep-0503/#normalized-names
-    return _RE_NORMALIZE_PYTHON_PACKAGE_NAME.sub("-", package_name).lower()
+    return canonicalize_name(package_name)
 
 
 def _normalize_python_package_version(package_version: str) -> str:
