@@ -23,9 +23,10 @@ import typing
 from copy import copy
 
 import attr
-import pkg_resources
 import semantic_version as semver
+from packaging.version import parse as parse_version
 from packaging.utils import canonicalize_name
+
 
 from .exceptions import UnsupportedConfiguration
 from .exceptions import PipfileParseError
@@ -47,7 +48,7 @@ def _normalize_python_package_name(package_name: str) -> str:
 
 def _normalize_python_package_version(package_version: str) -> str:
     """Normalize Python package version based on PEP-440."""
-    return str(pkg_resources.parse_version(package_version))
+    return str(parse_version(package_version))
 
 
 @attr.s(slots=True)
