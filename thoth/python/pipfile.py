@@ -23,7 +23,7 @@ import logging
 import typing
 from itertools import chain
 
-import contoml as toml
+import toml
 import attr
 
 from .exceptions import PipfileParseError
@@ -252,7 +252,6 @@ class Pipfile(_PipfileBase):
         _LOGGER.debug("Parsing Pipfile toml representation from string")
         try:
             parsed = toml.loads(pipfile_content)
-            parsed = parsed.primitive
         except Exception as exc:
             # We are transparent - Pipfile can be eigher TOML or JSON - try to parse any of these.
             try:

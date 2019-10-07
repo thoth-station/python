@@ -3,7 +3,7 @@ thoth-analyzer
 thoth-common
 attrs
 semantic_version
-contoml
+toml
 requests
 # Pin to this specific version otherwise bs4 fails to parse simple API package
 # listing (got # stuck with high CPU consumption)
