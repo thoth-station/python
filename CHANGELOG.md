@@ -226,3 +226,9 @@
 * :pushpin: Automatic update of dependency packaging from 19.1 to 19.2
 * :pushpin: Automatic update of dependency thoth-common from 0.9.9 to 0.9.10
 * :pushpin: Automatic update of dependency thoth-common from 0.9.8 to 0.9.9
+
+## Release 0.6.4 (2019-10-07T12:18:06)
+* Adjust testsuite to use toml instead of contoml
+* Substitute contoml with toml
+* Do not rely on pkg_resources, use packaging for version parsing
+* Use packaging for package name normalization
