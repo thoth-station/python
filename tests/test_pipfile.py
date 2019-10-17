@@ -43,6 +43,22 @@ class TestPipfile(PythonTestCase):
         # Sometimes toml does not preserve inline tables causing to_string() fail. However, we produce valid toml.
         assert instance.to_dict() == toml.loads(content)
 
+    def test_pipfile_extras_parsing(self):
+        instance = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_extras"))
+        assert instance is not None
+        assert len(instance.packages.packages) == 1
+        assert "selinon" in instance.packages.packages
+        package_version = instance.packages.packages["selinon"]
+        assert set(package_version.to_dict().pop("extras")) == {
+            "celery",
+            "mongodb",
+            "postgresql",
+            "redis",
+            "s3",
+            "sentry",
+        }
+        assert set(package_version.extras) == {"celery", "mongodb", "postgresql", "redis", "s3", "sentry"}
+
 
 class TestPipfileLock(PythonTestCase):
 
@@ -59,3 +75,24 @@ class TestPipfileLock(PythonTestCase):
         pipfile_instance = Pipfile.from_string(pipfile_content)
         instance = PipfileLock.from_string(content, pipfile=pipfile_instance)
         assert instance.to_string() == content
+
+    def test_extras_parsing(self):
+        pipfile_instance = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_extras"))
+        instance = PipfileLock.from_file(
+            os.path.join(self.data_dir, "pipfiles", "Pipfile_extras.lock"),
+            pipfile=pipfile_instance
+        )
+
+        assert instance is not None
+        assert len(instance.packages.packages) == 34
+        assert "selinon" in instance.packages.packages
+        package_version = instance.packages.packages["selinon"]
+        assert set(package_version.to_dict().pop("extras")) == {
+            "celery",
+            "mongodb",
+            "postgresql",
+            "redis",
+            "s3",
+            "sentry",
+        }
+        assert set(package_version.extras) == {"celery", "mongodb", "postgresql", "redis", "s3", "sentry"}

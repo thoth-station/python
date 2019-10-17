@@ -61,6 +61,7 @@ class PackageVersion:
     index = attr.ib(default=None, type=Source)
     hashes = attr.ib(default=attr.Factory(list))
     markers = attr.ib(default=None, type=str)
+    extras = attr.ib(default=attr.Factory(list))
     _semantic_version = attr.ib(default=None, type=semver.Version)
     _version_spec = attr.ib(default=None, type=semver.Spec)
 
@@ -73,6 +74,7 @@ class PackageVersion:
             "index": self.index,
             "hashes": self.hashes,
             "markers": self.markers,
+            "extras": self.extras,
         }
 
     def __eq__(self, other):
@@ -131,6 +133,7 @@ class PackageVersion:
             index=self.index,
             hashes=self.hashes,
             markers=self.markers,
+            extras=self.extras
         )
 
     def negate_version(self) -> None:
@@ -239,6 +242,7 @@ class PackageVersion:
             hashes=entry.pop("hashes"),
             markers=entry.pop("markers", None),
             develop=develop,
+            extras=entry.pop("extras", []),
         )
 
         if entry:
@@ -265,6 +269,9 @@ class PackageVersion:
         if self.index:
             result["index"] = self.index.name
 
+        if self.extras:
+            result["extras"] = self.extras
+
         return {self.name: result}
 
     def to_tuple(self) -> tuple:
@@ -278,12 +285,16 @@ class PackageVersion:
     def to_pipfile(self):
         """Generate Pipfile entry for the given package."""
         _LOGGER.debug("Generating Pipfile entry for package %r", self.name)
-        result = dict()
+        result = {}
+
         if self.index:
             result["index"] = self.index.name
 
         if self.markers:
             result["markers"] = self.markers
+
+        if self.extras:
+            result["extras"] = self.extras
 
         if not result:
             # Only version information is available.
@@ -293,7 +304,7 @@ class PackageVersion:
         return {self.name: result}
 
     @classmethod
-    def from_pipfile_entry(cls, package_name: str, entry: dict, develop: bool, meta: "PipenvMeta"):
+    def from_pipfile_entry(cls, package_name: str, entry: typing.Union[dict, str], develop: bool, meta: "PipenvMeta"):
         """Construct PackageVersion instance from representation as stated in Pipfile."""
         _LOGGER.debug("Parsing entry in Pipfile for package %r: %s", package_name, entry)
         # Pipfile holds string for a version:
@@ -301,6 +312,7 @@ class PackageVersion:
         # Or a dictionary with additional configuration:
         #   thoth-storages = {"version": "1.0.0", "index": "pypi"}
         index = None
+        extras = []
         if isinstance(entry, str):
             package_version = entry
         else:
@@ -311,6 +323,7 @@ class PackageVersion:
 
             package_version = entry.pop("version")
             index = entry.pop("index", None)
+            extras = entry.pop("extras", [])
             # TODO: raise an error if VCS is in use - we do not do recommendation on these
             if entry:
                 _LOGGER.warning("Unparsed part of Pipfile: %s", entry)
@@ -320,6 +333,7 @@ class PackageVersion:
             version=package_version,
             index=cls._get_index_from_meta(meta, package_name, index),
             develop=develop,
+            extras=extras,
         )
 
         return instance
