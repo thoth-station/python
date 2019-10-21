@@ -232,3 +232,7 @@
 * Substitute contoml with toml
 * Do not rely on pkg_resources, use packaging for version parsing
 * Use packaging for package name normalization
+
+## Release 0.6.5 (2019-10-21T10:22:14)
+* Fix handling of user arguments when running pytest from setup.py
+* Add support for parsing extras from Pipfile and Pipfile.lock
