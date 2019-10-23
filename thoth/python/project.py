@@ -117,6 +117,8 @@ class Project:
         packages: typing.List[PackageVersion],
         packages_locked: typing.List[PackageVersion] = None,
         meta: PipfileMeta = None,
+        *,
+        runtime_environment: RuntimeEnvironment = None,
     ):
         """Create project from PackageVersion objects.
 
@@ -128,7 +130,12 @@ class Project:
         if packages_locked:
             pipfile_lock = PipfileLock.from_package_versions(pipfile, packages_locked, meta=meta)
 
-        instance = cls(pipfile, pipfile_lock)
+        if runtime_environment:
+            instance = cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
+        else:
+            # Let default be expanded.
+            instance = cls(pipfile, pipfile_lock)
+
         instance.sanitize_source_indexes()
         return instance
 
