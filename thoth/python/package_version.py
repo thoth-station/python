@@ -63,7 +63,6 @@ class PackageVersion:
     markers = attr.ib(default=None, type=str)
     extras = attr.ib(default=attr.Factory(list))
     _semantic_version = attr.ib(default=None, type=semver.Version)
-    _version_spec = attr.ib(default=None, type=semver.Spec)
 
     def to_dict(self) -> dict:
         """Create a dictionary representation of parameters (useful for later constructor calls)."""
@@ -193,14 +192,6 @@ class PackageVersion:
                 )
 
         return semantic_version
-
-    @property
-    def version_specification(self) -> semver.Spec:
-        """Retrieve version specification based on specified version."""
-        if not self._version_spec:
-            self._version_spec = semver.Spec(self.version)
-
-        return self._version_spec
 
     @staticmethod
     def _get_index_from_meta(
