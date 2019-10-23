@@ -188,9 +188,9 @@ class TestPackageVersion(PythonTestCase):
             index="https://pypi.org/simple",
             develop=False
         )
-        assert package_version.semantic_version.major == 1
-        assert package_version.semantic_version.minor == 9
-        assert package_version.semantic_version.patch == 0
+        assert package_version.semantic_version.release[0] == 1
+        assert package_version.semantic_version.release[1] == 9
+        assert package_version.semantic_version.release[2] == 0
 
     def test_parse_semver_leading_zeros(self):
         package_version = PackageVersion(
@@ -199,9 +199,9 @@ class TestPackageVersion(PythonTestCase):
             index="https://pypi.org/simple",
             develop=False
         )
-        assert package_version.semantic_version.major == 3
-        assert package_version.semantic_version.minor == 1
-        assert package_version.semantic_version.patch == 2
+        assert package_version.semantic_version.release[0] == 3
+        assert package_version.semantic_version.release[1] == 1
+        assert package_version.semantic_version.release[2] == 2
 
     def test_sorted(self):
         array = []
