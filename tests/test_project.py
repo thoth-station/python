@@ -20,7 +20,7 @@ import os
 
 import attr
 import pytest
-import semantic_version as semver
+from packaging.version import Version
 
 from thoth.python import Project
 from thoth.python import Source
@@ -103,12 +103,12 @@ class TestProject(PythonTestCase):
 
             def get_latest_package_version(_, package_name):
                 return {
-                    "certifi": semver.Version.coerce("2018.10.15"), 
-                    "chardet": semver.Version.coerce("3.0.4"),
-                    "idna": semver.Version.coerce("2.10"),  # Bumped from 2.7
-                    "requests": semver.Version.coerce("2.19.1"),
-                    "termcolor": semver.Version.coerce("1.1.0"),
-                    "urllib3": semver.Version.coerce("1.23"),
+                    "certifi": PackageVersion.parse_semantic_version("2018.10.15"),
+                    "chardet": PackageVersion.parse_semantic_version("3.0.4"),
+                    "idna": PackageVersion.parse_semantic_version("2.10"),  # Bumped from 2.7
+                    "requests": PackageVersion.parse_semantic_version("2.19.1"),
+                    "termcolor": PackageVersion.parse_semantic_version("1.1.0"),
+                    "urllib3": PackageVersion.parse_semantic_version("1.23"),
                 }[package_name]
 
         project = Project.from_files(
@@ -130,8 +130,8 @@ class TestProject(PythonTestCase):
         assert 'idna' in result
         assert len(result['idna']) == 2
         assert result['idna'][0] is project.pipfile_lock.packages['idna']
-        assert isinstance(result['idna'][1], semver.Version)
-        assert str(result['idna'][1]) == '2.10.0'
+        assert isinstance(result['idna'][1], Version)
+        assert str(result['idna'][1]) == '2.10'
 
     def test_get_outdated_package_versions_direct(self):
         # See previous test comments for more info.
@@ -146,12 +146,12 @@ class TestProject(PythonTestCase):
 
             def get_latest_package_version(_, package_name):
                 return {
-                    "certifi": semver.Version.coerce("2018.10.15"), 
-                    "chardet": semver.Version.coerce("3.0.4"),
-                    "idna": semver.Version.coerce("2.7"),
-                    "requests": semver.Version.coerce("3.0.0"),
-                    "termcolor": semver.Version.coerce("1.1.0"),
-                    "urllib3": semver.Version.coerce("1.23"),
+                    "certifi": PackageVersion.parse_semantic_version("2018.10.15"),
+                    "chardet": PackageVersion.parse_semantic_version("3.0.4"),
+                    "idna": PackageVersion.parse_semantic_version("2.7"),
+                    "requests": PackageVersion.parse_semantic_version("3.0.0"),
+                    "termcolor": PackageVersion.parse_semantic_version("1.1.0"),
+                    "urllib3": PackageVersion.parse_semantic_version("1.23"),
                 }[package_name]
 
         project = Project.from_files(
@@ -173,7 +173,7 @@ class TestProject(PythonTestCase):
         assert 'requests' in result
         assert len(result['requests']) == 2
         assert result['requests'][0] is project.pipfile_lock.packages['requests']
-        assert isinstance(result['requests'][1], semver.Version)
+        assert isinstance(result['requests'][1], Version)
         assert str(result['requests'][1]) == '3.0.0'
 
     def test_indexes_in_meta(self):
