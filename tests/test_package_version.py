@@ -213,17 +213,6 @@ class TestPackageVersion(PythonTestCase):
         with pytest.raises(InternalError):
             return PackageVersion(name='tensorflow', version='>1.0.0', develop=False).semantic_version
 
-    def test_version_specification(self):
-        pv = PackageVersion(name='tensorflow', version='==0.1.0', develop=False).semantic_version
-        vs = PackageVersion(name='tensorflow', version='<1.0.0', develop=False).version_specification
-        assert pv in vs
-
-        pv = PackageVersion(name='tensorflow', version='==2.1.0', develop=False).semantic_version
-        assert pv not in vs
-
-        vs = PackageVersion(name='tensorflow', version='==2.1.0', develop=False).version_specification
-        assert pv in vs
-
     def test_normalize_python_package_name(self):
         package_version = PackageVersion(name='Cython', version='0.29.13', develop=False)
         assert package_version.name == "cython"
