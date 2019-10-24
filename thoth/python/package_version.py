@@ -63,7 +63,7 @@ class PackageVersion:
     hashes = attr.ib(default=attr.Factory(list))
     markers = attr.ib(default=None, type=str)
     extras = attr.ib(default=attr.Factory(list))
-    _semantic_version = attr.ib(default=None, type=Version)
+    _semantic_version = attr.ib(default=None, type=typing.Union[LegacyVersion, Version])
 
     def to_dict(self) -> dict:
         """Create a dictionary representation of parameters (useful for later constructor calls)."""
