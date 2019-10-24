@@ -26,7 +26,9 @@ from urllib.parse import urlparse
 import attr
 import requests
 from bs4 import BeautifulSoup
-import semantic_version as semver
+from packaging.version import Version
+from packaging.version import LegacyVersion
+from packaging.version import parse as parse_version
 
 from .exceptions import NotFound
 from .exceptions import InternalError
@@ -241,7 +243,7 @@ class Source:
 
     def get_latest_package_version(
         self, package_name: str, graceful: bool = False
-    ) -> typing.Optional[semver.base.Version]:
+    ) -> typing.Optional[typing.Union[Version, LegacyVersion]]:
         """Get the latest version for the given package."""
         try:
             all_versions = self.get_package_versions(package_name)
@@ -255,7 +257,7 @@ class Source:
         semver_versions = []
         for version in all_versions:
             try:
-                version = semver.Version.coerce(version)
+                version = parse_version(version)
             except Exception as exc:
                 error_msg = f"Cannot parse semver version {version} for package {package_name}: {str(exc)}"
                 if graceful:
