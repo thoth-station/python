@@ -24,9 +24,10 @@ from functools import lru_cache
 from urllib.parse import urlparse
 
 import attr
-import requests
+import aiohttp
 
 from bs4 import BeautifulSoup
+
 import semantic_version as semver
 
 from .exceptions import NotFound
@@ -39,7 +40,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 @attr.s(frozen=True, slots=True)
-class Source:
+class AIOSource:
     """Representation of source (Python index) for Python packages."""
 
     url = attr.ib(type=str)
@@ -48,7 +49,12 @@ class Source:
     warehouse = attr.ib(type=bool)
     warehouse_api_url = attr.ib(default=None, type=str)
 
+    http_session = aiohttp.ClientSession()
+
     _NORMALIZED_PACKAGE_NAME_RE = re.compile("[a-z-]+")
+
+    async def __del__(self):
+        await self.http_session.close()
 
     @name.default
     def default_name(self):
@@ -104,27 +110,37 @@ class Source:
         """Normalize package name on index according to PEP-0503."""
         return re.sub(r"[-_.]+", "-", package_name).lower()
 
-    def _warehouse_get_api_package_version_info(self, package_name: str, package_version: str) -> dict:
+    async def _warehouse_get_api_package_version_info(self, package_name: str, package_version: str) -> dict:
         """Use API of the deployed Warehouse to gather package version information."""
         url = self.get_api_url() + f"/{package_name}/{package_version}/json"
-        _LOGGER.debug("Gathering package version information from Warehouse API: %r", url)
-        response = requests.get(url, verify=self.verify_ssl)
-        if response.status_code == 404:
-            raise NotFound(
-                f"Package {package_name} in version {package_version} not found on warehouse {self.url} ({self.name})"
-            )
-        response.raise_for_status()
-        return response.json()
+        json = None
 
-    def _warehouse_get_api_package_info(self, package_name: str) -> dict:
+        _LOGGER.debug("Gathering package version information from Warehouse API: %r", url)
+
+        async with self.http_session.get(self.url) as response:
+            if response.status == 404:
+                raise NotFound(
+                    f"Package {package_name} in version {package_version} not found on warehouse {self.url} ({self.name})"
+                )
+
+            json = await response.json()
+
+        return json
+
+    async def _warehouse_get_api_package_info(self, package_name: str) -> dict:
         """Use API of the deployed Warehouse to gather package information."""
         url = self.get_api_url() + f"/{package_name}/json"
+        json = None
+
         _LOGGER.debug("Gathering package information from Warehouse API: %r", url)
-        response = requests.get(url, verify=self.verify_ssl)
-        if response.status_code == 404:
-            raise NotFound(f"Package {package_name} not found on warehouse {self.url} ({self.name})")
-        response.raise_for_status()
-        return response.json()
+
+        async with self.http_session.get(self.url) as response:
+            if response.status == 404:
+                raise NotFound(f"Package {package_name} not found on warehouse {self.url} ({self.name})")
+
+            json = await response.json()
+
+        return json
 
     def _warehouse_get_package_hashes(
         self, package_name: str, package_version: str, with_included_files: bool = False
@@ -150,13 +166,19 @@ class Source:
         return cls._NORMALIZED_PACKAGE_NAME_RE.match(package_name) is not None
 
     @lru_cache(maxsize=10)
-    def get_packages(self) -> set:
+    async def get_packages(self) -> set:
         """List packages available on the source package index."""
+        soup = None
+        links = []
+
         _LOGGER.debug(f"Discovering packages available on {self.url} (simple index name: {self.name})")
-        response = requests.get(self.url, verify=self.verify_ssl)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "lxml")
+
+        async with self.http_session.get(self.url) as response:
+            text = await response.text()
+            soup = BeautifulSoup(text, "lxml")
+
         links = soup.find_all("a")
+        _LOGGER.debug(f"Links discovered on {self.url}: {links}")
 
         packages = set()
         for link in links:
@@ -202,26 +224,32 @@ class Source:
         _LOGGER.debug(f"Parsed package version for package {package_name} from artifact {artifact_name}: {version}")
         return version
 
-    def _simple_repository_list_versions(self, package_name: str) -> list:
+    async def _simple_repository_list_versions(self, package_name: str) -> list:
         """List versions of package available on a simple repository."""
         result = set()
-        for artifact_name, _ in self._simple_repository_list_artifacts(package_name):
+
+        artifacts = await self._simple_repository_list_artifacts(package_name)
+        _LOGGER.debug("Artifacts for %r (index with name %r): %r", package_name, self.name, artifacts)
+
+        for artifact_name, _ in artifacts:
             result.add(self._parse_artifact_version(package_name, artifact_name))
 
         result = list(result)
         _LOGGER.debug("Versions available on %r (index with name %r): %r", self.url, self.name, result)
+
         return result
 
     @lru_cache(maxsize=10)
-    def get_package_versions(self, package_name: str) -> list:
+    async def get_package_versions(self, package_name: str) -> list:
         """Get listing of versions available for the given package."""
         if not self.warehouse:
-            return self._simple_repository_list_versions(package_name)
+            _versions = await self._simple_repository_list_versions(package_name)
+            return _versions
 
-        package_info = self._warehouse_get_api_package_info(package_name)
+        package_info = await self._warehouse_get_api_package_info(package_name)
         return list(package_info["releases"].keys())
 
-    def get_latest_package_version(
+    async def get_latest_package_version(
         self, package_name: str, graceful: bool = False
     ) -> typing.Optional[semver.base.Version]:
         """Get the latest version for the given package."""
@@ -249,16 +277,21 @@ class Source:
 
         return sorted(semver_versions)[-1]
 
-    def _simple_repository_list_artifacts(self, package_name: str) -> list:
+    async def _simple_repository_list_artifacts(self, package_name: str) -> list:
         """Parse simple repository package listing (HTML) and return artifacts present there."""
         url = self.url + "/" + package_name
+        soup = None
 
         _LOGGER.debug(f"Discovering package %r artifacts from %r", package_name, url)
-        response = requests.get(url, verify=self.verify_ssl)
-        if response.status_code == 404:
-            raise NotFound(f"Package {package_name} is not present on index {self.url} (index {self.name})")
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "lxml")
+
+        async with self.http_session.get(url) as response:
+            _LOGGER.debug(f"Response %r", response)
+
+            if response.status == 404:
+                raise NotFound(f"Package {package_name} is not present on index {self.url} (index {self.name})")
+
+            text = await response.text()
+            soup = BeautifulSoup(text, "lxml")
 
         links = soup.find_all("a")
         artifacts = []
@@ -286,7 +319,7 @@ class Source:
 
         return artifacts
 
-    def get_package_artifacts(self, package_name: str, package_version: str):
+    async def get_package_artifacts(self, package_name: str, package_version: str):
         """Return list of artifacts corresponding to package name and package version."""
         to_return = []
         for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):

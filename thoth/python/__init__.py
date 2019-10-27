@@ -15,7 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+
 """Python ecosystem specific routines."""
+
 
 from .digests_fetcher import DigestsFetcherBase
 from .digests_fetcher import PythonDigestsFetcher
@@ -26,7 +28,8 @@ from .pipfile import PipfileMeta
 from .pipfile import PipfileLock
 from .project import Project
 from .source import Source
+from .aiosource import AIOSource
 
 
-__version__ = "0.6.5"
+__version__ = "0.7.0-dev"
 __author__ = "Fridolin Pokorny <fridolin@redhat.com>"

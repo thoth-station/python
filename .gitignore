@@ -7,3 +7,4 @@ __pycache__
 docs/source/thoth.*.rst
 build/
 .mypy_cache/
+.vscode/
