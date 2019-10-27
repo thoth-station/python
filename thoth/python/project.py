@@ -128,7 +128,7 @@ class Project:
         pipfile = Pipfile.from_package_versions(packages, meta=meta)
         pipfile_lock = None
         if packages_locked:
-            pipfile_lock = PipfileLock.from_package_versions(pipfile, packages_locked, meta=meta)
+            pipfile_lock = PipfileLock.from_package_versions(pipfile, packages_locked, meta=pipfile.meta)
 
         if runtime_environment:
             instance = cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
