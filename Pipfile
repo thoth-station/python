@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 requests = "*"
+aiohttp = "*"
 click = "*"
 thoth-analyzer = "*"
 thoth-common = "*"
