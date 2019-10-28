@@ -183,7 +183,7 @@ class Source:
         """Parse package version based on artifact name available on the package source index."""
         if artifact_name.endswith(".tar.gz"):
             # +1 for dash delimiting package name and package version.
-            version = artifact_name[len(package_name) + 1 : -len(".tar.gz")]
+            version = artifact_name[len(package_name) + 1:-len(".tar.gz")]
 
         elif artifact_name.endswith(".whl"):
             # TODO: we will need to improve this based on PEP-0503.
