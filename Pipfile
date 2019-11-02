@@ -16,13 +16,15 @@ pyelftools = "*"
 packaging = "*"
 setuptools = "*"
 toml = "*"
+aiohttp = "*"
 
 [dev-packages]
 pytest = "*"
 pytest-timeout = "*"
 pytest-cov = "*"
-flexmock = "*"
 pytest-mypy = "*"
+pytest-asyncio = "*"
+flexmock = "*"
 typeshed = "*"
 
 [requires]
