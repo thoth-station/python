@@ -174,6 +174,9 @@ class Source:
                 #   https://www.python.org/dev/peps/pep-0503/
                 link_text = link_text[:-1]
 
+            # Normalize link_text for comparison below
+            link_text = self.normalize_package_name(link_text)
+
             if self.is_normalized_python_package_name(package_name) and package_name == link_text:
                 packages.add(package_name)
 
