@@ -246,10 +246,10 @@ class AIOSource(Source):
             # According to PEP-503, package names must have trailing '/', but check this explicitly
             if not package_parts[-1]:
                 package_parts = package_parts[:-1]
-            package_name = package_parts[-1]
+            package_name = self.normalize_package_name(package_parts[-1])
 
             # Discard links to parent dirs (package name of URL does not match the text.
-            link_text = link.text
+            link_text = self.normalize_package_name(link.text)
             if link_text.endswith("/"):
                 # Link names should end with trailing / according to PEEP:
                 #   https://www.python.org/dev/peps/pep-0503/
