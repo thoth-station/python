@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # thoth-python
-# Copyright(C) 2018, 2019 Fridolin Pokorny
+# Copyright(C) 2018, 2019 Red Hat, Inc.
 #
 # This program is free software: you can redistribute it and / or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +26,10 @@ from .pipfile import PipfileMeta
 from .pipfile import PipfileLock
 from .project import Project
 from .source import Source
+from .aiosource import AIOSource, AsyncIterablePackages, AsyncIterableVersions, AsyncIterableArtifacts
 
 
-__version__ = "0.6.5"
-__author__ = "Fridolin Pokorny <fridolin@redhat.com>"
+__version__ = "0.7.0"
+__author__ = "Fridolin Pokorny <fridolin@redhat.com>, Christoph Görn <goern@redhat.com>"
+__copyright__ = "Copyright 2018, 2019 Red Hat, Inc."
+__license__ = "GPLv3+"
