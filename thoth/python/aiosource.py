@@ -187,7 +187,7 @@ class AIOSource(Source):
         url = self.url + "/" + package_name
         links = []
 
-        _LOGGER.debug(f"Discovering package %r artifacts from %r", package_name, url)
+        _LOGGER.debug("Discovering package %r artifacts from %r", package_name, url)
 
         async with aiohttp.ClientSession(raise_for_status=True) as session:
             async with session.get(url) as response:
@@ -255,7 +255,7 @@ class AIOSource(Source):
                 #   https://www.python.org/dev/peps/pep-0503/
                 link_text = link_text[:-1]
 
-            if self.is_normalized_python_package_name(package_name) and package_name == link_text:
+            if package_name == link_text:
                 packages.add(package_name)
 
         return AsyncIterablePackages(packages)
