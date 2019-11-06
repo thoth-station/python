@@ -182,6 +182,19 @@ class Source:
 
         return packages
 
+    def provides_package(self, package_name: str) -> bool:
+        """Check if the given package is provided by this package source index."""
+        _LOGGER.debug("Checking availability of package %r on index %r", package_name, self.url)
+        url = self.url + "/" + package_name
+        response = requests.get(url, verify=self.verify_ssl)
+
+        if response.status_code == 404:
+            return False
+
+        # Raise on other inappropriate error codes.
+        response.raise_for_status()
+        return True
+
     @staticmethod
     def _parse_artifact_version(package_name: str, artifact_name: str) -> str:
         """Parse package version based on artifact name available on the package source index."""
