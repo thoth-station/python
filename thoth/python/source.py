@@ -185,6 +185,7 @@ class Source:
     def provides_package(self, package_name: str) -> bool:
         """Check if the given package is provided by this package source index."""
         _LOGGER.debug("Checking availability of package %r on index %r", package_name, self.url)
+        package_name = self.normalize_package_name(package_name)
         url = self.url + "/" + package_name
         response = requests.get(url, verify=self.verify_ssl)
 
