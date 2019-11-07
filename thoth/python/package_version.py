@@ -23,8 +23,9 @@ import typing
 from copy import copy
 
 import attr
-import semantic_version as semver
 from packaging.version import parse as parse_version
+from packaging.version import Version
+from packaging.version import LegacyVersion
 from packaging.utils import canonicalize_name
 
 
@@ -62,7 +63,7 @@ class PackageVersion:
     hashes = attr.ib(default=attr.Factory(list))
     markers = attr.ib(default=None, type=str)
     extras = attr.ib(default=attr.Factory(list))
-    _semantic_version = attr.ib(default=None, type=semver.Version)
+    _semantic_version = attr.ib(default=None, type=typing.Union[LegacyVersion, Version])
 
     def to_dict(self) -> dict:
         """Create a dictionary representation of parameters (useful for later constructor calls)."""
@@ -155,7 +156,7 @@ class PackageVersion:
         return self.version[len("=="):]
 
     @property
-    def semantic_version(self) -> semver.Version:
+    def semantic_version(self) -> typing.Union[Version, LegacyVersion]:
         """Get semantic version respecting version specified - package has to be locked to a specific version."""
         if not self._semantic_version:
             if not self.is_locked():
@@ -163,35 +164,14 @@ class PackageVersion:
                     f"Cannot get semantic version for not-locked package {self.name} in version {self.version}"
                 )
 
-        try:
-            self._semantic_version = self.parse_semantic_version(self.locked_version, _package_name=self.name)
-        except ValueError:
-            # A simple workaround for leading zeros when parsing semver - e.g. 3.01.2.
-            parts = self.locked_version.split('.')
-            version = ".".join(map(str, map(int, parts)))
-            self._semantic_version = self.parse_semantic_version(version, self.name)
+            self._semantic_version = self.parse_semantic_version(self.locked_version)
 
         return self._semantic_version
 
     @staticmethod
-    def parse_semantic_version(version_identifier: str, _package_name: str = None) -> semver.Version:
+    def parse_semantic_version(version_identifier: str) -> typing.Union[Version, LegacyVersion]:
         """Parse the given version identifier into a semver representation."""
-        try:
-            semantic_version = semver.Version(version_identifier)
-        except Exception as exc:
-            semantic_version = semver.Version.coerce(version_identifier)
-            if _package_name:
-                _LOGGER.debug(
-                    f"Cannot determine semantic version {version_identifier}, "
-                    f"approximated version is {semantic_version}: {str(exc)}"
-                )
-            else:
-                _LOGGER.debug(
-                    f"Cannot determine semantic version {version_identifier} of package {_package_name}, "
-                    f"approximated version is {semantic_version}: {str(exc)}"
-                )
-
-        return semantic_version
+        return parse_version(version_identifier)
 
     @staticmethod
     def _get_index_from_meta(
