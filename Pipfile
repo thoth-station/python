@@ -13,7 +13,6 @@ beautifulsoup4 = "==4.6.3"
 lxml = "*"
 pyelftools = "*"
 packaging = "*"
-setuptools = "*"
 toml = "*"
 aiohttp = "*"
 
