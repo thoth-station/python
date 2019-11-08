@@ -315,7 +315,7 @@ class PipfileLock(_PipfileBase):
             pipfile=pipfile,
             packages=Packages.from_package_versions([pv for pv in packages if not pv.develop], develop=False),
             dev_packages=Packages.from_package_versions([pv for pv in packages if pv.develop], develop=True),
-            meta=meta,
+            meta=meta or PipfileMeta.from_dict({}),
         )
 
     @classmethod
