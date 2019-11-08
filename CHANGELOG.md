@@ -236,3 +236,25 @@
 ## Release 0.6.5 (2019-10-21T10:22:14)
 * Fix handling of user arguments when running pytest from setup.py
 * Add support for parsing extras from Pipfile and Pipfile.lock
+
+## Release 0.7.1 (2019-11-08T10:09:30)
+* Relock with new dependencies
+* Remove last bits relying on semantic-version library
+* Reflect code review comments
+* Fix testsuite respecting new implementation
+* Use packaging module to be fully compliant with Python ecosystem
+* Fix metadata propagation when instantiating PipfileLock
+* Add missing aiohttp dependency
+* Normalize package name before checking its availability
+* Introduce a method for checking if the given package is provided by index
+* always use normalized package names
+* re frido's comments on https://github.com/thoth-station/python/pull/160
+* Normalized link text for comparison to package name
+* bounced version
+* :sparkles: implemented a set of async methods
+* relocked
+* :sparkles: updated to our latest standards
+* Propagate metadata from constructed metadata in Pipfile
+* Provide a way to define runtime environment when instantiating from package versions
+* Start using mypy for type checking
+* Drop version specification
