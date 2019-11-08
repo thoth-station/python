@@ -13,3 +13,4 @@ lxml
 pyelftools
 packaging
 setuptools
+aiohttp
