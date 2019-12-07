@@ -3,6 +3,14 @@
 Crossroad
 =========
 
+* `Documentation for thoth-adviser <../adviser>`_
+* `Documentation for thoth-analyzer <../analyzer>`_
+* `Documentation for thoth-common <../common>`_
+* `Documentation for thoth-lab <../lab>`_
+* `Documentation for thoth-package-analyzer <../package-analyzer>`_
+* `Documentation for thoth-package-extract <../package-extract>`_
+* `Documentation for thoth-solver <../solver>`_
+* `Documentation for thoth-storages <../storages>`_
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
