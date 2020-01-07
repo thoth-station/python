@@ -262,8 +262,11 @@ class _PipfileBase:
 #
 """
 
-        for index in meta.sources.values():
-            result += f"-i {index.url}\n"
+        for idx, index in enumerate(meta.sources.values()):
+            if idx == 0:
+                result += f"--index-url {index.url}\n"
+            else:
+                result += f"--extra-index-url {index.url}\n"
 
         result += "\n"
         result += cls._construct_requirements_packages(packages)
