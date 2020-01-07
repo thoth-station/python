@@ -86,6 +86,21 @@ class Project:
         )
 
     @classmethod
+    def from_dict(
+        cls,
+        pipfile: typing.Dict[str, typing.Any],
+        pipfile_lock: typing.Dict[str, typing.Any],
+        runtime_environment: RuntimeEnvironment = None
+    ) -> "Project":
+        """Construct project out of a dict representation."""
+        pipfile = Pipfile.from_dict(pipfile)
+        return cls(
+            pipfile=pipfile,
+            pipfile_lock=PipfileLock.from_dict(pipfile_lock, pipfile=pipfile),
+            runtime_environment=runtime_environment
+        )
+
+    @classmethod
     def from_strings(
         cls, pipfile_str: str, pipfile_lock_str: str = None, *, runtime_environment: RuntimeEnvironment = None
     ):
@@ -102,7 +117,12 @@ class Project:
             runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({})
         )
 
-    def to_files(self, pipfile_path: str = None, pipfile_lock_path: str = None, without_pipfile_lock: bool = False):
+    def to_files(
+        self,
+        pipfile_path: str = None,
+        pipfile_lock_path: str = None,
+        without_pipfile_lock: bool = False
+    ) -> None:
         """Write the current state of project into Pipfile and Pipfile.lock files."""
         with open(pipfile_path or "Pipfile", "w") as pipfile_file:
             pipfile_file.write(self.pipfile.to_string())
@@ -110,6 +130,36 @@ class Project:
         if not without_pipfile_lock:
             with open(pipfile_lock_path or "Pipfile.lock", "w") as pipfile_lock_file:
                 pipfile_lock_file.write(self.pipfile_lock.to_string())
+
+    def construct_requirements_in(self) -> str:
+        """Construct requirements.in file for the current project."""
+        return self.pipfile.construct_requirements_in()
+
+    def construct_requirements_txt(self) -> str:
+        """Construct requirements.txt file for the current project - pip-tools compatible."""
+        return self.pipfile_lock.construct_requirements_txt()
+
+    def to_pip_compile_files(
+        self,
+        requirements_path: str = "requirements.in",
+        requirements_lock_path: str = "requirements.txt",
+        without_lock: bool = False
+    ) -> None:
+        """Write the current state of project into requirements.in and requirements.txt files.
+
+        Files created are compatible with pip/pip-tools. If no lock is specified, requirements.txt
+        hold unpinned direct dependencies as in case of pip.
+        """
+        if without_lock:
+            with open(requirements_path, "w") as requirements_file:
+                requirements_file.write(self.construct_requirements_in())
+            return
+
+        with open(requirements_path, "w") as requirements_file:
+            requirements_file.write(self.construct_requirements_in())
+
+        with open(requirements_lock_path, "w") as requirements_lock_file:
+            requirements_lock_file.write(self.construct_requirements_txt())
 
     @classmethod
     def from_package_versions(

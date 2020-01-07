@@ -284,6 +284,7 @@ class PackageVersion:
         #   thoth-storages = {"version": "1.0.0", "index": "pypi"}
         index = None
         extras = []
+        markers = None
         if isinstance(entry, str):
             package_version = entry
         else:
@@ -295,6 +296,7 @@ class PackageVersion:
             package_version = entry.pop("version")
             index = entry.pop("index", None)
             extras = entry.pop("extras", [])
+            markers = entry.pop("markers", None)
             # TODO: raise an error if VCS is in use - we do not do recommendation on these
             if entry:
                 _LOGGER.warning("Unparsed part of Pipfile: %s", entry)
@@ -305,6 +307,7 @@ class PackageVersion:
             index=cls._get_index_from_meta(meta, package_name, index),
             develop=develop,
             extras=extras,
+            markers=markers,
         )
 
         return instance
