@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # thoth-python
-# Copyright(C) 2019 Kevin Postlthwait
+# Copyright(C) 2019, 2020 Kevin Postlthwait
 #
 # This program is free software: you can redistribute it and / or modify
 # it under the terms of the GNU General Public License as published by
