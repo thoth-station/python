@@ -1,0 +1,26 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[[source]]
+url ="https://tensorflow.pypi.thoth-station.ninja/index/manylinux2010/AVX2/simple/"
+verify_ssl = true
+name = "redhat-aicoe-experiments"
+
+[packages]
+attrs = ">=10"
+connexion = {extras = ["swagger-ui"],version = ">=1.2",markers="python_version < '2.7.9' or (python_version >= '3.0' and python_version < '3.4')"}
+flask = "==1.1.1"
+aiocontextvars = "*"
+sentry-sdk = {extras = ["flask"],version = "*"}
+tensorflow = {version="==1.13.2", index="redhat-aicoe-experiments"}
+
+[pipenv]
+allow_prereleases = false
+
+[dev-packages]
+pytest = "*"
+
+[requires]
+python_version = "3.6"
