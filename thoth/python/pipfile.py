@@ -20,7 +20,11 @@
 import json
 import hashlib
 import logging
-import typing
+from typing import Dict
+from typing import Any
+from typing import Optional
+from typing import Iterable
+from typing import List
 from itertools import chain
 
 import toml
@@ -43,11 +47,11 @@ _DEFAULT_PIPFILE_SPEC = 6
 class PipfileMeta:
     """Parse meta information stored in Pipfile or Pipfile.lock."""
 
-    sources = attr.ib(type=dict)
-    requires = attr.ib(type=dict)
-    pipenv = attr.ib(type=dict)
-    hash = attr.ib(type=dict)
-    pipfile_spec = attr.ib(type=int)
+    sources = attr.ib(type=Dict[str, Source])
+    requires = attr.ib(type=Dict[str, Any], default=attr.Factory(dict))
+    pipenv = attr.ib(type=Optional[Dict[str, Any]], default=None)
+    hash = attr.ib(type=Optional[Dict[str, Any]], default=None)
+    pipfile_spec = attr.ib(type=int, default=_DEFAULT_PIPFILE_SPEC)
 
     @classmethod
     def from_dict(cls, dict_: dict):
@@ -218,7 +222,7 @@ class _PipfileBase:
 
     @staticmethod
     def _construct_requirements_packages(
-        packages: typing.Iterable[PackageVersion]
+        packages: Iterable[PackageVersion]
     ) -> str:
         """Construct a requirements.txt/in string entry for each package."""
         result = ""
@@ -249,8 +253,8 @@ class _PipfileBase:
     @classmethod
     def _construct_requirements(
         cls,
-        packages: typing.Iterable[PackageVersion],
-        dev_packages: typing.Optional[typing.Iterable[PackageVersion]],
+        packages: Iterable[PackageVersion],
+        dev_packages: Optional[Iterable[PackageVersion]],
         meta: PipfileMeta,
         with_header: bool = True
     ) -> str:
@@ -299,7 +303,7 @@ class Pipfile(_PipfileBase):
         return {"default": self.packages.to_pipfile(), "develop": self.dev_packages.to_pipfile(), "_meta": meta}
 
     @classmethod
-    def from_package_versions(cls, packages: typing.List[PackageVersion], meta: PipfileMeta = None):
+    def from_package_versions(cls, packages: List[PackageVersion], meta: PipfileMeta = None):
         """Construct Pipfile from provided PackageVersion instances."""
         return cls(
             packages=Packages.from_package_versions([pv for pv in packages if not pv.develop], develop=False),
@@ -386,7 +390,7 @@ class PipfileLock(_PipfileBase):
     pipfile = attr.ib(type=Pipfile)
 
     @classmethod
-    def from_package_versions(cls, pipfile: Pipfile, packages: typing.List[PackageVersion], meta: PipfileMeta = None):
+    def from_package_versions(cls, pipfile: Pipfile, packages: List[PackageVersion], meta: PipfileMeta = None):
         """Construct Pipfile from provided PackageVersion instances."""
         return cls(
             pipfile=pipfile,
