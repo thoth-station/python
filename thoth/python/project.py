@@ -213,7 +213,7 @@ class Project:
                 package_version.index = sources[0]
 
         # XXX: do we want a default source?
-        meta = PipfileMeta(sources={s.name for s in sources})
+        meta = PipfileMeta(sources={s.name: s for s in sources})
         pipfile = Pipfile.from_package_versions(package_versions, meta=meta)
         pipfile_lock = None
         if package_versions_lock:
