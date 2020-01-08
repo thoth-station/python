@@ -17,6 +17,7 @@
 
 """Project abstraction and operations on project dependencies."""
 
+import os
 import logging
 import typing
 from itertools import chain
@@ -38,6 +39,7 @@ from .package_version import PackageVersion
 from .exceptions import UnableLock
 from .exceptions import InternalError
 from .exceptions import NotFound
+from .helpers import parse_requirements
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -160,6 +162,68 @@ class Project:
 
         with open(requirements_lock_path, "w") as requirements_lock_file:
             requirements_lock_file.write(self.construct_requirements_txt())
+
+    @classmethod
+    def from_pip_compile_files(
+        cls,
+        requirements_path: str = "requirements.in",
+        requirements_lock_path: typing.Optional[str] = None,
+        allow_without_lock: bool = False,
+        runtime_environment: typing.Optional[RuntimeEnvironment] = None,
+    ) -> "Project":
+        """Parse project from files compatible with pip/pip-tools."""
+        sources_lock, package_versions_lock = None, None
+        if allow_without_lock:
+            if not os.path.exists(requirements_path):
+                requirements_lock_path = requirements_lock_path or "requirements.txt"
+                sources, package_versions = parse_requirements(requirements_lock_path)
+            else:
+                sources, package_versions = parse_requirements(requirements_path)
+                if requirements_lock_path is not None:
+                    sources_lock, package_versions_lock = parse_requirements(requirements_lock_path)
+                elif os.path.exists("requirements.txt"):
+                    sources_lock, package_versions_lock = parse_requirements("requirements.txt")
+        else:
+            requirements_lock_path = requirements_lock_path or "requirements.txt"
+            sources, package_versions = parse_requirements(requirements_path)
+            sources_lock, package_versions_lock = parse_requirements(requirements_lock_path)
+
+        for package_version in package_versions_lock or []:
+            if not package_version.is_locked():
+                raise ValueError(
+                    f"Package {package_version.name} in lockfile does not "
+                    f"use locked version: {package_version.version!r}"
+                )
+
+            if not package_version.hashes:
+                _LOGGER.warning(
+                    "Parsed package %r in version %r from lockfile %r has no hashes assigned",
+                    package_version.name,
+                    package_version.version,
+                    requirements_lock_path,
+                )
+
+        sources = sources or sources_lock or []
+
+        # We know which index is assigned.
+        if len(sources) == 1:
+            for package_version in package_versions:
+                package_version.index = sources[0]
+            for package_version in package_versions_lock or []:
+                package_version.index = sources[0]
+
+        # XXX: do we want a default source?
+        meta = PipfileMeta(sources={s.name for s in sources})
+        pipfile = Pipfile.from_package_versions(package_versions, meta=meta)
+        pipfile_lock = None
+        if package_versions_lock:
+            pipfile_lock = PipfileLock.from_package_versions(
+                pipfile=pipfile,
+                packages=package_versions_lock,
+                meta=meta
+            )
+
+        return cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
 
     @classmethod
     def from_package_versions(
