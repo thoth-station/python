@@ -466,3 +466,9 @@
 * Source code import
 * Add long description for PyPI
 * Initial project import
+
+## Release 0.9.0 (2020-01-08T12:48:55)
+* Move package parsing logic from thoth-solver
+* :pushpin: Automatic update of dependency thoth-common from 0.9.22 to 0.9.23
+* Pass pip allows one --index-url per run
+* Happy new year!
