@@ -472,3 +472,6 @@
 * :pushpin: Automatic update of dependency thoth-common from 0.9.22 to 0.9.23
 * Pass pip allows one --index-url per run
 * Happy new year!
+
+## Release 0.9.1 (2020-01-09T08:38:14)
+* Fix sources dict handling
