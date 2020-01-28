@@ -313,14 +313,11 @@ class Source:
         for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
             # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
             artifact_name.lower()
-            matches = False
 
             for i in possible_continuations:
-                matches = matches or artifact_name.startswith(f"{package_name}-{package_version}{i}")
-                if matches:
+                if artifact_name.startswith(f"{package_name}-{package_version}{i}"):
                     break
-
-            if not matches:
+            else:
                 _LOGGER.debug(
                     "Skipping artifact %r as it does not match required version %r for package %r",
                     artifact_name,
