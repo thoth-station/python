@@ -317,6 +317,8 @@ class Source:
 
             for i in possible_continuations:
                 matches = matches or artifact_name.startswith(f"{package_name}-{package_version}{i}")
+                if matches:
+                    break
 
             if not matches:
                 _LOGGER.debug(
