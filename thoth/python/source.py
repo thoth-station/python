@@ -309,13 +309,15 @@ class Source:
     def get_package_artifacts(self, package_name: str, package_version: str):
         """Return list of artifacts corresponding to package name and package version."""
         to_return = []
+        possible_continuations = [".win32", ".tar.gz", ".whl", ".zip", ".exe", ".egg", "-"]
         for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
             # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
             artifact_name.lower()
-            if not artifact_name.startswith(f"{package_name}-{package_version}"):
-                # TODO: this logic has to be improved as package version can be a suffix of another package version:
-                #   mypackage-1.0.whl, mypackage-1.0.0.whl, ...
-                # This will require parsing based on PEP or some better logic.
+
+            for i in possible_continuations:
+                if artifact_name.startswith(f"{package_name}-{package_version}{i}"):
+                    break
+            else:
                 _LOGGER.debug(
                     "Skipping artifact %r as it does not match required version %r for package %r",
                     artifact_name,
