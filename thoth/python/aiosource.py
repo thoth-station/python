@@ -260,6 +260,7 @@ class AIOSource(Source):
 
         return AsyncIterablePackages(packages)
 
+    @lru_cache(maxsize=64)
     async def get_package_versions(self, package_name: str) -> AsyncIterableVersions:
         """Get listing of versions available for the given package."""
         if not self.warehouse:
