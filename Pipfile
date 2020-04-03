@@ -23,7 +23,6 @@ pytest-cov = "*"
 pytest-mypy = "*"
 pytest-asyncio = "*"
 flexmock = "*"
-typeshed = "*"
 
 [requires]
 python_version = "3.6"
