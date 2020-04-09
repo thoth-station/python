@@ -461,8 +461,12 @@
             "version": "==0.1.8"
         },
         "thoth-common": {
+            "hashes": [
+                "sha256:b793ad6c581aecb4ce804732bffd0a46551e9897f42dc68abd750d8ee7c113c7",
+                "sha256:eaa699a2e213a2ee9e818761222a33c7a81205f477bcb81bde0a87ddd9a2f283"
+            ],
             "index": "pypi",
-            "version": "==0.12.8"
+            "version": "==0.12.9"
         },
         "toml": {
             "hashes": [
