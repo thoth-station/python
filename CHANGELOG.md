@@ -475,3 +475,49 @@
 
 ## Release 0.9.1 (2020-01-09T08:38:14)
 * Fix sources dict handling
+
+## Release 0.9.2 (2020-04-20T13:04:30)
+* Change exception expected in the tests
+* Raise on failed requirements.{txt,in} load
+* Raise an exception if a file failed to load
+* :pushpin: Automatic update of dependency thoth-common from 0.12.8 to 0.12.9
+* :pushpin: Automatic update of dependency thoth-common from 0.12.7 to 0.12.8
+* :pushpin: Automatic update of dependency thoth-common from 0.12.6 to 0.12.7
+* :pushpin: Automatic update of dependency pytest-mypy from 0.6.0 to 0.6.1
+* Use RHEL 8
+* Remove typeshed from requirements
+* :pushpin: Automatic update of dependency thoth-common from 0.10.8 to 0.10.9
+* :pushpin: Automatic update of dependency thoth-common from 0.10.7 to 0.10.8
+* :pushpin: Automatic update of dependency pytest-mypy from 0.4.2 to 0.5.0
+* :pushpin: Automatic update of dependency requests from 2.22.0 to 2.23.0
+* When checking if version exists when querying the DB the same package often shows up consecutively
+* :pushpin: Automatic update of dependency thoth-common from 0.10.6 to 0.10.7
+* :pushpin: Automatic update of dependency thoth-common from 0.10.5 to 0.10.6
+* Add templates for releases
+* Update .thoth.yaml
+* :pushpin: Automatic update of dependency thoth-common from 0.10.4 to 0.10.5
+* :pushpin: Automatic update of dependency thoth-common from 0.10.3 to 0.10.4
+* :pushpin: Automatic update of dependency thoth-common from 0.10.2 to 0.10.3
+* :pushpin: Automatic update of dependency thoth-common from 0.10.1 to 0.10.2
+* :pushpin: Automatic update of dependency thoth-common from 0.10.0 to 0.10.1
+* :pushpin: Automatic update of dependency pytest from 5.3.4 to 5.3.5
+* Add change to the other TODO
+* Update test to omit pre-releases
+* :pushpin: Automatic update of dependency lxml from 4.4.3 to 4.5.0
+* :pushpin: Automatic update of dependency lxml from 4.4.2 to 4.4.3
+* :pushpin: Automatic update of dependency thoth-common from 0.9.31 to 0.10.0
+* for-break-else loop
+* break if ending is found
+* Fix if version is prefix to another version
+* :pushpin: Automatic update of dependency thoth-common from 0.9.30 to 0.9.31
+* :pushpin: Automatic update of dependency thoth-common from 0.9.29 to 0.9.30
+* :pushpin: Automatic update of dependency packaging from 20.0 to 20.1
+* :pushpin: Automatic update of dependency pytest from 5.3.3 to 5.3.4
+* :pushpin: Automatic update of dependency thoth-common from 0.9.28 to 0.9.29
+* :pushpin: Automatic update of dependency pytest from 5.3.2 to 5.3.3
+* :pushpin: Automatic update of dependency thoth-common from 0.9.27 to 0.9.28
+* :pushpin: Automatic update of dependency thoth-common from 0.9.26 to 0.9.27
+* :pushpin: Automatic update of dependency thoth-analyzer from 0.1.7 to 0.1.8
+* :pushpin: Automatic update of dependency thoth-common from 0.9.25 to 0.9.26
+* :pushpin: Automatic update of dependency thoth-common from 0.9.24 to 0.9.25
+* :pushpin: Automatic update of dependency thoth-common from 0.9.23 to 0.9.24
