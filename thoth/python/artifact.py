@@ -71,15 +71,19 @@ class Artifact:
         try:
             self.dir_name = tempfile.mkdtemp()
             try:
-                with zipfile.ZipFile(self.compressed_file) as zip_ref:
-                    zip_ref.extractall(self.dir_name)
-                    _LOGGER.debug("Artifact is .whl")
+                if self.compressed_file.endswith('.tar.gz'):
+                    tf = tarfile.open(self.compressed_file)
+                    tf.extractall(self.dir_name)
+                    _LOGGER.debug("Artifact is .tar.gz file")
+                else:
+                    ext = self.compressed_file.split('.')[-1]
+                    with zipfile.ZipFile(self.compressed_file) as zip_ref:
+                        zip_ref.extractall(self.dir_name)
+                        _LOGGER.debug("Artifact is .%r file", ext)
             except Exception as e:
-                tf = tarfile.open(self.compressed_file)
-                tf.extractall(self.dir_name)
-                _LOGGER.debug("Artifact is .tar.gz")
-        except Exception as e:
-            _LOGGER.error("Could not create temp dir")
+                _LOGGER.exception(f"Could not extract {self.compressed_file}: {str(e)}")
+        except Exception as exc:
+            _LOGGER.exception(f"Could not create temp dir: {str(exc)}")
 
     def _calculate_sha(self) -> str:
         """Calculate SHA256 of compressed file if not present in url."""
