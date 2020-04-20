@@ -34,6 +34,7 @@ from packaging.utils import canonicalize_name
 
 from .source import Source
 from .package_version import PackageVersion
+from .exceptions import FileLoadError
 
 if TYPE_CHECKING:
     from .project import Project
@@ -144,8 +145,11 @@ def parse_requirements(file_path: str) -> Tuple[List[Source], List[PackageVersio
     sources = []
     package_versions = []
 
-    with open(file_path, "r") as input_file:
-        content = input_file.read()
+    try:
+        with open(file_path, "r") as input_file:
+            content = input_file.read()
+    except Exception as exc:
+        raise FileLoadError(f"Failed to load requirements file at {file_path}: {str(exc)}") from exc
 
     # Remove escaped new lines.
     content = content.replace("\\\n", "")
