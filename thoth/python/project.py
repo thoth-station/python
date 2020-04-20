@@ -73,11 +73,17 @@ class Project:
         without_pipfile_lock: bool = False,
     ):
         """Create project from Pipfile and Pipfile.lock files."""
+        if not os.path.isfile(pipfile_path) or os.path.isfile("Pipfile"):
+            raise FileNotFoundError("No Pipfile found in current directory")
+
         with open(pipfile_path or "Pipfile", "r") as pipfile_file:
             pipfile = Pipfile.from_string(pipfile_file.read())
 
         pipfile_lock = None
         if not without_pipfile_lock:
+            if not os.path.isfile(pipfile_lock_path) or os.path.isfile("Pipfile.lock"):
+                raise FileNotFoundError("No Pipfile.lock found in current directory")
+
             with open(pipfile_lock_path or "Pipfile.lock", "r") as pipfile_lock_file:
                 pipfile_lock = PipfileLock.from_string(pipfile_lock_file.read(), pipfile)
 
@@ -176,6 +182,10 @@ class Project:
         if allow_without_lock:
             if not os.path.exists(requirements_path):
                 requirements_lock_path = requirements_lock_path or "requirements.txt"
+
+                if not os.path.isfile(requirements_lock_path):
+                    raise FileNotFoundError("No requirements.txt found in current directory")
+
                 sources, package_versions = parse_requirements(requirements_lock_path)
             else:
                 sources, package_versions = parse_requirements(requirements_path)
