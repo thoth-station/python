@@ -51,3 +51,7 @@ class UnsupportedConfiguration(ThothPythonException):
 
 class NotFound(ThothPythonException):
     """Raised if the given artifact cannot be found."""
+
+
+class FileLoadError(ThothPythonException):
+    """Raised when failed to open or parse a file."""
