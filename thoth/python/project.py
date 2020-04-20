@@ -39,6 +39,7 @@ from .package_version import PackageVersion
 from .exceptions import UnableLock
 from .exceptions import InternalError
 from .exceptions import NotFound
+from .exceptions import FileLoadError
 from .helpers import parse_requirements
 
 _LOGGER = logging.getLogger(__name__)
@@ -73,13 +74,28 @@ class Project:
         without_pipfile_lock: bool = False,
     ):
         """Create project from Pipfile and Pipfile.lock files."""
-        with open(pipfile_path or "Pipfile", "r") as pipfile_file:
-            pipfile = Pipfile.from_string(pipfile_file.read())
+        try:
+            with open(pipfile_path or "Pipfile", "r") as pipfile_file:
+                pipfile_str = pipfile_file.read()
+        except Exception as exc:
+            raise FileLoadError(
+                f"Failed to load Pipfile (path: {os.getcwd() if not pipfile_path else pipfile_path}: {str(exc)}"
+            ) from exc
+
+        pipfile = Pipfile.from_string(pipfile_str)
 
         pipfile_lock = None
         if not without_pipfile_lock:
-            with open(pipfile_lock_path or "Pipfile.lock", "r") as pipfile_lock_file:
-                pipfile_lock = PipfileLock.from_string(pipfile_lock_file.read(), pipfile)
+            try:
+                with open(pipfile_lock_path or "Pipfile.lock", "r") as pipfile_lock_file:
+                    pipfile_lock_str = pipfile_lock_file.read()
+            except Exception as exc:
+                raise FileLoadError(
+                    f"Failed to load Pipfile.lock "
+                    f"(path: {os.getcwd() if not pipfile_lock_path else pipfile_lock_path}: {str(exc)}"
+                ) from exc
+
+            pipfile_lock = PipfileLock.from_string(pipfile_lock_str, pipfile=pipfile)
 
         return cls(
             pipfile,
