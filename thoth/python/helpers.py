@@ -149,7 +149,7 @@ def parse_requirements(file_path: str) -> Tuple[List[Source], List[PackageVersio
         with open(file_path, "r") as input_file:
             content = input_file.read()
     except Exception as exc:
-        raise FileLoadError(f"Failed to load requirements file at {file_path}: {str(exc)}") from exc
+        raise FileLoadError(f"Failed to load requirements file at {file_path!r}: {str(exc)}") from exc
 
     # Remove escaped new lines.
     content = content.replace("\\\n", "")

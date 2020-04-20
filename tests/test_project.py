@@ -29,6 +29,7 @@ from thoth.python import Pipfile
 from thoth.python import PipfileLock
 from thoth.python import PackageVersion
 from thoth.python.exceptions import InternalError
+from thoth.python.exceptions import FileLoadError
 
 from .base import PythonTestCase
 
@@ -260,7 +261,7 @@ class TestProject(PythonTestCase):
     def test_from_pip_compile_files_example_dir1(self) -> None:
         """Test loading only if requirements.txt is present."""
         with cwd(os.path.join(self.data_dir, "requirements", "example_dir1")):
-            with pytest.raises(FileNotFoundError):
+            with pytest.raises(FileLoadError):
                 Project.from_pip_compile_files()
 
             project = Project.from_pip_compile_files(allow_without_lock=True)
