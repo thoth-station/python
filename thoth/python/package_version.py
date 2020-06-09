@@ -64,6 +64,9 @@ class PackageVersion:
     markers = attr.ib(default=None, type=str)
     extras = attr.ib(default=attr.Factory(list))
     _semantic_version = attr.ib(default=None, type=typing.Union[LegacyVersion, Version])
+    _locked_version = attr.ib(default=None, type=typing.Optional[str])
+    _package_tuple = attr.ib(default=None, type=typing.Optional[typing.Tuple[str, str, str]])
+    _package_tuple_locked = attr.ib(default=None, type=typing.Optional[typing.Tuple[str, str, str]])
 
     def to_dict(self) -> dict:
         """Create a dictionary representation of parameters (useful for later constructor calls)."""
@@ -148,12 +151,15 @@ class PackageVersion:
     @property
     def locked_version(self) -> str:
         """Retrieve locked version of the package."""
-        if not self.is_locked():
-            raise InternalError(
-                f"Requested locked version for {self.name} but package has no locked version {self.version}"
-            )
+        if not self._locked_version:
+            if not self.is_locked():
+                raise InternalError(
+                    f"Requested locked version for {self.name} but package has no locked version {self.version}"
+                )
 
-        return self.version[len("=="):]
+            self._locked_version = self.version[len("=="):]
+
+        return self._locked_version
 
     @property
     def semantic_version(self) -> typing.Union[Version, LegacyVersion]:
@@ -247,11 +253,17 @@ class PackageVersion:
 
     def to_tuple(self) -> tuple:
         """Return a tuple representing this Python package."""
-        return self.name, self.locked_version, self.index.url
+        if not self._package_tuple:
+            self._package_tuple = self.name, self.locked_version, self.index.url
+
+        return self._package_tuple
 
     def to_tuple_locked(self) -> tuple:
         """Return a tuple representing this Python package - used for locked packages."""
-        return self.name, self.locked_version, self.index.url
+        if not self._package_tuple_locked:
+            self._package_tuple_locked = self.name, self.locked_version, self.index.url
+
+        return self._package_tuple_locked
 
     def to_pipfile(self):
         """Generate Pipfile entry for the given package."""
