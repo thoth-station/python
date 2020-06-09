@@ -33,7 +33,7 @@ from .exceptions import UnsupportedConfiguration
 from .exceptions import PipfileParseError
 from .exceptions import InternalError
 from .source import Source
-from .lazy import Lazy
+from .helpers import Lazy
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -247,12 +247,20 @@ class PackageVersion:
         return {self.name: result}
 
     @Lazy
+    def as_tuple(self) -> tuple:
+        """Return a tuple representing this Python package."""
+        return self.name, self.locked_version, self.index.url
+
     def to_tuple(self) -> tuple:
         """Return a tuple representing this Python package."""
         return self.name, self.locked_version, self.index.url
 
     @Lazy
-    def to_tuple_locked(self) -> tuple:
+    def as_tuple_locked(self) -> tuple:
+        """Return a tuple representing this Python package - used for locked packages."""
+        return self.name, self.locked_version, self.index.url
+
+    def tuple_locked(self) -> tuple:
         """Return a tuple representing this Python package - used for locked packages."""
         return self.name, self.locked_version, self.index.url
 
