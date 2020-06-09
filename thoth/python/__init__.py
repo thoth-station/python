@@ -27,6 +27,7 @@ from .pipfile import PipfileLock
 from .project import Project
 from .source import Source
 from .aiosource import AIOSource, AsyncIterablePackages, AsyncIterableVersions, AsyncIterableArtifacts
+from .lazy import Lazy
 
 
 __version__ = "0.9.2"

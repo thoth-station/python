@@ -33,6 +33,7 @@ from .exceptions import UnsupportedConfiguration
 from .exceptions import PipfileParseError
 from .exceptions import InternalError
 from .source import Source
+from .lazy import Lazy
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -145,7 +146,7 @@ class PackageVersion:
 
         self.version = "!" + self.version[1:]
 
-    @property
+    @Lazy
     def locked_version(self) -> str:
         """Retrieve locked version of the package."""
         if not self.is_locked():
@@ -155,7 +156,7 @@ class PackageVersion:
 
         return self.version[len("=="):]
 
-    @property
+    @Lazy
     def semantic_version(self) -> typing.Union[Version, LegacyVersion]:
         """Get semantic version respecting version specified - package has to be locked to a specific version."""
         if not self._semantic_version:
@@ -245,10 +246,12 @@ class PackageVersion:
 
         return {self.name: result}
 
+    @Lazy
     def to_tuple(self) -> tuple:
         """Return a tuple representing this Python package."""
         return self.name, self.locked_version, self.index.url
 
+    @Lazy
     def to_tuple_locked(self) -> tuple:
         """Return a tuple representing this Python package - used for locked packages."""
         return self.name, self.locked_version, self.index.url
