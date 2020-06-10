@@ -410,9 +410,9 @@ class Source:
     def get_package_release_date(self, package_name: str, package_version: str,) -> datetime:
         if not self.warehouse:
             raise NotImplementedError("Cannot release date for non-warehouse repository.")
-        package_json = requests.get(f"{self.warehouse_api_url}/{package_name}/json").json()
+        package_json = requests.get(f"{self.get_api_url()}/{package_name}/json").json()
         release = package_json["releases"][package_version]
-        artifact = next(next(x for x in release if x["python_version"] == "source"), None)
+        artifact = next(x for x in release if x["python_version"] == "source")
         if artifact is None:
             raise ValueError(f"No source distribution found on {self.warehouse_api_url}")
 
