@@ -51,10 +51,12 @@ class Artifact:
 
     @Lazy
     def compressed_file(self):
+        """Lazy load of compressed file name. Effectively has @property decorator."""
         return self._download_artifact()
 
     @Lazy
     def dir_name(self)
+        """Lazy load of working directory name. Effectively has @property decorator."""
         return self._extract_py_module()
 
     def _download_artifact(self) -> str:
