@@ -29,6 +29,8 @@ from elftools.elf.elffile import ELFFile
 from typing import Iterator, Tuple
 import attr
 
+from .helpers import Lazy
+
 _LOGGER = logging.getLogger(__name__)
 
 
