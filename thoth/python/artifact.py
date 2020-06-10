@@ -47,29 +47,25 @@ class Artifact:
         """Initialize sha after init."""
         self.sha = self._calculate_sha()
 
-    def _download_if_necessary(self):
-        if self.compressed_file is None:
-            self._download_artifact()
+    @Lazy
+    def compressed_file(self):
+        return self._download_artifact()
 
-    def _extract_if_necessary(self):
-        self._download_if_necessary()
-        if self.dir_name is None:
-            self._extract_py_module()
+    @Lazy
+    def dir_name(self)
+        return self._extract_py_module()
 
-    def _download_artifact(self) -> None:
+    def _download_artifact(self) -> str:
         _LOGGER.debug("Downloading artifact from url %r", self.artifact_url)
         response = requests.get(self.artifact_url, verify=self.verify_ssl, stream=True)
         response.raise_for_status()
         with tempfile.NamedTemporaryFile(mode="w+b", delete=False) as f:
-            self.compressed_file = f.name
             f.write(response.content)
+            return f.name
 
     def _extract_py_module(self) -> None:
-
-        self._download_if_necessary()
-
         try:
-            self.dir_name = tempfile.mkdtemp()
+            dir_name = tempfile.mkdtemp()
             try:
                 if self.compressed_file.endswith('.tar.gz'):
                     tf = tarfile.open(self.compressed_file)
@@ -80,6 +76,7 @@ class Artifact:
                     with zipfile.ZipFile(self.compressed_file) as zip_ref:
                         zip_ref.extractall(self.dir_name)
                         _LOGGER.debug("Artifact is .%r file", ext)
+                return dir_name
             except Exception as e:
                 _LOGGER.exception(f"Could not extract {self.compressed_file}: {str(e)}")
         except Exception as exc:
@@ -92,8 +89,6 @@ class Artifact:
             digest = url_parts[1][len("sha256="):]
             _LOGGER.debug("Using SHA256 stated in URL: %r", url_parts[1])
             return digest
-
-        self._download_if_necessary()
 
         with open(self.compressed_file, "rb") as f:
             digest = hashlib.sha256()
@@ -139,7 +134,6 @@ class Artifact:
 
     def get_versioned_symbols(self) -> dict:
         """Walk dir and get all dynamic symbols required from all files."""
-        self._extract_if_necessary()
         result = dict()
         for dir_name, _, file_list in os.walk(self.dir_name):
             for fname in file_list:
@@ -153,8 +147,6 @@ class Artifact:
     #                          Package Digests                                          #
     def gather_hashes(self) -> list:
         """Calculate checksums and gather hashes of all file in the given artifact."""
-        self._extract_if_necessary()
-
         digests = []
         for root, _, files in os.walk(self.dir_name):
             for file_ in files:
