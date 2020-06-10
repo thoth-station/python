@@ -40,7 +40,7 @@ from .exceptions import UnableLock
 from .exceptions import InternalError
 from .exceptions import NotFound
 from .exceptions import FileLoadError
-from .helpers import parse_requirements
+from .helpers import parse_requirements, Lazy
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -53,16 +53,11 @@ class Project:
     pipfile_lock = attr.ib(type=PipfileLock)
     runtime_environment = attr.ib(type=RuntimeEnvironment, default=attr.Factory(RuntimeEnvironment.from_dict))
     _graph_db = attr.ib(default=None)
-    _workdir = attr.ib(default=None)
 
-    @property
+    @Lazy
     def workdir(self) -> str:
         """Access working directory of project."""
-        if self._workdir:
-            return self._workdir
-
-        self._workdir = tempfile.mkdtemp()
-        return self._workdir
+        return tempfile.mkdtemp()
 
     @classmethod
     def from_files(
