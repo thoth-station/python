@@ -22,6 +22,7 @@ import re
 import typing
 from functools import lru_cache
 from urllib.parse import urlparse
+from datetime import datetime
 
 import attr
 import requests
@@ -405,3 +406,14 @@ class Source:
             result.append(doc)
 
         return result
+
+    def get_package_release_date(self, package_name: str, package_version: str,) -> datetime:
+        if not self.warehouse:
+            raise NotImplementedError("Cannot release date for non-warehouse repository.")
+        package_json = requests.get(f"{self.warehouse_api_url}/{package_name}/json").json()
+        release = package_json["releases"][package_version]
+        artifact = next(next(x for x in release if x["python_version"] == "source"), None)
+        if artifact is None:
+            raise ValueError(f"No source distribution found on {self.warehouse_api_url}")
+
+        return datetime.strptime(artifact["upload_time"], "%Y-%m-%dT%H:%M:%S")
