@@ -408,6 +408,7 @@ class Source:
         return result
 
     def get_package_release_date(self, package_name: str, package_version: str,) -> datetime:
+        """Get time at which package was uploaded to package index."""
         if not self.warehouse:
             raise NotImplementedError("Cannot release date for non-warehouse repository.")
         package_json = requests.get(f"{self.get_api_url()}/{package_name}/json").json()
