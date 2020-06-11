@@ -55,7 +55,7 @@ class Artifact:
         return self._download_artifact()
 
     @Lazy
-    def dir_name(self)
+    def dir_name(self):
         """Lazy load of working directory name. Effectively has @property decorator."""
         return self._extract_py_module()
 
