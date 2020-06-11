@@ -33,7 +33,7 @@ from .exceptions import UnsupportedConfiguration
 from .exceptions import PipfileParseError
 from .exceptions import InternalError
 from .source import Source
-from .helpers import Lazy
+from .lazy import Lazy
 
 _LOGGER = logging.getLogger(__name__)
 
