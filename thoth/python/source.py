@@ -410,9 +410,13 @@ class Source:
     def get_package_release_date(self, package_name: str, package_version: str,) -> datetime:
         """Get time at which package was uploaded to package index."""
         package_json = self._warehouse_get_api_package_info(package_name)
-        release = package_json["releases"][package_version]
+        release = package_json["releases"].get(package_version)
+        if release is None:
+            raise NotFound(f"Version {package_version} not found for {package_name} on {self.warehouse_api_url}.")
         artifact = next(x for x in release if x["python_version"] == "source")
         if artifact is None:
-            raise ValueError(f"No source distribution found on {self.warehouse_api_url}")
+            raise NotFound(
+                f"No source distribution for {package_name}==={package_version} found on {self.warehouse_api_url}."
+            )
 
         return datetime.strptime(artifact["upload_time"], "%Y-%m-%dT%H:%M:%S")
