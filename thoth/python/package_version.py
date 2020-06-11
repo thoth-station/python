@@ -27,13 +27,12 @@ from packaging.version import parse as parse_version
 from packaging.version import Version
 from packaging.version import LegacyVersion
 from packaging.utils import canonicalize_name
-
+from thoth.common.helpers import Lazy
 
 from .exceptions import UnsupportedConfiguration
 from .exceptions import PipfileParseError
 from .exceptions import InternalError
 from .source import Source
-from .lazy import Lazy
 
 _LOGGER = logging.getLogger(__name__)
 

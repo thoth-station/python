@@ -26,6 +26,7 @@ import tempfile
 import attr
 from thoth.common import cwd
 from thoth.common import RuntimeEnvironment
+from thoth.common.helpers import Lazy
 from thoth.analyzer import run_command
 from thoth.analyzer import CommandError
 
@@ -40,7 +41,7 @@ from .exceptions import UnableLock
 from .exceptions import InternalError
 from .exceptions import NotFound
 from .exceptions import FileLoadError
-from .helpers import parse_requirements, Lazy
+from .helpers import parse_requirements
 
 _LOGGER = logging.getLogger(__name__)
 
