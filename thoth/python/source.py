@@ -37,6 +37,8 @@ from .exceptions import VersionIdentifierError
 from .configuration import config
 from .artifact import Artifact
 
+from thoth.common.helpers import parse_datetime
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -419,4 +421,4 @@ class Source:
                 f"No source distribution for {package_name}==={package_version} found on {self.warehouse_api_url}."
             )
 
-        return datetime.strptime(artifact["upload_time"], "%Y-%m-%dT%H:%M:%S")
+        return parse_datetime(artifact["upload_time_iso_8601"][:-1])
