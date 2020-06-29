@@ -29,7 +29,7 @@ class Test(TestCommand):
 
     _IMPLICIT_PYTEST_ARGS = [
         "tests/",
-        "--timeout=2",
+        "--timeout=10",
         "--cov=./thoth",
         "--mypy",
         "--capture=no",
