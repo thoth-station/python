@@ -1,16 +1,11 @@
+aiohttp
+attrs
+beautifulsoup4==4.6.3
 click
+lxml
+packaging
+pyelftools
+requests
 thoth-analyzer
 thoth-common
-attrs
-semantic_version
 toml
-requests
-# Pin to this specific version otherwise bs4 fails to parse simple API package
-# listing (got # stuck with high CPU consumption)
-beautifulsoup4==4.6.3
-semantic-version
-lxml
-pyelftools
-packaging
-setuptools
-aiohttp
