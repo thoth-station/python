@@ -521,3 +521,23 @@
 * :pushpin: Automatic update of dependency thoth-common from 0.9.25 to 0.9.26
 * :pushpin: Automatic update of dependency thoth-common from 0.9.24 to 0.9.25
 * :pushpin: Automatic update of dependency thoth-common from 0.9.23 to 0.9.24
+
+## Release 0.10.0 (2020-06-17T08:42:56)
+* :pushpin: Automatic update of dependency pytest-cov from 2.9.0 to 2.10.0
+* strip trailing z
+* Use thoth-python errors
+* use existing warehouse function
+* add doc string to release date
+* get time of release
+* get time from warehouse
+* Update stack to fix CI failure
+* Cache properties of PackageVersion
+* added a 'tekton trigger tag_release pipeline issue'
+* :pushpin: Automatic update of dependency thoth-common from 0.13.1 to 0.13.2
+* :pushpin: Automatic update of dependency click from 7.1.1 to 7.1.2
+* :pushpin: Automatic update of dependency thoth-common from 0.13.0 to 0.13.1
+* :pushpin: Automatic update of dependency pytest-mypy from 0.6.1 to 0.6.2
+* :pushpin: Automatic update of dependency thoth-common from 0.12.10 to 0.13.0
+* :pushpin: Automatic update of dependency thoth-common from 0.12.9 to 0.12.10
+* :pushpin: Automatic update of dependency pytest-asyncio from 0.10.0 to 0.11.0
+* Be explicit about errors

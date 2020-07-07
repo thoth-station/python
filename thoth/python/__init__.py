@@ -30,7 +30,7 @@ from .aiosource import AIOSource, AsyncIterablePackages, AsyncIterableVersions, 
 from .lazy import Lazy
 
 
-__version__ = "0.9.2"
+__version__ = "0.10.0"
 __author__ = "Fridolin Pokorny <fridolin@redhat.com>, Christoph Görn <goern@redhat.com>"
 __copyright__ = "Copyright 2018, 2019 Red Hat, Inc."
 __license__ = "GPLv3+"
