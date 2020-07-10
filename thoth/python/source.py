@@ -40,9 +40,10 @@ from .artifact import Artifact
 from thoth.common.helpers import parse_datetime
 
 _LOGGER = logging.getLogger(__name__)
+LEGACY_URLS = {"https://pypi.python.org/simple": "https://pypi.org/simple"}
 
 
-@attr.s(frozen=True, slots=True)
+@attr.s(frozen=False, slots=True)
 class Source:
     """Representation of source (Python index) for Python packages."""
 
@@ -54,6 +55,11 @@ class Source:
 
     _NORMALIZED_PACKAGE_NAME_RE = re.compile("[a-z-]+")
 
+    @url.validator
+    def map_url(self, attribute, value):
+        if value in LEGACY_URLS:
+            self.url = LEGACY_URLS[value]
+    
     @name.default
     def default_name(self):
         """Create a name for source based on url if not explicitly provided."""
