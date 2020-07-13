@@ -27,7 +27,6 @@ from urllib.parse import urlparse
 import attr
 import asyncio
 import aiohttp
-import semantic_version as semver
 
 from bs4 import BeautifulSoup
 

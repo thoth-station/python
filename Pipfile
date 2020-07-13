@@ -15,7 +15,6 @@ pyelftools = "*"
 packaging = "*"
 toml = "*"
 aiohttp = "*"
-semantic-version = "*"
 
 [dev-packages]
 pytest = "*"
