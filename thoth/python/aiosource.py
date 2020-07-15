@@ -268,3 +268,44 @@ class AIOSource(Source):
 
         package_info = await self._warehouse_get_api_package_info(package_name)
         return AsyncIterableVersions(list(package_info["releases"].keys()))
+
+    async def get_package_artifacts(self, package_name: str, package_version: str):
+        """Return list of artifacts corresponding to package name and package version."""
+        to_return = []
+        possible_continuations = [".win32", ".tar.gz", ".whl", ".zip", ".exe", ".egg", "-"]
+        async for artifact_name, artifact_url in await self._simple_repository_list_artifacts(package_name):
+            # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
+            artifact_name.lower()
+
+            for i in possible_continuations:
+                if artifact_name.startswith(f"{package_name}-{package_version}{i}"):
+                    break
+            else:
+                _LOGGER.debug(
+                    "Skipping artifact %r as it does not match required version %r for package %r",
+                    artifact_name,
+                    package_version,
+                    package_name,
+                )
+                continue
+            to_return.append(Artifact(artifact_name, artifact_url, verify_ssl=self.verify_ssl))
+
+        return to_return
+
+    @lru_cache(maxsize=10)
+    async def get_package_hashes(self, package_name: str, package_version: str, with_included_files: bool = False) -> list:
+        """Get information about release hashes available in this source index."""
+        if self.warehouse:
+            return await self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
+
+        artifacts = await self.get_package_artifacts(package_name, package_version)
+        result = []
+        for artifact in artifacts:
+            doc = {}
+            doc["name"] = artifact.artifact_name
+            doc["sha256"] = artifact.sha
+            if with_included_files:
+                doc["digests"] = artifact.gather_hashes()
+            result.append(doc)
+
+        return result
