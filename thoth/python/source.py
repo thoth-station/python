@@ -42,12 +42,17 @@ from thoth.common.helpers import parse_datetime
 _LOGGER = logging.getLogger(__name__)
 LEGACY_URLS = {"https://pypi.python.org/simple": "https://pypi.org/simple"}
 
+def normalize_url(url:str) -> str:
+    """We normalize url to remove legacy urls."""
+    if url in LEGACY_URLS:
+       return LEGACY_URLS[url]
+    return url
 
 @attr.s(frozen=True, slots=True)
 class Source:
     """Representation of source (Python index) for Python packages."""
 
-    url = attr.ib(type=str)
+    url = attr.ib(type=str, converter=normalize_url)
     name = attr.ib(type=str)
     verify_ssl = attr.ib(type=bool, default=True)
     warehouse = attr.ib(type=bool)
@@ -55,11 +60,6 @@ class Source:
 
     _NORMALIZED_PACKAGE_NAME_RE = re.compile("[a-z-]+")
 
-    def __attrs_post_init__(self):
-        """We override frozen to normalize url."""
-        if self.url in LEGACY_URLS:
-            object.__setattr__(self, "url", LEGACY_URLS[self.url])
-    
     @name.default
     def default_name(self):
         """Create a name for source based on url if not explicitly provided."""
