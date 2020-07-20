@@ -43,7 +43,7 @@ _LOGGER = logging.getLogger(__name__)
 LEGACY_URLS = {"https://pypi.python.org/simple": "https://pypi.org/simple"}
 
 
-@attr.s(frozen=False, slots=True)
+@attr.s(frozen=True, slots=True)
 class Source:
     """Representation of source (Python index) for Python packages."""
 
@@ -55,10 +55,10 @@ class Source:
 
     _NORMALIZED_PACKAGE_NAME_RE = re.compile("[a-z-]+")
 
-    @url.validator
-    def map_url(self, attribute, value):
-        if value in LEGACY_URLS:
-            self.url = LEGACY_URLS[value]
+    def __attrs_post_init__(self):
+        """We override frozen to normalize url."""
+        if self.url in LEGACY_URLS:
+            object.__setattr__(self, "url", LEGACY_URLS[self.url])
     
     @name.default
     def default_name(self):
