@@ -4,7 +4,7 @@ verify_ssl = true
 name = "redhat-aicoe-experiments"
 
 [[source]]
-url = "https://pypi.python.org/simple"
+url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
