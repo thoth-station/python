@@ -40,13 +40,19 @@ from .artifact import Artifact
 from thoth.common.helpers import parse_datetime
 
 _LOGGER = logging.getLogger(__name__)
+LEGACY_URLS = {"https://pypi.python.org/simple": "https://pypi.org/simple"}
 
+def normalize_url(url:str) -> str:
+    """We normalize url to remove legacy urls."""
+    if url in LEGACY_URLS:
+       return LEGACY_URLS[url]
+    return url
 
 @attr.s(frozen=True, slots=True)
 class Source:
     """Representation of source (Python index) for Python packages."""
 
-    url = attr.ib(type=str)
+    url = attr.ib(type=str, converter=normalize_url)
     name = attr.ib(type=str)
     verify_ssl = attr.ib(type=bool, default=True)
     warehouse = attr.ib(type=bool)
