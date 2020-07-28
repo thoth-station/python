@@ -251,7 +251,7 @@ class Source:
         return list(package_info["releases"].keys())
 
     def get_sorted_package_versions(
-        self, package_name: str, graceful: bool = False
+        self, package_name: str, graceful: bool = False, reverse: bool = True,  # default to newest first
     ) -> typing.Optional[typing.List[typing.Union[Version, LegacyVersion]]]:
         """Get the latest version for the given package."""
         try:
@@ -275,7 +275,7 @@ class Source:
                 raise VersionIdentifierError(error_msg) from exc
 
             semver_versions.append(version)
-        return sorted(semver_versions)
+        return sorted(semver_versions, reverse=reverse)
 
     def get_latest_package_version(
         self, package_name: str, graceful: bool = False
@@ -283,7 +283,7 @@ class Source:
         """Get the latest version for the given package."""
 
         semver_versions = self.get_sorted_package_versions(package_name=package_name, graceful=graceful)
-        return semver_versions[-1]
+        return semver_versions[0]
 
     def _simple_repository_list_artifacts(self, package_name: str) -> list:
         """Parse simple repository package listing (HTML) and return artifacts present there."""
