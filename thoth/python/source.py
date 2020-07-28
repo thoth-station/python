@@ -250,9 +250,9 @@ class Source:
         package_info = self._warehouse_get_api_package_info(package_name)
         return list(package_info["releases"].keys())
 
-    def get_latest_package_version(
+    def get_sorted_package_versions(
         self, package_name: str, graceful: bool = False
-    ) -> typing.Optional[typing.Union[Version, LegacyVersion]]:
+    ) -> typing.Optional[typing.List[typing.Union[Version, LegacyVersion]]]:
         """Get the latest version for the given package."""
         try:
             all_versions = self.get_package_versions(package_name)
@@ -275,8 +275,15 @@ class Source:
                 raise VersionIdentifierError(error_msg) from exc
 
             semver_versions.append(version)
+        return sorted(semver_versions)
 
-        return sorted(semver_versions)[-1]
+    def get_latest_package_version(
+        self, package_name: str, graceful: bool = False
+    ) -> typing.Optional[typing.Union[Version, LegacyVersion]]:
+        """Get the latest version for the given package."""
+
+        semver_versions = self.get_sorted_package_versions(package_name=package_name, graceful=graceful)
+        return semver_versions[-1]
 
     def _simple_repository_list_artifacts(self, package_name: str) -> list:
         """Parse simple repository package listing (HTML) and return artifacts present there."""
