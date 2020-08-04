@@ -18,32 +18,21 @@
 
 """Tests for package index handling - package source control."""
 
-import os
-import json
-import typing
-
-from pathlib import Path
-
 import pytest
-import requests
 
-from flexmock import flexmock
-
-from thoth.python.aiosource import AIOSource, AsyncIterablePackages, AsyncIterableVersions
-from thoth.python.artifact import Artifact
+from thoth.python.aiosource import AIOSource, AsyncIterablePackages
 
 from .base import PythonTestCase
 
-import tempfile
-
-from zipfile import ZipFile
-
 
 class TestAIOSource(PythonTestCase):
+    """Test AIOSource module."""
+
     @pytest.mark.online
     @pytest.mark.timeout(60)
     @pytest.mark.asyncio
     async def test_default_warehouse(self):
+        """Test default warehouse."""
         source_info = {
             "url": "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com/",
             "verify_ssl": True,
@@ -57,6 +46,7 @@ class TestAIOSource(PythonTestCase):
     @pytest.mark.timeout(60)
     @pytest.mark.asyncio
     async def test_get_packages(self):
+        """Test get packages."""
         source_info = {
             "name": "my-pypi",
             "url": "https://tensorflow.pypi.thoth-station.ninja/index/manylinux2010/AVX2/simple",
@@ -75,7 +65,8 @@ class TestAIOSource(PythonTestCase):
     @pytest.mark.online
     @pytest.mark.timeout(60)
     @pytest.mark.asyncio
-    async def test_get_packages(self):
+    async def test_get_packages_with_await(self):
+        """Test get packages."""
         source_info = {
             "name": "my-pypi",
             "url": "https://tensorflow.pypi.thoth-station.ninja/index/manylinux2010/AVX2/simple",
@@ -96,6 +87,7 @@ class TestAIOSource(PythonTestCase):
     @pytest.mark.timeout(60)
     @pytest.mark.asyncio
     async def test_get_package_hashes_warehouse(self):
+        """Test get packages hashes warehouse."""
         pypi_index = {"name": "pypi", "url": "https://pypi.python.org/simple", "verify_ssl": True, "warehouse": True}
 
         source = AIOSource.from_dict(pypi_index)
@@ -118,6 +110,7 @@ class TestAIOSource(PythonTestCase):
     @pytest.mark.timeout(60)
     @pytest.mark.asyncio
     async def test_get_package_versions_warehouse(self):
+        """Test get package versions warehouse."""
         source_info = {"name": "my-pypi", "url": "https://pypi.org/simple", "verify_ssl": True, "warehouse": True}
 
         source = AIOSource.from_dict(source_info)
@@ -133,6 +126,7 @@ class TestAIOSource(PythonTestCase):
     @pytest.mark.timeout(120)
     @pytest.mark.asyncio
     async def test_get_package_versions_simple(self):
+        """Test get package versions simple."""
         source_info = {"name": "my-pypi", "url": "https://pypi.org/simple", "verify_ssl": True, "warehouse": False}
 
         source = AIOSource.from_dict(source_info)

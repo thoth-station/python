@@ -16,6 +16,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 # type: ignore
 
+"""Tests for module project."""
+
 import os
 
 import attr
@@ -35,7 +37,10 @@ from .base import PythonTestCase
 
 
 class TestProject(PythonTestCase):
+    """Test TestProject module."""
+
     def test_add_package(self):
+        """Test add package."""
         pipfile = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_test1"))
         pipfile_lock = PipfileLock.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_test1.lock"))
         project = Project(pipfile=pipfile, pipfile_lock=pipfile_lock)
@@ -52,6 +57,7 @@ class TestProject(PythonTestCase):
         assert "selinon" not in project.pipfile_lock.packages.packages
 
     def test_add_package_develop(self):
+        """Test add package develop."""
         pipfile = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_test1"))
         pipfile_lock = PipfileLock.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_test1.lock"))
         project = Project(pipfile=pipfile, pipfile_lock=pipfile_lock)
@@ -75,6 +81,7 @@ class TestProject(PythonTestCase):
         assert "selinon" not in project.pipfile_lock.dev_packages.packages
 
     def test_add_source(self):
+        """Test add source."""
         pipfile = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_test1"))
         pipfile_lock = PipfileLock.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_test1.lock"))
         project = Project(pipfile=pipfile, pipfile_lock=pipfile_lock)
@@ -90,6 +97,7 @@ class TestProject(PythonTestCase):
         assert source is project.pipfile_lock.meta.sources[source.name]
 
     def test_get_outdated_package_versions_indirect(self):
+        """Test get outdated package versions indirect."""
         # The difference between direct and indirect - Pipenv states "index" in
         # the Pipfile.lock file if the given package is a direct dependency.
         # The "index" key for indirect dependencies is omitted though. This way
@@ -103,7 +111,7 @@ class TestProject(PythonTestCase):
             warehouse = attr.ib(type=bool, default=False)
             warehouse_api_url = attr.ib(default=None, type=str)
 
-            def get_latest_package_version(_, package_name):
+            def get_latest_package_version(_, package_name):  # noqa: N805
                 return {
                     "certifi": PackageVersion.parse_semantic_version("2018.10.15"),
                     "chardet": PackageVersion.parse_semantic_version("3.0.4"),
@@ -136,6 +144,7 @@ class TestProject(PythonTestCase):
         assert str(result["idna"][1]) == "2.10"
 
     def test_get_outdated_package_versions_direct(self):
+        """Test get outdated package versions direct."""
         # See previous test comments for more info.
         # We cannot use flexmock as Source has slots.
         @attr.s
@@ -146,7 +155,7 @@ class TestProject(PythonTestCase):
             warehouse = attr.ib(type=bool, default=False)
             warehouse_api_url = attr.ib(default=None, type=str)
 
-            def get_latest_package_version(_, package_name):
+            def get_latest_package_version(_, package_name):  # noqa: N805
                 return {
                     "certifi": PackageVersion.parse_semantic_version("2018.10.15"),
                     "chardet": PackageVersion.parse_semantic_version("3.0.4"),
@@ -207,7 +216,9 @@ class TestProject(PythonTestCase):
     def test_from_pip_compile_files_example_dir2(self) -> None:
         """Test loading project from pip-compile files."""
         with cwd(os.path.join(self.data_dir, "requirements", "example_dir2")):
-            assert Project.from_pip_compile_files(allow_without_lock=False) == Project.from_pip_compile_files(allow_without_lock=True)
+            assert Project.from_pip_compile_files(allow_without_lock=False) == Project.from_pip_compile_files(
+                allow_without_lock=True
+            )
             project = Project.from_pip_compile_files(allow_without_lock=False)
 
         assert list(project.iter_dependencies()) == [
@@ -280,7 +291,5 @@ class TestProject(PythonTestCase):
 
             assert project.pipfile_lock is None
             assert list(project.iter_dependencies()) == [
-                PackageVersion(
-                    name="flask", version="*", develop=False, hashes=[], index=None
-                )
+                PackageVersion(name="flask", version="*", develop=False, hashes=[], index=None)
             ]

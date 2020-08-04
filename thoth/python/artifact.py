@@ -26,7 +26,7 @@ import tarfile
 import hashlib
 import os
 from elftools.elf.elffile import ELFFile
-from typing import Iterator, Tuple
+from typing import Iterator, Tuple, Any
 import attr
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,12 +71,12 @@ class Artifact:
         try:
             self.dir_name = tempfile.mkdtemp()
             try:
-                if self.compressed_file.endswith('.tar.gz'):
+                if self.compressed_file.endswith(".tar.gz"):
                     tf = tarfile.open(self.compressed_file)
                     tf.extractall(self.dir_name)
                     _LOGGER.debug("Artifact is .tar.gz file")
                 else:
-                    ext = self.compressed_file.split('.')[-1]
+                    ext = self.compressed_file.split(".")[-1]
                     with zipfile.ZipFile(self.compressed_file) as zip_ref:
                         zip_ref.extractall(self.dir_name)
                         _LOGGER.debug("Artifact is .%r file", ext)
@@ -89,9 +89,9 @@ class Artifact:
         """Calculate SHA256 of compressed file if not present in url."""
         url_parts = self.artifact_url.rsplit("#", maxsplit=1)
         if len(url_parts) == 2 and url_parts[1].startswith("sha256="):
-            digest = url_parts[1][len("sha256="):]
+            sha256 = url_parts[1][len("sha256=") :]
             _LOGGER.debug("Using SHA256 stated in URL: %r", url_parts[1])
-            return digest
+            return sha256
 
         self._download_if_necessary()
 
@@ -105,9 +105,9 @@ class Artifact:
                 else:
                     break
 
-        digest = digest.hexdigest()
-        _LOGGER.debug("Computed artifact sha256 digest for %r: %s", self.artifact_url, digest)
-        return digest
+        hex_digest = digest.hexdigest()
+        _LOGGER.debug("Computed artifact sha256 digest for %r: %s", self.artifact_url, hex_digest)
+        return hex_digest
 
     #                       VERSIONED SYMBOLS                                #
     def _elf_find_versioned_symbols(self, elf: ELFFile) -> Iterator[Tuple[str, str]]:
@@ -124,7 +124,7 @@ class Artifact:
     def _is_elf(self, filename: str) -> bool:
         """Check if files magic numbers are <delete>ELF."""
         with open(filename, "rb") as f:
-            return f.read(16).startswith(b'\x7f\x45\x4c\x46')
+            return f.read(16).startswith(b"\x7f\x45\x4c\x46")
 
     def _get_versioned_symbols_from_file(self, result, filename: str):
         """Given a file get all required dynamic symbols if it's an executable."""
@@ -140,7 +140,7 @@ class Artifact:
     def get_versioned_symbols(self) -> dict:
         """Walk dir and get all dynamic symbols required from all files."""
         self._extract_if_necessary()
-        result = dict()
+        result = dict()  # type: Any
         for dir_name, _, file_list in os.walk(self.dir_name):
             for fname in file_list:
                 self._get_versioned_symbols_from_file(result, os.path.join(dir_name, fname))
@@ -160,11 +160,13 @@ class Artifact:
             for file_ in files:
                 filepath = os.path.join(root, file_)
                 if os.path.isfile(filepath):
-                    with open(filepath, 'rb') as my_file:
-                        digests.append({
-                            "filepath": filepath[len(self.dir_name) + 1:],
-                            "sha256": hashlib.sha256(my_file.read()).hexdigest()
-                        })
+                    with open(filepath, "rb") as my_file:
+                        digests.append(
+                            {
+                                "filepath": filepath[len(self.dir_name) + 1 :],
+                                "sha256": hashlib.sha256(my_file.read()).hexdigest(),
+                            }
+                        )
         return digests
 
     def __del__(self):
@@ -173,5 +175,5 @@ class Artifact:
             if self.compressed_file.startswith("/tmp"):
                 os.remove(self.compressed_file)
             shutil.rmtree(self.dir_name)
-        except Exception as e:
+        except Exception:
             pass

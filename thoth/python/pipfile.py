@@ -221,9 +221,7 @@ class _PipfileBase:
                 _index_check(package_version, self.meta.sources[package_version.index.name])
 
     @staticmethod
-    def _construct_requirements_packages(
-        packages: Iterable[PackageVersion]
-    ) -> str:
+    def _construct_requirements_packages(packages: Iterable[PackageVersion]) -> str:
         """Construct a requirements.txt/in string entry for each package."""
         result = ""
 
@@ -256,7 +254,7 @@ class _PipfileBase:
         packages: Iterable[PackageVersion],
         dev_packages: Optional[Iterable[PackageVersion]],
         meta: PipfileMeta,
-        with_header: bool = True
+        with_header: bool = True,
     ) -> str:
         result = ""
         if with_header:
@@ -284,9 +282,7 @@ class _PipfileBase:
     def construct_requirements_txt(self) -> str:
         """Construct requirements.txt file."""
         return self._construct_requirements(
-            self.packages.packages.values(),
-            self.dev_packages.packages.values(),
-            self.meta,
+            self.packages.packages.values(), self.dev_packages.packages.values(), self.meta,
         )
 
 
@@ -325,7 +321,7 @@ class Pipfile(_PipfileBase):
         _LOGGER.debug("Parsing Pipfile toml representation from string")
         try:
             parsed = toml.loads(pipfile_content)
-        except Exception as exc:
+        except Exception as exc:  # noqa: F841
             # We are transparent - Pipfile can be eigher TOML or JSON - try to parse any of these.
             try:
                 parsed = json.loads(pipfile_content)
@@ -364,9 +360,7 @@ class Pipfile(_PipfileBase):
     def construct_requirements_in(self) -> str:
         """Construct requirements.in file for the current project."""
         return self._construct_requirements(
-            self.packages.packages.values(),
-            self.dev_packages.packages.values(),
-            self.meta,
+            self.packages.packages.values(), self.dev_packages.packages.values(), self.meta,
         )
 
     def to_file(self) -> None:

@@ -18,11 +18,8 @@
 """Representation of source (index) for Python packages."""
 
 import logging
-import re
-import typing
 
 from functools import lru_cache
-from urllib.parse import urlparse
 
 import attr
 import asyncio
@@ -31,11 +28,10 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 from .exceptions import NotFound
-from .exceptions import InternalError
-from .exceptions import VersionIdentifierError
-from .configuration import config
 from .artifact import Artifact
 from .source import Source
+
+from typing import Optional, Set, Tuple, List, Any
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,13 +39,16 @@ _LOGGER = logging.getLogger(__name__)
 class AsyncIterablePackages:
     """Async Iterator for Packages."""
 
-    def __init__(self, _packages: typing.Set[str]):  # Ignore PyDocStyleBear
+    def __init__(self, _packages: Set[str]):  # Ignore PyDocStyleBear
+        """Initialize Async Iterable instance for Packages."""
         self.packages = _packages
 
     async def __aiter__(self):  # Ignore PyDocStyleBear
+        """Return asynchronous iterator."""
         return self
 
     async def __anext__(self) -> str:  # Ignore PyDocStyleBear
+        """Return awaitable object."""
         data = await self.fetch_data()
 
         if data:
@@ -57,7 +56,8 @@ class AsyncIterablePackages:
         else:
             raise StopAsyncIteration
 
-    async def fetch_data(self) -> str:  # Ignore PyDocStyleBear
+    async def fetch_data(self) -> Optional[str]:  # Ignore PyDocStyleBear
+        """Fetch data."""
         await asyncio.sleep(0.1)  # Other coros get to run
 
         if len(self.packages) == 0:
@@ -69,13 +69,16 @@ class AsyncIterablePackages:
 class AsyncIterableVersions:
     """Async Iterator for Versions."""
 
-    def __init__(self, _versions: typing.Set[str]):  # Ignore PyDocStyleBear
+    def __init__(self, _versions: Set[str]):  # Ignore PyDocStyleBear
+        """Initialize Async Iterable Versions instance for Versions."""
         self.versions = _versions
 
     async def __aiter__(self):  # Ignore PyDocStyleBear
+        """Return asynchronous iterator."""
         return self
 
     async def __anext__(self) -> str:  # Ignore PyDocStyleBear
+        """Return awaitable object."""
         data = await self.fetch_data()
 
         if data:
@@ -83,7 +86,8 @@ class AsyncIterableVersions:
         else:
             raise StopAsyncIteration
 
-    async def fetch_data(self) -> str:  # Ignore PyDocStyleBear
+    async def fetch_data(self) -> Optional[str]:  # Ignore PyDocStyleBear
+        """Fetch data."""
         await asyncio.sleep(0.1)  # Other coros get to run
 
         if len(self.versions) == 0:
@@ -95,13 +99,16 @@ class AsyncIterableVersions:
 class AsyncIterableArtifacts:
     """Async Iterator for Artifacts."""
 
-    def __init__(self, artifacts: typing.List[typing.Tuple]):  # Ignore PyDocStyleBear
+    def __init__(self, artifacts: List[Tuple]):  # Ignore PyDocStyleBear
+        """Initialize Async Iterable instance for Artifacts."""
         self.artifacts = artifacts
 
     async def __aiter__(self):  # Ignore PyDocStyleBear
+        """Return asynchronous iterator."""
         return self
 
-    async def __anext__(self) -> str:  # Ignore PyDocStyleBear
+    async def __anext__(self) -> Tuple:  # Ignore PyDocStyleBear
+        """Return awaitable object."""
         data = await self.fetch_data()
 
         if data:
@@ -109,7 +116,8 @@ class AsyncIterableArtifacts:
         else:
             raise StopAsyncIteration
 
-    async def fetch_data(self) -> str:  # Ignore PyDocStyleBear
+    async def fetch_data(self) -> Optional[Tuple]:  # Ignore PyDocStyleBear
+        """Fetch data."""
         await asyncio.sleep(0.1)  # Other coros get to run
 
         if len(self.artifacts) == 0:
@@ -140,7 +148,7 @@ class AIOSource(Source):
 
     async def _warehouse_get_package_hashes(
         self, package_name: str, package_version: str, with_included_files: bool = False
-    ) -> typing.List[dict]:
+    ) -> List[dict]:
         """Gather information about SHA hashes available for the given package-version release."""
         package_info = await self._warehouse_get_api_package_version_info(package_name, package_version)
 
@@ -292,7 +300,9 @@ class AIOSource(Source):
         return to_return
 
     @lru_cache(maxsize=10)
-    async def get_package_hashes(self, package_name: str, package_version: str, with_included_files: bool = False) -> list:
+    async def get_package_hashes(
+        self, package_name: str, package_version: str, with_included_files: bool = False
+    ) -> list:
         """Get information about release hashes available in this source index."""
         if self.warehouse:
             return await self._warehouse_get_package_hashes(package_name, package_version, with_included_files)

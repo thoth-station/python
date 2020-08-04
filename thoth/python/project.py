@@ -100,7 +100,7 @@ class Project:
         return cls(
             pipfile,
             pipfile_lock,
-            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({})
+            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({}),
         )
 
     @classmethod
@@ -108,14 +108,14 @@ class Project:
         cls,
         pipfile: typing.Dict[str, typing.Any],
         pipfile_lock: typing.Dict[str, typing.Any],
-        runtime_environment: RuntimeEnvironment = None
+        runtime_environment: RuntimeEnvironment = None,
     ) -> "Project":
         """Construct project out of a dict representation."""
         pipfile = Pipfile.from_dict(pipfile)
         return cls(
             pipfile=pipfile,
             pipfile_lock=PipfileLock.from_dict(pipfile_lock, pipfile=pipfile),
-            runtime_environment=runtime_environment
+            runtime_environment=runtime_environment,
         )
 
     @classmethod
@@ -132,14 +132,11 @@ class Project:
         return cls(
             pipfile,
             pipfile_lock,
-            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({})
+            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({}),
         )
 
     def to_files(
-        self,
-        pipfile_path: str = None,
-        pipfile_lock_path: str = None,
-        without_pipfile_lock: bool = False
+        self, pipfile_path: str = None, pipfile_lock_path: str = None, without_pipfile_lock: bool = False
     ) -> None:
         """Write the current state of project into Pipfile and Pipfile.lock files."""
         with open(pipfile_path or "Pipfile", "w") as pipfile_file:
@@ -161,7 +158,7 @@ class Project:
         self,
         requirements_path: str = "requirements.in",
         requirements_lock_path: str = "requirements.txt",
-        without_lock: bool = False
+        without_lock: bool = False,
     ) -> None:
         """Write the current state of project into requirements.in and requirements.txt files.
 
@@ -233,11 +230,7 @@ class Project:
         pipfile = Pipfile.from_package_versions(package_versions, meta=meta)
         pipfile_lock = None
         if package_versions_lock:
-            pipfile_lock = PipfileLock.from_package_versions(
-                pipfile=pipfile,
-                packages=package_versions_lock,
-                meta=meta
-            )
+            pipfile_lock = PipfileLock.from_package_versions(pipfile=pipfile, packages=package_versions_lock, meta=meta)
 
         return cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
 
@@ -431,7 +424,7 @@ class Project:
         to_exclude_package = section.get(package_version.name)
         if to_exclude_package:
             package_version.negate_version()
-            _LOGGER.debug(f"Excluding package %r with package specified %r", to_exclude_package, package_version)
+            _LOGGER.debug(f"Excluding package {to_exclude_package} with package specified {package_version}")
 
             if package_version.index != to_exclude_package.index:
                 _LOGGER.warning(
@@ -553,13 +546,13 @@ class Project:
 
         if package_version.index and index_report.get(package_version.index.url) and len(hashes) > 1:
             # Is installed from different source - which one?
-            used_package_version_hashes = set(h[len("sha256:"):] for h in package_version.hashes)
+            used_package_version_hashes = set(h[len("sha256:") :] for h in package_version.hashes)
             configured_index_hashes = set(h["sha256"] for h in index_report[package_version.index.url])
 
             # Find other sources from which artifacts can be installed.
             other_sources = {}
             for artifact_hash in package_version.hashes:
-                artifact_hash = artifact_hash[len("sha256:"):]  # Remove pipenv-specific hash formatting.
+                artifact_hash = artifact_hash[len("sha256:") :]  # Remove pipenv-specific hash formatting.
 
                 for index_url, index_info in index_report.items():
                     if index_url == package_version.index.url:
@@ -629,7 +622,7 @@ class Project:
 
         # Changed hashes?
         for digest in package_version.hashes:
-            digest = digest[len("sha256:"):]
+            digest = digest[len("sha256:") :]
             for index_info in index_report.values():
                 if any(item["sha256"] == digest for item in index_info):
                     break

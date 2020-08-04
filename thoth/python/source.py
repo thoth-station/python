@@ -42,11 +42,13 @@ from thoth.common.helpers import parse_datetime
 _LOGGER = logging.getLogger(__name__)
 LEGACY_URLS = {"https://pypi.python.org/simple": "https://pypi.org/simple"}
 
-def normalize_url(url:str) -> str:
+
+def normalize_url(url: str) -> str:
     """We normalize url to remove legacy urls."""
     if url in LEGACY_URLS:
-       return LEGACY_URLS[url]
+        return LEGACY_URLS[url]
     return url
+
 
 @attr.s(frozen=True, slots=True)
 class Source:
@@ -144,9 +146,7 @@ class Source:
 
         result = []
         for item in package_info["urls"]:
-            result.append(
-                {"name": item["filename"], "sha256": item["digests"]["sha256"]}
-            )
+            result.append({"name": item["filename"], "sha256": item["digests"]["sha256"]})
             # this checks whether to gather digests for all files in the given artifact
             if with_included_files:
                 artifact = Artifact(item["filename"], item["url"], verify_ssl=self.verify_ssl)
@@ -212,7 +212,7 @@ class Source:
         """Parse package version based on artifact name available on the package source index."""
         if artifact_name.endswith(".tar.gz"):
             # +1 for dash delimiting package name and package version.
-            version = artifact_name[len(package_name) + 1:-len(".tar.gz")]
+            version = artifact_name[len(package_name) + 1 : -len(".tar.gz")]
 
         elif artifact_name.endswith(".whl"):
             # TODO: we will need to improve this based on PEP-0503.
@@ -233,11 +233,11 @@ class Source:
 
     def _simple_repository_list_versions(self, package_name: str) -> list:
         """List versions of package available on a simple repository."""
-        result = set()
+        simple_repos = set()
         for artifact_name, _ in self._simple_repository_list_artifacts(package_name):
-            result.add(self._parse_artifact_version(package_name, artifact_name))
+            simple_repos.add(self._parse_artifact_version(package_name, artifact_name))
 
-        result = list(result)
+        result = list(simple_repos)
         _LOGGER.debug("Versions available on %r (index with name %r): %r", self.url, self.name, result)
         return result
 
@@ -289,7 +289,7 @@ class Source:
         """Parse simple repository package listing (HTML) and return artifacts present there."""
         url = self.url + "/" + package_name
 
-        _LOGGER.debug(f"Discovering package %r artifacts from %r", package_name, url)
+        _LOGGER.debug(f"Discovering package {package_name} artifacts from {url}")
         response = requests.get(url, verify=self.verify_ssl)
         if response.status_code == 404:
             raise NotFound(f"Package {package_name} is not present on index {self.url} (index {self.name})")
@@ -299,12 +299,12 @@ class Source:
         links = soup.find_all("a")
         artifacts = []
         for link in links:
-            artifact_name = str(link["href"]).rsplit("/", maxsplit=1)
-            if len(artifact_name) == 2:
+            artifact_names = str(link["href"]).rsplit("/", maxsplit=1)
+            if len(artifact_names) == 2:
                 # If full URL provided by index.
-                artifact_name = artifact_name[1]
+                artifact_name = artifact_names[1]
             else:
-                artifact_name = artifact_name[0]
+                artifact_name = artifact_names[0]
 
             artifact_parts = artifact_name.rsplit("#", maxsplit=1)
             if len(artifact_parts) == 2:
@@ -374,7 +374,10 @@ class Source:
                 hashes = artifact.gather_hashes()
 
             yield (
-                artifact_name, artifact.sha, hashes, symbols,
+                artifact_name,
+                artifact.sha,
+                hashes,
+                symbols,
             )
 
     def provides_package_version(self, package_name: str, package_version: str) -> bool:
