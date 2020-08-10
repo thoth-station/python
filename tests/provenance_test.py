@@ -18,12 +18,13 @@
 
 """Tests for module provenance."""
 
-import os
-from .base import PythonTestCase
-
 import pytest
 
-from thoth.python import Project
+import os
+
+from thoth.python import Project  # type: ignore
+
+from .base_test import PythonTestCase
 
 
 class TestProvenanceCheck(PythonTestCase):

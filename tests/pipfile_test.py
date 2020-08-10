@@ -18,15 +18,16 @@
 
 """Tests for Pipfile and Pipfile.lock handling."""
 
+import pytest
+
 import os
 
-import pytest
 import toml
 
-from thoth.python import Pipfile
-from thoth.python import PipfileLock
+from thoth.python import Pipfile  # type: ignore
+from thoth.python import PipfileLock  # type: ignore
 
-from .base import PythonTestCase
+from .base_test import PythonTestCase
 
 
 class TestPipfile(PythonTestCase):

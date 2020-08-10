@@ -19,12 +19,13 @@
 """Tests for module helpers."""
 
 import os
-from thoth.python.helpers import parse_requirements
-from thoth.python.helpers import parse_requirement_str
-from thoth.python import PackageVersion
-from thoth.python import Source
 
-from .base import PythonTestCase
+from thoth.python.helpers import parse_requirements  # type: ignore
+from thoth.python.helpers import parse_requirement_str  # type: ignore
+from thoth.python import PackageVersion  # type: ignore
+from thoth.python import Source  # type: ignore
+
+from .base_test import PythonTestCase
 
 
 class TestHelpers(PythonTestCase):

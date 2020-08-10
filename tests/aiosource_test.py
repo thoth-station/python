@@ -20,9 +20,10 @@
 
 import pytest
 
-from thoth.python.aiosource import AIOSource, AsyncIterablePackages
+from thoth.python.aiosource import AIOSource
+from thoth.python.aiosource import AsyncIterablePackages
 
-from .base import PythonTestCase
+from .base_test import PythonTestCase
 
 
 class TestAIOSource(PythonTestCase):

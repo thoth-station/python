@@ -6,7 +6,7 @@ import os
 import sys
 from setuptools import setup
 from pathlib import Path
-from setuptools.command.test import test as TestCommand  # noqa: N812
+from setuptools.command.test import test as test_command
 
 
 def get_requirements():
@@ -28,7 +28,7 @@ def get_version():
     raise ValueError("No package version found")
 
 
-class Test(TestCommand):
+class Test(test_command):
     """Introduce test command to run testsuite using pytest."""
 
     _IMPLICIT_PYTEST_ARGS = [

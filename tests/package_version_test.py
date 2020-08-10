@@ -20,13 +20,13 @@
 
 import pytest
 
-from thoth.python.package_version import PackageVersion
-from thoth.python.pipfile import PipfileMeta
-from thoth.python.exceptions import UnsupportedConfiguration
-from thoth.python.exceptions import PipfileParseError
-from thoth.python.exceptions import InternalError
+from thoth.python.package_version import PackageVersion  # type: ignore
+from thoth.python.pipfile import PipfileMeta  # type: ignore
+from thoth.python.exceptions import UnsupportedConfiguration  # type: ignore
+from thoth.python.exceptions import PipfileParseError  # type: ignore
+from thoth.python.exceptions import InternalError  # type: ignore
 
-from .base import PythonTestCase
+from .base_test import PythonTestCase
 
 # Share meta for all the sources.
 _META = PipfileMeta.from_dict(

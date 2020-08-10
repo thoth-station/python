@@ -18,22 +18,23 @@
 
 """Tests for module project."""
 
+import pytest
+
 import os
 
 import attr
-import pytest
 from packaging.version import Version
 
 from thoth.common import cwd
-from thoth.python import Project
-from thoth.python import Source
-from thoth.python import Pipfile
-from thoth.python import PipfileLock
-from thoth.python import PackageVersion
-from thoth.python.exceptions import InternalError
-from thoth.python.exceptions import FileLoadError
+from thoth.python import Project  # type: ignore
+from thoth.python import Source  # type: ignore
+from thoth.python import Pipfile  # type: ignore
+from thoth.python import PipfileLock  # type: ignore
+from thoth.python import PackageVersion  # type: ignore
+from thoth.python.exceptions import InternalError  # type: ignore
+from thoth.python.exceptions import FileLoadError  # type: ignore
 
-from .base import PythonTestCase
+from .base_test import PythonTestCase
 
 
 class TestProject(PythonTestCase):

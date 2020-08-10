@@ -33,9 +33,11 @@ from .exceptions import PipfileParseError
 from .exceptions import InternalError
 from .source import Source
 
-from thoth.python.pipfile import PipfileMeta
-
 from typing import Any, Optional, Tuple, Union, List
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .pipfile import PipfileMeta
 
 _LOGGER = logging.getLogger(__name__)
 

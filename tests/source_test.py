@@ -18,18 +18,19 @@
 
 """Tests for package index handling - package source control."""
 
+import pytest
+
 import os
 import json
 from pathlib import Path
 
-import pytest
 import requests
 from flexmock import flexmock
 
-from thoth.python.source import Source
-from thoth.python.artifact import Artifact
+from thoth.python.source import Source  # type: ignore
+from thoth.python.artifact import Artifact  # type: ignore
 
-from .base import PythonTestCase
+from .base_test import PythonTestCase
 
 
 class TestSource(PythonTestCase):
@@ -60,7 +61,7 @@ class TestSource(PythonTestCase):
         source = Source.from_dict(source_info)
         assert source.warehouse is False, "Default warehouse configuration is not implicitly set to False"
 
-    @pytest.mark.online
+    @pytest.mark.online  # type: ignore
     def test_get_package_hashes_warehouse(self):
         """Test get package hashes warehouse."""
         pypi_index = {"name": "pypi", "url": "https://pypi.python.org/simple", "verify_ssl": True, "warehouse": True}
@@ -77,7 +78,7 @@ class TestSource(PythonTestCase):
             },
         ]
 
-    @pytest.mark.online
+    @pytest.mark.online  # type: ignore
     def test_get_package_hashes_server(self):
         """Test get package hashes server."""
         # We set warehouse to False so the there is not used API of the public PyPI index but rather there
