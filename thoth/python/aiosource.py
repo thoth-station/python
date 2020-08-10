@@ -31,7 +31,11 @@ from .exceptions import NotFound
 from .artifact import Artifact
 from .source import Source
 
-from typing import Optional, Set, Tuple, List, Any
+from typing import Optional
+from typing import Set
+from typing import Tuple
+from typing import List
+from typing import Dict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -99,7 +103,7 @@ class AsyncIterableVersions:
 class AsyncIterableArtifacts:
     """Async Iterator for Artifacts."""
 
-    def __init__(self, artifacts: List[Tuple]):  # Ignore PyDocStyleBear
+    def __init__(self, artifacts: List[Tuple[str, str]]):  # Ignore PyDocStyleBear
         """Initialize Async Iterable instance for Artifacts."""
         self.artifacts = artifacts
 
@@ -130,7 +134,9 @@ class AsyncIterableArtifacts:
 class AIOSource(Source):
     """Representation of source (Python index) for Python packages."""
 
-    async def _warehouse_get_api_package_version_info(self, package_name: str, package_version: str) -> dict:
+    async def _warehouse_get_api_package_version_info(  # type: ignore
+        self, package_name: str, package_version: str
+    ) -> Dict:
         """Use API of the deployed Warehouse to gather package version information."""
         url = self.get_api_url() + f"/{package_name}/{package_version}/json"
 
@@ -146,9 +152,9 @@ class AIOSource(Source):
 
                 return await response.json()
 
-    async def _warehouse_get_package_hashes(
+    async def _warehouse_get_package_hashes(  # type: ignore
         self, package_name: str, package_version: str, with_included_files: bool = False
-    ) -> List[dict]:
+    ) -> List[Dict]:
         """Gather information about SHA hashes available for the given package-version release."""
         package_info = await self._warehouse_get_api_package_version_info(package_name, package_version)
 
@@ -163,7 +169,7 @@ class AIOSource(Source):
 
         return result
 
-    async def _warehouse_get_api_package_info(self, package_name: str) -> dict:
+    async def _warehouse_get_api_package_info(self, package_name: str) -> Dict:  # type: ignore
         """Use API of the deployed Warehouse to gather package information."""
         url = self.get_api_url() + f"/{package_name}/json"
 
@@ -176,7 +182,7 @@ class AIOSource(Source):
 
                 return await response.json()
 
-    async def _simple_repository_list_versions(self, package_name: str) -> list:
+    async def _simple_repository_list_versions(self, package_name: str) -> List:  # type: ignore
         """List versions of package available on a simple repository."""
         result = set()
         a = await self._simple_repository_list_artifacts(package_name)
@@ -184,12 +190,12 @@ class AIOSource(Source):
         async for artifact_name, _ in a:
             result.add(self._parse_artifact_version(package_name, artifact_name))
 
-        result = list(result)
+        to_ret = list(result)
 
         _LOGGER.debug("Versions available on %r (index with name %r): %r", self.url, self.name, result)
-        return result
+        return to_ret
 
-    async def _simple_repository_list_artifacts(self, package_name: str) -> AsyncIterableArtifacts:
+    async def _simple_repository_list_artifacts(self, package_name: str) -> AsyncIterableArtifacts:  # type: ignore
         """Parse simple repository package listing (HTML) and return artifacts present there."""
         url = self.url + "/" + package_name
         links = []
@@ -206,14 +212,14 @@ class AIOSource(Source):
 
                 links = soup.find_all("a")
 
-        artifacts = []
+        artifacts = []  # List[Tuple[str,str]]
         for link in links:
-            artifact_name = str(link["href"]).rsplit("/", maxsplit=1)
-            if len(artifact_name) == 2:
+            artifact_name_full = str(link["href"]).rsplit("/", maxsplit=1)
+            if len(artifact_name_full) == 2:
                 # If full URL provided by index.
-                artifact_name = artifact_name[1]
+                artifact_name = artifact_name_full[1]
             else:
-                artifact_name = artifact_name[0]
+                artifact_name = artifact_name_full[0]
 
             artifact_parts = artifact_name.rsplit("#", maxsplit=1)
             if len(artifact_parts) == 2:
@@ -231,7 +237,7 @@ class AIOSource(Source):
 
         return AsyncIterableArtifacts(artifacts)
 
-    async def get_packages(self) -> AsyncIterablePackages:
+    async def get_packages(self) -> Optional[AsyncIterablePackages]:  # type: ignore
         """List packages available on the source package index."""
         _LOGGER.debug(f"Discovering packages available on {self.url} (simple index name: {self.name})")
 
@@ -268,13 +274,13 @@ class AIOSource(Source):
         return AsyncIterablePackages(packages)
 
     @lru_cache(maxsize=64)
-    async def get_package_versions(self, package_name: str) -> AsyncIterableVersions:
+    async def get_package_versions(self, package_name: str) -> AsyncIterableVersions:  # type: ignore
         """Get listing of versions available for the given package."""
         if not self.warehouse:
-            return AsyncIterableVersions(await self._simple_repository_list_versions(package_name))
+            return AsyncIterableVersions(set(await self._simple_repository_list_versions(package_name)))
 
         package_info = await self._warehouse_get_api_package_info(package_name)
-        return AsyncIterableVersions(list(package_info["releases"].keys()))
+        return AsyncIterableVersions(package_info["releases"].keys())
 
     async def get_package_artifacts(self, package_name: str, package_version: str):
         """Return list of artifacts corresponding to package name and package version."""
@@ -300,9 +306,9 @@ class AIOSource(Source):
         return to_return
 
     @lru_cache(maxsize=10)
-    async def get_package_hashes(
+    async def get_package_hashes(  # type: ignore
         self, package_name: str, package_version: str, with_included_files: bool = False
-    ) -> list:
+    ) -> List:
         """Get information about release hashes available in this source index."""
         if self.warehouse:
             return await self._warehouse_get_package_hashes(package_name, package_version, with_included_files)

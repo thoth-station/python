@@ -35,7 +35,7 @@ from .source import Source
 
 from thoth.python.pipfile import PipfileMeta
 
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union, List
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,8 +50,10 @@ def _normalize_python_package_name(package_name: str) -> str:
     return canonicalize_name(package_name)
 
 
-def _normalize_python_package_version(package_version: str) -> str:
+def _normalize_python_package_version(package_version: Optional[str]) -> Optional[str]:
     """Normalize Python package version based on PEP-440."""
+    if package_version is None:
+        return None
     return str(parse_version(package_version))
 
 
@@ -60,12 +62,12 @@ class PackageVersion:
     """A package version as described in the Pipfile.lock entry."""
 
     name = attr.ib(type=str, converter=_normalize_python_package_name)
-    version = attr.ib(type=str, converter=_normalize_python_package_version)
+    version = attr.ib(type=Optional[str], converter=_normalize_python_package_version)
     develop = attr.ib(type=bool)
     index = attr.ib(default=None, type=Optional[Source])
-    hashes = attr.ib(default=attr.Factory(list))
+    hashes = attr.ib(default=attr.Factory(List[str]))
     markers = attr.ib(default=None, type=Optional[Any])
-    extras = attr.ib(default=attr.Factory(list))
+    extras = attr.ib(default=attr.Factory(List[str]))
     _semantic_version = attr.ib(default=None, type=Union[LegacyVersion, Version])
     _locked_version = attr.ib(default=None, type=Optional[str])
     _package_tuple = attr.ib(default=None, type=Optional[Tuple[str, str, Optional[str]]])
@@ -115,7 +117,7 @@ class PackageVersion:
 
         https://www.python.org/dev/peps/pep-0440/#normalization
         """
-        return _normalize_python_package_version(package_version)
+        return _normalize_python_package_version(package_version)  # type: ignore
 
     @classmethod
     def from_model(cls, model, *, develop: bool = False):
@@ -144,7 +146,7 @@ class PackageVersion:
 
     def negate_version(self) -> None:
         """Negate version of a locked package version."""
-        if not self.is_locked():
+        if not self.is_locked() or self.version is None:
             raise InternalError(
                 f"Negating version on non-locked package {self.name} with version {self.version} is not supported"
             )
@@ -155,7 +157,7 @@ class PackageVersion:
     def locked_version(self) -> str:
         """Retrieve locked version of the package."""
         if not self._locked_version:
-            if not self.is_locked():
+            if not self.is_locked() or self.version is None:
                 raise InternalError(
                     f"Requested locked version for {self.name} but package has no locked version {self.version}"
                 )

@@ -23,6 +23,7 @@ import typing
 from functools import lru_cache
 from urllib.parse import urlparse
 from datetime import datetime
+from typing import Optional
 
 import attr
 import requests
@@ -58,7 +59,7 @@ class Source:
     name = attr.ib(type=str)
     verify_ssl = attr.ib(type=bool, default=True)
     warehouse = attr.ib(type=bool)
-    warehouse_api_url = attr.ib(default=None, type=str)
+    warehouse_api_url = attr.ib(default=None, type=Optional[str])
 
     _NORMALIZED_PACKAGE_NAME_RE = re.compile("[a-z-]+")
 
@@ -281,8 +282,9 @@ class Source:
         self, package_name: str, graceful: bool = False
     ) -> typing.Optional[typing.Union[Version, LegacyVersion]]:
         """Get the latest version for the given package."""
-
         semver_versions = self.get_sorted_package_versions(package_name=package_name, graceful=graceful)
+        if semver_versions is None:  # only None if graceful so don't check
+            return None
         return semver_versions[0]
 
     def _simple_repository_list_artifacts(self, package_name: str) -> list:

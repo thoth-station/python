@@ -19,9 +19,14 @@
 
 import os
 import logging
-import typing
 from itertools import chain
 import tempfile
+
+from typing import Optional
+from typing import Dict
+from typing import Any
+from typing import List
+from typing import Tuple
 
 import attr
 from thoth.common import cwd
@@ -50,7 +55,7 @@ class Project:
     """A representation of a Python project."""
 
     pipfile = attr.ib(type=Pipfile)
-    pipfile_lock = attr.ib(type=PipfileLock)
+    pipfile_lock = attr.ib(type=Optional[PipfileLock])
     runtime_environment = attr.ib(type=RuntimeEnvironment, default=attr.Factory(RuntimeEnvironment.from_dict))
     _graph_db = attr.ib(default=None)
     _workdir = attr.ib(default=None)
@@ -105,16 +110,13 @@ class Project:
 
     @classmethod
     def from_dict(
-        cls,
-        pipfile: typing.Dict[str, typing.Any],
-        pipfile_lock: typing.Dict[str, typing.Any],
-        runtime_environment: RuntimeEnvironment = None,
+        cls, pipfile: Dict[str, Any], pipfile_lock: Dict[str, Any], runtime_environment: RuntimeEnvironment = None,
     ) -> "Project":
         """Construct project out of a dict representation."""
-        pipfile = Pipfile.from_dict(pipfile)
+        pip = Pipfile.from_dict(pipfile)
         return cls(
-            pipfile=pipfile,
-            pipfile_lock=PipfileLock.from_dict(pipfile_lock, pipfile=pipfile),
+            pipfile=pip,
+            pipfile_lock=PipfileLock.from_dict(pipfile_lock, pipfile=pip),
             runtime_environment=runtime_environment,
         )
 
@@ -144,7 +146,7 @@ class Project:
 
         if not without_pipfile_lock:
             with open(pipfile_lock_path or "Pipfile.lock", "w") as pipfile_lock_file:
-                pipfile_lock_file.write(self.pipfile_lock.to_string())
+                pipfile_lock_file.write(self.pipfile_lock.to_string())  # type: ignore
 
     def construct_requirements_in(self) -> str:
         """Construct requirements.in file for the current project."""
@@ -152,7 +154,10 @@ class Project:
 
     def construct_requirements_txt(self) -> str:
         """Construct requirements.txt file for the current project - pip-tools compatible."""
-        return self.pipfile_lock.construct_requirements_txt()
+        if self.pipfile_lock is not None:
+            return self.pipfile_lock.construct_requirements_txt()
+        else:
+            raise TypeError("PipfileLock was not provided.")
 
     def to_pip_compile_files(
         self,
@@ -180,9 +185,9 @@ class Project:
     def from_pip_compile_files(
         cls,
         requirements_path: str = "requirements.in",
-        requirements_lock_path: typing.Optional[str] = None,
+        requirements_lock_path: Optional[str] = None,
         allow_without_lock: bool = False,
-        runtime_environment: typing.Optional[RuntimeEnvironment] = None,
+        runtime_environment: Optional[RuntimeEnvironment] = None,
     ) -> "Project":
         """Parse project from files compatible with pip/pip-tools."""
         sources_lock, package_versions_lock = None, None
@@ -237,8 +242,8 @@ class Project:
     @classmethod
     def from_package_versions(
         cls,
-        packages: typing.List[PackageVersion],
-        packages_locked: typing.List[PackageVersion] = None,
+        packages: List[PackageVersion],
+        packages_locked: List[PackageVersion] = None,
         meta: PipfileMeta = None,
         *,
         runtime_environment: RuntimeEnvironment = None,
@@ -264,7 +269,7 @@ class Project:
 
     def set_allow_prereleases(self, allow_prereleases: bool = True) -> None:
         """Allow or disallow pre-releases for this project."""
-        self.pipfile.meta.pipenv["allow_prereleases"] = allow_prereleases
+        self.pipfile.meta.pipenv["allow_prereleases"] = allow_prereleases  # type: ignore
 
     @property
     def prereleases_allowed(self) -> bool:
@@ -282,7 +287,7 @@ class Project:
             self.pipfile.meta.requires["python_version"] = python_version
 
     @property
-    def python_version(self) -> typing.Optional[str]:
+    def python_version(self) -> Optional[str]:
         """Get Python version used in this project."""
         if not self.pipfile.meta.requires:
             return None
@@ -296,7 +301,7 @@ class Project:
             "runtime_environment": self.runtime_environment.to_dict(),
         }
 
-    def get_configuration_check_report(self) -> typing.Optional[typing.Tuple[dict, typing.List[dict]]]:
+    def get_configuration_check_report(self) -> Optional[Tuple[dict, List[dict]]]:
         """Get a report on project configuration for the given runtime environment."""
         result = []
         changes_in_config = False
@@ -396,8 +401,11 @@ class Project:
         """Check whether the given package is a direct dependency."""
         return package_version.name in self.pipfile.packages
 
-    def get_locked_package_version(self, package_name: str) -> typing.Optional[PackageVersion]:
+    def get_locked_package_version(self, package_name: str) -> Optional[PackageVersion]:
         """Get locked version of the package."""
+        if self.pipfile_lock is None:
+            raise ValueError("PipfileLock was not provided and is None.")
+
         package_version = self.pipfile_lock.dev_packages.get(package_name)
 
         if not package_version:
@@ -405,7 +413,7 @@ class Project:
 
         return package_version
 
-    def get_package_version(self, package_name: str) -> typing.Optional[PackageVersion]:
+    def get_package_version(self, package_name: str) -> Optional[PackageVersion]:
         """Get locked version of the package."""
         package_version = self.pipfile.dev_packages.get(package_name)
 
@@ -468,7 +476,7 @@ class Project:
         else:
             yield from self.pipfile.packages
 
-    def _check_sources(self, whitelisted_sources: list) -> list:
+    def _check_sources(self, whitelisted_sources: Optional[List]) -> list:
         """Check sources configuration in the Pipfile and report back any issues."""
         report = []
         for source in self.pipfile.meta.sources.values():
@@ -494,10 +502,12 @@ class Project:
 
         return report
 
-    def _index_scan(self, digests_fetcher: DigestsFetcherBase) -> typing.Tuple[list, dict]:
+    def _index_scan(self, digests_fetcher: DigestsFetcherBase) -> Tuple[list, dict]:
         """Generate full report for packages given the sources configured."""
         report = {}
         findings = []
+        if self.pipfile_lock is None:
+            raise ValueError("PipfileLock was not provided and has value None.")
         for package_version in chain(self.pipfile_lock.packages, self.pipfile_lock.dev_packages):
             if package_version.name in report:
                 # TODO: can we have the same package in dev packages and packages?
@@ -512,7 +522,7 @@ class Project:
 
     def _check_scan(self, package_version: PackageVersion, index_report: dict) -> list:
         """Find and report errors found in the index scan."""
-        scan_report = []
+        scan_report = []  # type: List[Dict[str, Any]]
 
         # Prepare hashes for inspection.
         hashes = []
@@ -550,7 +560,7 @@ class Project:
             configured_index_hashes = set(h["sha256"] for h in index_report[package_version.index.url])
 
             # Find other sources from which artifacts can be installed.
-            other_sources = {}
+            other_sources = {}  # type: Dict[str, List[Tuple]]
             for artifact_hash in package_version.hashes:
                 artifact_hash = artifact_hash[len("sha256:") :]  # Remove pipenv-specific hash formatting.
 
@@ -642,7 +652,7 @@ class Project:
 
         return scan_report
 
-    def check_provenance(self, whitelisted_sources: list = None, digests_fetcher: DigestsFetcherBase = None) -> dict:
+    def check_provenance(self, whitelisted_sources: list = None, digests_fetcher: DigestsFetcherBase = None) -> List:
         """Check provenance/origin of packages that are stated in the project."""
         digests_fetcher = digests_fetcher or PythonDigestsFetcher(list(self.pipfile.meta.sources.values()))
         findings, _ = self._index_scan(digests_fetcher)
@@ -691,7 +701,7 @@ class Project:
                 f"{source.name} registered in the project"
             )
 
-        package_version = PackageVersion(
-            name=package_name, version=package_version, develop=develop, index=source.name if source else None
+        pkg_vers = PackageVersion(
+            name=package_name, version=package_version, develop=develop, index=source if source else None
         )
-        self.pipfile.add_package_version(package_version)
+        self.pipfile.add_package_version(pkg_vers)
