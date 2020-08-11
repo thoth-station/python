@@ -21,6 +21,9 @@ managers:
       maintainers:
         - fridex
         - goern
+        - harshad16
+        - pacospace
+        - KPostOffice
       assignees:
         - sesheta
       labels: [bot]
