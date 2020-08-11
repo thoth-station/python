@@ -253,7 +253,7 @@ class Source:
     def get_sorted_package_versions(
         self, package_name: str, graceful: bool = False, reverse: bool = True,  # default to newest first
     ) -> typing.Optional[typing.List[typing.Union[Version, LegacyVersion]]]:
-        """Get the latest version for the given package."""
+        """Get sorted versions for the given package."""
         try:
             all_versions = self.get_package_versions(package_name)
         except NotFound:
