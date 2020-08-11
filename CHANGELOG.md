@@ -541,3 +541,22 @@
 * :pushpin: Automatic update of dependency thoth-common from 0.12.9 to 0.12.10
 * :pushpin: Automatic update of dependency pytest-asyncio from 0.10.0 to 0.11.0
 * Be explicit about errors
+
+## Release 0.10.1 (2020-08-11T11:55:43)
+* Adjust docstring (#299)
+* :pushpin: Automatic update of dependency pytest from 5.4.3 to 6.0.1 (#298)
+* Feature/ordered versions (#293)
+* :pushpin: Automatic update of dependency thoth-common from 0.14.2 to 0.16.0 (#295)
+* :arrow_down: removed the files as they are no longer required
+* Replace legacy urls (#286)
+* :pushpin: Automatic update of dependency lxml from 4.5.1 to 4.5.2 (#289)
+* :pushpin: Automatic update of dependency pytest-timeout from 1.4.1 to 1.4.2 (#290)
+* :pushpin: Automatic update of dependency thoth-common from 0.13.13 to 0.14.2 (#288)
+* add more functions to aiosource (#287)
+* Add .thoth_last_analysis_id to .gitignore (#282)
+* :pushpin: Automatic update of dependency pytest-asyncio from 0.12.0 to 0.14.0 (#285)
+* :pushpin: Automatic update of dependency thoth-common from 0.13.8 to 0.13.13 (#284)
+* :pushpin: Automatic update of dependency requests from 2.23.0 to 2.24.0 (#283)
+* Increase pytest timeout
+* Update OWNERS
+* :pushpin: Automatic update of dependency pytest-timeout from 1.3.4 to 1.4.1
