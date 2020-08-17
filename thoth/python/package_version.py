@@ -82,7 +82,7 @@ class PackageVersion:
 
     def __eq__(self, other):
         """Check for package-version equality."""
-        return self.name == other.name and self.version == other.version and self.index.url == self.index.url
+        return self.name == other.name and self.version == other.version and self.index.url == other.index.url
 
     def __lt__(self, other):
         """Compare same packages based on their semantic version."""
