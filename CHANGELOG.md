@@ -560,3 +560,15 @@
 * Increase pytest timeout
 * Update OWNERS
 * :pushpin: Automatic update of dependency pytest-timeout from 1.3.4 to 1.4.1
+
+## Release 0.10.2 (2020-09-24T07:05:23)
+### Features
+* Add maintainers (#304)
+### Bug Fixes
+* fix package-version equality (#305)
+### Automatic Updates
+* :pushpin: Automatic update of dependency pytest-mypy from 0.6.2 to 0.7.0 (#311)
+* :pushpin: Automatic update of dependency pytest from 6.0.1 to 6.0.2 (#310)
+* :pushpin: Automatic update of dependency attrs from 19.3.0 to 20.2.0 (#309)
+* :pushpin: Automatic update of dependency thoth-common from 0.16.0 to 0.20.0 (#308)
+* :pushpin: Automatic update of dependency pytest-cov from 2.10.0 to 2.10.1 (#306)
