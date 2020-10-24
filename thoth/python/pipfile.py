@@ -82,7 +82,7 @@ class PipfileMeta:
         _LOGGER.debug("Generating Pipfile%s metadata section", "" if not is_lock else ".lock")
         sources_dict = [source.to_dict() for source in self.sources.values()]
 
-        result = {}
+        result = {}  # type: Dict[str, Any]
         if is_lock:
             # Pipenv is omitted.
             result["sources"] = sources_dict
@@ -108,7 +108,7 @@ class PipfileMeta:
         result = ""
 
         primary_index_added = False
-        for source in self.sources.items():
+        for source in self.sources.values():
             if not primary_index_added:
                 result += f"-i {source.url}\n"
                 primary_index_added = True
@@ -144,8 +144,8 @@ class PipfileMeta:
 class _PipfileBase:
     """A base class encapsulating logic of Pipfile and Pipfile.lock."""
 
-    packages = attr.ib(type=dict)
-    dev_packages = attr.ib(type=dict)
+    packages = attr.ib(type=Packages)
+    dev_packages = attr.ib(type=Packages)
     meta = attr.ib(type=PipfileMeta)
 
     # I wanted to reuse pipenv implementation, but the implementation is not that reusable. Also, we would like
@@ -176,7 +176,7 @@ class _PipfileBase:
         # First add index configuration.
         requirements_file = self.meta.to_requirements_index_conf()
 
-        for package_version in self.packages.items() if not develop else self.dev_packages.items():
+        for package_version in self.packages.packages.values() if not develop else self.dev_packages.packages.values():
             requirements_file += f"{package_version.name}{package_version.version}"
 
         return requirements_file
@@ -193,7 +193,7 @@ class _PipfileBase:
         _LOGGER.debug("Checking source indexes used")
 
         def _index_check(package_version: PackageVersion, source: Source):
-            if source is package_version.index:
+            if source is package_version.index or package_version.index is None:
                 return
 
             if source.name == package_version.index.name and source.url != package_version.index.url:
@@ -221,16 +221,14 @@ class _PipfileBase:
                 _index_check(package_version, self.meta.sources[package_version.index.name])
 
     @staticmethod
-    def _construct_requirements_packages(
-        packages: Iterable[PackageVersion]
-    ) -> str:
+    def _construct_requirements_packages(packages: Iterable[PackageVersion]) -> str:
         """Construct a requirements.txt/in string entry for each package."""
         result = ""
 
         for package in packages:
             result += package.name
             if package.extras:
-                result += f"[{','.join(e for e in sorted(package.extras))}]"
+                result += f"[{','.join(e for e in sorted(package.extras))}]"  # type: ignore
             if package.version and package.version != "*":
                 result += package.version
 
@@ -256,7 +254,7 @@ class _PipfileBase:
         packages: Iterable[PackageVersion],
         dev_packages: Optional[Iterable[PackageVersion]],
         meta: PipfileMeta,
-        with_header: bool = True
+        with_header: bool = True,
     ) -> str:
         result = ""
         if with_header:
@@ -284,9 +282,7 @@ class _PipfileBase:
     def construct_requirements_txt(self) -> str:
         """Construct requirements.txt file."""
         return self._construct_requirements(
-            self.packages.packages.values(),
-            self.dev_packages.packages.values(),
-            self.meta,
+            self.packages.packages.values(), self.dev_packages.packages.values(), self.meta,
         )
 
 
@@ -303,7 +299,7 @@ class Pipfile(_PipfileBase):
         return {"default": self.packages.to_pipfile(), "develop": self.dev_packages.to_pipfile(), "_meta": meta}
 
     @classmethod
-    def from_package_versions(cls, packages: List[PackageVersion], meta: PipfileMeta = None):
+    def from_package_versions(cls, packages: List[PackageVersion], meta: PipfileMeta = None) -> "Pipfile":
         """Construct Pipfile from provided PackageVersion instances."""
         return cls(
             packages=Packages.from_package_versions([pv for pv in packages if not pv.develop], develop=False),
@@ -312,7 +308,7 @@ class Pipfile(_PipfileBase):
         )
 
     @classmethod
-    def from_file(cls, file_path: str = None):
+    def from_file(cls, file_path: str = None) -> "Pipfile":
         """Parse Pipfile file and return its Pipfile representation."""
         file_path = file_path or "Pipfile"
         _LOGGER.debug("Loading Pipfile from %r", file_path)
@@ -320,12 +316,12 @@ class Pipfile(_PipfileBase):
             return cls.from_string(pipfile_file.read())
 
     @classmethod
-    def from_string(cls, pipfile_content: str):
+    def from_string(cls, pipfile_content: str) -> "Pipfile":  # type: ignore
         """Parse Pipfile from its string representation."""
         _LOGGER.debug("Parsing Pipfile toml representation from string")
         try:
             parsed = toml.loads(pipfile_content)
-        except Exception as exc:
+        except Exception as exc:  # noqa: F841
             # We are transparent - Pipfile can be eigher TOML or JSON - try to parse any of these.
             try:
                 parsed = json.loads(pipfile_content)
@@ -335,7 +331,7 @@ class Pipfile(_PipfileBase):
         return cls.from_dict(parsed)
 
     @classmethod
-    def from_dict(cls, dict_):
+    def from_dict(cls, dict_) -> "Pipfile":
         """Retrieve instance of Pipfile from its dictionary representation."""
         _LOGGER.debug("Parsing Pipfile")
         packages = dict_.pop("packages", {})
@@ -364,9 +360,7 @@ class Pipfile(_PipfileBase):
     def construct_requirements_in(self) -> str:
         """Construct requirements.in file for the current project."""
         return self._construct_requirements(
-            self.packages.packages.values(),
-            self.dev_packages.packages.values(),
-            self.meta,
+            self.packages.packages.values(), self.dev_packages.packages.values(), self.meta,
         )
 
     def to_file(self) -> None:
@@ -387,10 +381,12 @@ class Pipfile(_PipfileBase):
 class PipfileLock(_PipfileBase):
     """A Pipfile.lock representation - representation of fully pinned down stack with info such as hashes."""
 
-    pipfile = attr.ib(type=Pipfile)
+    pipfile = attr.ib(type=Optional[Pipfile])
 
     @classmethod
-    def from_package_versions(cls, pipfile: Pipfile, packages: List[PackageVersion], meta: PipfileMeta = None):
+    def from_package_versions(
+        cls, pipfile: Pipfile, packages: List[PackageVersion], meta: PipfileMeta = None
+    ) -> "PipfileLock":
         """Construct Pipfile from provided PackageVersion instances."""
         return cls(
             pipfile=pipfile,
@@ -400,7 +396,7 @@ class PipfileLock(_PipfileBase):
         )
 
     @classmethod
-    def from_file(cls, file_path: str = None, pipfile: Pipfile = None):
+    def from_file(cls, file_path: str = None, pipfile: Pipfile = None) -> "PipfileLock":
         """Parse Pipfile.lock file and return its PipfileLock representation."""
         file_path = file_path or "Pipfile.lock"
         _LOGGER.debug("Loading Pipfile.lock from %r", file_path)
@@ -408,7 +404,7 @@ class PipfileLock(_PipfileBase):
             return cls.from_string(pipfile_file.read(), pipfile)
 
     @classmethod
-    def from_string(cls, pipfile_content: str, pipfile: Pipfile):
+    def from_string(cls, pipfile_content: str, pipfile: Optional[Pipfile]) -> "PipfileLock":  # type: ignore
         """Parse Pipfile.lock from its string content."""
         _LOGGER.debug("Parsing Pipfile.lock JSON representation from string")
         try:
@@ -419,7 +415,7 @@ class PipfileLock(_PipfileBase):
         return cls.from_dict(parsed, pipfile)
 
     @classmethod
-    def from_dict(cls, dict_: dict, pipfile: Pipfile):
+    def from_dict(cls, dict_: dict, pipfile: Optional[Pipfile]) -> "PipfileLock":
         """Construct PipfileLock class from a parsed JSON representation as stated in actual Pipfile.lock."""
         _LOGGER.debug("Parsing Pipfile.lock")
         meta = PipfileMeta.from_dict(dict_["_meta"])

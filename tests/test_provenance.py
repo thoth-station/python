@@ -16,59 +16,49 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 # type: ignore
 
+"""Tests for module provenance."""
+
 import os
 from .base import PythonTestCase
 
 import pytest
 
 from thoth.python import Project
-from thoth.python import Pipfile
-from thoth.python import PipfileLock
-from thoth.python.exceptions import InternalError
 
 
 class TestProvenanceCheck(PythonTestCase):
+    """Test ProvenanceCheck module."""
+
     def load_test_project(self, pinned_index: bool = False) -> Project:
         """Instantiate testing project from prepared testing Pipfile and Pipfile.lock files.
 
         @param pinned_index: true for retrieving Pipfile with pinned index
         """
         pipfile_path = os.path.join(
-            self.data_dir,
-            "pipfiles",
-            "Pipfile_provenance1" if not pinned_index else "Pipfile_provenance2",
+            self.data_dir, "pipfiles", "Pipfile_provenance1" if not pinned_index else "Pipfile_provenance2",
         )
         pipfile_lock_path = os.path.join(
-            self.data_dir,
-            "pipfiles",
-            "Pipfile_provenance1.lock"
-            if not pinned_index
-            else "Pipfile_provenance2.lock",
+            self.data_dir, "pipfiles", "Pipfile_provenance1.lock" if not pinned_index else "Pipfile_provenance2.lock",
         )
         return Project.from_files(pipfile_path, pipfile_lock_path)
 
     @pytest.mark.parametrize(
         "index_report",
-        [{
-            "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com": [
-                {
-                    "sha256": "5f6cf0a8ddf7eb8aea6f4c514427633698a684423673da8f44f6f0f303cce4a9",
-                },
-                {
-                    "sha256": "74b72dd2a127da25b08dcbfabf6e495065c2a2309e415d0feac5d0e0d60fcb3e",
-                },
-            ],
-            "https://pypi.org/simple": [
-                {
-                    "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
-                },
-                {
-                    "sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",
-                },
-            ]
-        }]
+        [
+            {
+                "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com": [
+                    {"sha256": "5f6cf0a8ddf7eb8aea6f4c514427633698a684423673da8f44f6f0f303cce4a9",},
+                    {"sha256": "74b72dd2a127da25b08dcbfabf6e495065c2a2309e415d0feac5d0e0d60fcb3e",},
+                ],
+                "https://pypi.org/simple": [
+                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",},
+                    {"sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",},
+                ],
+            }
+        ],
     )
     def test_different_artifacts_on_sources(self, index_report):
+        """Test different artifacts on sources."""
         # Suggest to explicitly specify package source.
         project = self.load_test_project()
         package_version = project.pipfile_lock.packages.get("yaspin")
@@ -88,39 +78,30 @@ class TestProvenanceCheck(PythonTestCase):
         assert "indexes" in report
         assert set(report["indexes"]) == {
             "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com",
-            "https://pypi.org/simple"
+            "https://pypi.org/simple",
         }
 
     @pytest.mark.parametrize(
         "index_report",
-        [{
-            "foo": [
-                {
-                    "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
-                },
-                {
-                    "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
-                },
-            ],
-            "https://pypi.org/simple": [
-                {
-                    "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
-                },
-                {
-                    "sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",
-                },
-            ],
-            "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com": [
-                {
-                    "sha256": "5f6cf0a8ddf7eb8aea6f4c514427633698a684423673da8f44f6f0f303cce4a9",
-                },
-                {
-                    "sha256": "74b72dd2a127da25b08dcbfabf6e495065c2a2309e415d0feac5d0e0d60fcb3e",
-                }
-            ]
-        }]
+        [
+            {
+                "foo": [
+                    {"sha256": "2222222222222222222222222222222222222222222222222222222222222222",},
+                    {"sha256": "1111111111111111111111111111111111111111111111111111111111111111",},
+                ],
+                "https://pypi.org/simple": [
+                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",},
+                    {"sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",},
+                ],
+                "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com": [
+                    {"sha256": "5f6cf0a8ddf7eb8aea6f4c514427633698a684423673da8f44f6f0f303cce4a9",},
+                    {"sha256": "74b72dd2a127da25b08dcbfabf6e495065c2a2309e415d0feac5d0e0d60fcb3e",},
+                ],
+            }
+        ],
     )
     def test_different_source_error(self, index_report):
+        """Test different source error."""
         # Error that the given artifact is installed from different source.
         project = self.load_test_project(pinned_index=True)
         package_version = project.pipfile_lock.packages.get("yaspin")
@@ -145,23 +126,20 @@ class TestProvenanceCheck(PythonTestCase):
 
     @pytest.mark.parametrize(
         "index_report",
-        [{
-            "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com": [
-                {
-                    "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
-                },
-                {
-                    "sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",
-                },
-            ],
-            "https://pypi.org/simple": [
-                {
-                    "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
-                }
-            ]
-        }]
+        [
+            {
+                "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com": [
+                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",},
+                    {"sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",},
+                ],
+                "https://pypi.org/simple": [
+                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",}
+                ],
+            }
+        ],
     )
     def test_possible_different_source_info(self, index_report):
+        """Test possible different source info."""
         # Warning that the given artifact can installed from different source.
         project = self.load_test_project(pinned_index=True)
         package_version = project.pipfile_lock.packages.get("yaspin")
@@ -186,18 +164,17 @@ class TestProvenanceCheck(PythonTestCase):
 
     @pytest.mark.parametrize(
         "index_report",
-        [{
-            "https://pypi.org/simple": [
-                {
-                    "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
-                },
-                {
-                    "sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",
-                },
-            ]
-        }]
+        [
+            {
+                "https://pypi.org/simple": [
+                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",},
+                    {"sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",},
+                ]
+            }
+        ],
     )
     def test_missing_package_error(self, index_report):
+        """Test missing package error."""
         # Error missing package on index.
         project = self.load_test_project(pinned_index=True)
         package_version = project.pipfile_lock.packages.get("yaspin")
@@ -216,18 +193,17 @@ class TestProvenanceCheck(PythonTestCase):
 
     @pytest.mark.parametrize(
         "index_report",
-        [{
-            "https://pypi.org/simple": [
-                {
-                    "sha256": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-                },
-                {
-                    "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
-                },
-            ]
-        }]
+        [
+            {
+                "https://pypi.org/simple": [
+                    {"sha256": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",},
+                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",},
+                ]
+            }
+        ],
     )
     def test_invalid_artifact_hash_error(self, index_report):
+        """Test invalid artifact hash error."""
         # Error that the given hash was not found on index.
         project = self.load_test_project()
         package_version = project.pipfile_lock.packages.get("yaspin")
@@ -244,7 +220,4 @@ class TestProvenanceCheck(PythonTestCase):
         assert "id" in report
         assert "INVALID-ARTIFACT-HASH" == report["id"]
 
-        assert (
-            report["digest"]
-            == "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7"
-        )
+        assert report["digest"] == "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7"
