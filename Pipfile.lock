@@ -334,11 +334,11 @@
         },
         "pyelftools": {
             "hashes": [
-                "sha256:86ac6cee19f6c945e8dedf78c6ee74f1112bd14da5a658d8c9d4103aed5756a2",
-                "sha256:cc0ea0de82b240a73ef4056fce44acbb4727dca7d66759371aff2bad457ed711"
+                "sha256:5609aa6da1123fccfae2e8431a67b4146aa7fad5b3889f808df12b110f230937",
+                "sha256:cde854e662774c5457d688ca41615f6594187ba7067af101232df889a6b7a66b"
             ],
             "index": "pypi",
-            "version": "==0.26"
+            "version": "==0.27"
         },
         "pyparsing": {
             "hashes": [
