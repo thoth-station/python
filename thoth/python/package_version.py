@@ -19,7 +19,6 @@
 
 import re
 import logging
-import typing
 from copy import copy
 
 import attr
@@ -34,6 +33,12 @@ from .exceptions import PipfileParseError
 from .exceptions import InternalError
 from .source import Source
 
+from typing import Optional, Tuple, Union
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .pipfile import PipfileMeta
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -47,8 +52,10 @@ def _normalize_python_package_name(package_name: str) -> str:
     return canonicalize_name(package_name)
 
 
-def _normalize_python_package_version(package_version: str) -> str:
+def _normalize_python_package_version(package_version: Optional[str]) -> Optional[str]:
     """Normalize Python package version based on PEP-440."""
+    if package_version is None:
+        return None
     return str(parse_version(package_version))
 
 
@@ -57,16 +64,16 @@ class PackageVersion:
     """A package version as described in the Pipfile.lock entry."""
 
     name = attr.ib(type=str, converter=_normalize_python_package_name)
-    version = attr.ib(type=str, converter=_normalize_python_package_version)
+    version = attr.ib(type=Optional[str], converter=_normalize_python_package_version)
     develop = attr.ib(type=bool)
-    index = attr.ib(default=None, type=Source)
+    index = attr.ib(default=None, type=Optional[Source])
     hashes = attr.ib(default=attr.Factory(list))
-    markers = attr.ib(default=None, type=str)
+    markers = attr.ib(default=None, type=Optional[str])
     extras = attr.ib(default=attr.Factory(list))
-    _semantic_version = attr.ib(default=None, type=typing.Union[LegacyVersion, Version])
-    _locked_version = attr.ib(default=None, type=typing.Optional[str])
-    _package_tuple = attr.ib(default=None, type=typing.Optional[typing.Tuple[str, str, str]])
-    _package_tuple_locked = attr.ib(default=None, type=typing.Optional[typing.Tuple[str, str, str]])
+    _semantic_version = attr.ib(default=None, type=Union[LegacyVersion, Version])
+    _locked_version = attr.ib(default=None, type=Optional[str])
+    _package_tuple = attr.ib(default=None, type=Optional[Tuple[str, str, Optional[str]]])
+    _package_tuple_locked = attr.ib(default=None, type=Optional[Tuple[str, str, Optional[str]]])
 
     def to_dict(self) -> dict:
         """Create a dictionary representation of parameters (useful for later constructor calls)."""
@@ -107,12 +114,12 @@ class PackageVersion:
         return _normalize_python_package_name(package_name)
 
     @classmethod
-    def normalize_python_package_version(self, package_version: str) -> str:
+    def normalize_python_package_version(cls, package_version: str) -> str:
         """Normalize Python package version based on PEP-440.
 
         https://www.python.org/dev/peps/pep-0440/#normalization
         """
-        return _normalize_python_package_version(package_version)
+        return _normalize_python_package_version(package_version)  # type: ignore
 
     @classmethod
     def from_model(cls, model, *, develop: bool = False):
@@ -136,12 +143,12 @@ class PackageVersion:
             index=self.index,
             hashes=self.hashes,
             markers=self.markers,
-            extras=self.extras
+            extras=self.extras,
         )
 
     def negate_version(self) -> None:
         """Negate version of a locked package version."""
-        if not self.is_locked():
+        if not self.is_locked() or self.version is None:
             raise InternalError(
                 f"Negating version on non-locked package {self.name} with version {self.version} is not supported"
             )
@@ -152,17 +159,17 @@ class PackageVersion:
     def locked_version(self) -> str:
         """Retrieve locked version of the package."""
         if not self._locked_version:
-            if not self.is_locked():
+            if not self.is_locked() or self.version is None:
                 raise InternalError(
                     f"Requested locked version for {self.name} but package has no locked version {self.version}"
                 )
 
-            self._locked_version = self.version[len("=="):]
+            self._locked_version = self.version[len("==") :]
 
         return self._locked_version
 
     @property
-    def semantic_version(self) -> typing.Union[Version, LegacyVersion]:
+    def semantic_version(self) -> Union[Version, LegacyVersion]:
         """Get semantic version respecting version specified - package has to be locked to a specific version."""
         if not self._semantic_version:
             if not self.is_locked():
@@ -175,14 +182,12 @@ class PackageVersion:
         return self._semantic_version
 
     @staticmethod
-    def parse_semantic_version(version_identifier: str) -> typing.Union[Version, LegacyVersion]:
+    def parse_semantic_version(version_identifier: str) -> Union[Version, LegacyVersion]:
         """Parse the given version identifier into a semver representation."""
         return parse_version(version_identifier)
 
     @staticmethod
-    def _get_index_from_meta(
-        meta: "PipenvMeta", package_name: str, index_name: typing.Optional[str]
-    ) -> typing.Optional[Source]:
+    def _get_index_from_meta(meta: "PipfileMeta", package_name: str, index_name: Optional[str]) -> Optional[Source]:
         """Get the only index name present in the Pipfile.lock metadata.
 
         If there is no index explicitly assigned to package, there is only one package source
@@ -202,7 +207,7 @@ class PackageVersion:
         return None
 
     @classmethod
-    def from_pipfile_lock_entry(cls, package_name: str, entry: dict, develop: bool, meta: "PipenvMeta"):
+    def from_pipfile_lock_entry(cls, package_name: str, entry: dict, develop: bool, meta: "PipfileMeta"):
         """Construct PackageVersion instance from representation as stated in Pipfile.lock."""
         _LOGGER.debug("Parsing entry in Pipfile.lock for package %r: %s", package_name, entry)
         entry = dict(entry)
@@ -251,17 +256,17 @@ class PackageVersion:
 
         return {self.name: result}
 
-    def to_tuple(self) -> tuple:
+    def to_tuple(self) -> Tuple[str, str, Optional[str]]:
         """Return a tuple representing this Python package."""
         if not self._package_tuple:
-            self._package_tuple = self.name, self.locked_version, self.index.url
+            self._package_tuple = self.name, self.locked_version, self.index.url if self.index else None
 
         return self._package_tuple
 
-    def to_tuple_locked(self) -> tuple:
+    def to_tuple_locked(self) -> Tuple[str, str, Optional[str]]:
         """Return a tuple representing this Python package - used for locked packages."""
         if not self._package_tuple_locked:
-            self._package_tuple_locked = self.name, self.locked_version, self.index.url
+            self._package_tuple_locked = self.name, self.locked_version, self.index.url if self.index else None
 
         return self._package_tuple_locked
 
@@ -287,7 +292,7 @@ class PackageVersion:
         return {self.name: result}
 
     @classmethod
-    def from_pipfile_entry(cls, package_name: str, entry: typing.Union[dict, str], develop: bool, meta: "PipenvMeta"):
+    def from_pipfile_entry(cls, package_name: str, entry: Union[dict, str], develop: bool, meta: "PipfileMeta"):
         """Construct PackageVersion instance from representation as stated in Pipfile."""
         _LOGGER.debug("Parsing entry in Pipfile for package %r: %s", package_name, entry)
         # Pipfile holds string for a version:

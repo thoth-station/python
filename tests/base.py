@@ -24,4 +24,4 @@ import os
 class PythonTestCase:
     """A base class for python test cases."""
 
-    data_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
+    data_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")

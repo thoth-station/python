@@ -19,9 +19,10 @@
 
 import os
 import logging
-import typing
 from itertools import chain
 import tempfile
+
+from typing import Optional, Dict, Any, List, Tuple
 
 import attr
 from thoth.common import cwd
@@ -50,7 +51,7 @@ class Project:
     """A representation of a Python project."""
 
     pipfile = attr.ib(type=Pipfile)
-    pipfile_lock = attr.ib(type=PipfileLock)
+    pipfile_lock = attr.ib(type=Optional[PipfileLock])
     runtime_environment = attr.ib(type=RuntimeEnvironment, default=attr.Factory(RuntimeEnvironment.from_dict))
     _graph_db = attr.ib(default=None)
     _workdir = attr.ib(default=None)
@@ -100,22 +101,19 @@ class Project:
         return cls(
             pipfile,
             pipfile_lock,
-            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({})
+            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({}),
         )
 
     @classmethod
     def from_dict(
-        cls,
-        pipfile: typing.Dict[str, typing.Any],
-        pipfile_lock: typing.Dict[str, typing.Any],
-        runtime_environment: RuntimeEnvironment = None
+        cls, pipfile: Dict[str, Any], pipfile_lock: Dict[str, Any], runtime_environment: RuntimeEnvironment = None,
     ) -> "Project":
         """Construct project out of a dict representation."""
-        pipfile = Pipfile.from_dict(pipfile)
+        pip = Pipfile.from_dict(pipfile)
         return cls(
-            pipfile=pipfile,
-            pipfile_lock=PipfileLock.from_dict(pipfile_lock, pipfile=pipfile),
-            runtime_environment=runtime_environment
+            pipfile=pip,
+            pipfile_lock=PipfileLock.from_dict(pipfile_lock, pipfile=pip),
+            runtime_environment=runtime_environment,
         )
 
     @classmethod
@@ -132,14 +130,11 @@ class Project:
         return cls(
             pipfile,
             pipfile_lock,
-            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({})
+            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({}),
         )
 
     def to_files(
-        self,
-        pipfile_path: str = None,
-        pipfile_lock_path: str = None,
-        without_pipfile_lock: bool = False
+        self, pipfile_path: str = None, pipfile_lock_path: str = None, without_pipfile_lock: bool = False
     ) -> None:
         """Write the current state of project into Pipfile and Pipfile.lock files."""
         with open(pipfile_path or "Pipfile", "w") as pipfile_file:
@@ -147,7 +142,7 @@ class Project:
 
         if not without_pipfile_lock:
             with open(pipfile_lock_path or "Pipfile.lock", "w") as pipfile_lock_file:
-                pipfile_lock_file.write(self.pipfile_lock.to_string())
+                pipfile_lock_file.write(self.pipfile_lock.to_string())  # type: ignore
 
     def construct_requirements_in(self) -> str:
         """Construct requirements.in file for the current project."""
@@ -155,13 +150,16 @@ class Project:
 
     def construct_requirements_txt(self) -> str:
         """Construct requirements.txt file for the current project - pip-tools compatible."""
-        return self.pipfile_lock.construct_requirements_txt()
+        if self.pipfile_lock is not None:
+            return self.pipfile_lock.construct_requirements_txt()
+        else:
+            raise TypeError("PipfileLock was not provided.")
 
     def to_pip_compile_files(
         self,
         requirements_path: str = "requirements.in",
         requirements_lock_path: str = "requirements.txt",
-        without_lock: bool = False
+        without_lock: bool = False,
     ) -> None:
         """Write the current state of project into requirements.in and requirements.txt files.
 
@@ -183,9 +181,9 @@ class Project:
     def from_pip_compile_files(
         cls,
         requirements_path: str = "requirements.in",
-        requirements_lock_path: typing.Optional[str] = None,
+        requirements_lock_path: Optional[str] = None,
         allow_without_lock: bool = False,
-        runtime_environment: typing.Optional[RuntimeEnvironment] = None,
+        runtime_environment: Optional[RuntimeEnvironment] = None,
     ) -> "Project":
         """Parse project from files compatible with pip/pip-tools."""
         sources_lock, package_versions_lock = None, None
@@ -233,19 +231,15 @@ class Project:
         pipfile = Pipfile.from_package_versions(package_versions, meta=meta)
         pipfile_lock = None
         if package_versions_lock:
-            pipfile_lock = PipfileLock.from_package_versions(
-                pipfile=pipfile,
-                packages=package_versions_lock,
-                meta=meta
-            )
+            pipfile_lock = PipfileLock.from_package_versions(pipfile=pipfile, packages=package_versions_lock, meta=meta)
 
         return cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
 
     @classmethod
     def from_package_versions(
         cls,
-        packages: typing.List[PackageVersion],
-        packages_locked: typing.List[PackageVersion] = None,
+        packages: List[PackageVersion],
+        packages_locked: List[PackageVersion] = None,
         meta: PipfileMeta = None,
         *,
         runtime_environment: RuntimeEnvironment = None,
@@ -271,7 +265,7 @@ class Project:
 
     def set_allow_prereleases(self, allow_prereleases: bool = True) -> None:
         """Allow or disallow pre-releases for this project."""
-        self.pipfile.meta.pipenv["allow_prereleases"] = allow_prereleases
+        self.pipfile.meta.pipenv["allow_prereleases"] = allow_prereleases  # type: ignore
 
     @property
     def prereleases_allowed(self) -> bool:
@@ -289,7 +283,7 @@ class Project:
             self.pipfile.meta.requires["python_version"] = python_version
 
     @property
-    def python_version(self) -> typing.Optional[str]:
+    def python_version(self) -> Optional[str]:
         """Get Python version used in this project."""
         if not self.pipfile.meta.requires:
             return None
@@ -303,7 +297,7 @@ class Project:
             "runtime_environment": self.runtime_environment.to_dict(),
         }
 
-    def get_configuration_check_report(self) -> typing.Optional[typing.Tuple[dict, typing.List[dict]]]:
+    def get_configuration_check_report(self) -> Optional[Tuple[dict, List[dict]]]:
         """Get a report on project configuration for the given runtime environment."""
         result = []
         changes_in_config = False
@@ -403,8 +397,11 @@ class Project:
         """Check whether the given package is a direct dependency."""
         return package_version.name in self.pipfile.packages
 
-    def get_locked_package_version(self, package_name: str) -> typing.Optional[PackageVersion]:
+    def get_locked_package_version(self, package_name: str) -> Optional[PackageVersion]:
         """Get locked version of the package."""
+        if self.pipfile_lock is None:
+            raise ValueError("PipfileLock was not provided and is None.")
+
         package_version = self.pipfile_lock.dev_packages.get(package_name)
 
         if not package_version:
@@ -412,7 +409,7 @@ class Project:
 
         return package_version
 
-    def get_package_version(self, package_name: str) -> typing.Optional[PackageVersion]:
+    def get_package_version(self, package_name: str) -> Optional[PackageVersion]:
         """Get locked version of the package."""
         package_version = self.pipfile.dev_packages.get(package_name)
 
@@ -431,7 +428,7 @@ class Project:
         to_exclude_package = section.get(package_version.name)
         if to_exclude_package:
             package_version.negate_version()
-            _LOGGER.debug(f"Excluding package %r with package specified %r", to_exclude_package, package_version)
+            _LOGGER.debug(f"Excluding package {to_exclude_package} with package specified {package_version}")
 
             if package_version.index != to_exclude_package.index:
                 _LOGGER.warning(
@@ -475,7 +472,7 @@ class Project:
         else:
             yield from self.pipfile.packages
 
-    def _check_sources(self, whitelisted_sources: list) -> list:
+    def _check_sources(self, whitelisted_sources: Optional[List]) -> List:
         """Check sources configuration in the Pipfile and report back any issues."""
         report = []
         for source in self.pipfile.meta.sources.values():
@@ -501,10 +498,13 @@ class Project:
 
         return report
 
-    def _index_scan(self, digests_fetcher: DigestsFetcherBase) -> typing.Tuple[list, dict]:
+    def _index_scan(self, digests_fetcher: DigestsFetcherBase) -> Tuple[list, dict]:
         """Generate full report for packages given the sources configured."""
         report = {}
         findings = []
+        if self.pipfile_lock is None:
+            raise ValueError("PipfileLock was not provided and has value None.")
+
         for package_version in chain(self.pipfile_lock.packages, self.pipfile_lock.dev_packages):
             if package_version.name in report:
                 # TODO: can we have the same package in dev packages and packages?
@@ -549,17 +549,19 @@ class Project:
         # Source for reports.
         source = None
         if package_version.index:
-            source = package_version.index.to_dict()
+            source = package_version.index.to_dict()  # type: ignore
 
         if package_version.index and index_report.get(package_version.index.url) and len(hashes) > 1:
             # Is installed from different source - which one?
-            used_package_version_hashes = set(h[len("sha256:"):] for h in package_version.hashes)
+            used_package_version_hashes = set(h[len("sha256:") :] for h in package_version.hashes)  # type: ignore
             configured_index_hashes = set(h["sha256"] for h in index_report[package_version.index.url])
 
             # Find other sources from which artifacts can be installed.
-            other_sources = {}
+            other_sources = {}  # type: Dict[str, List[Tuple]]
             for artifact_hash in package_version.hashes:
-                artifact_hash = artifact_hash[len("sha256:"):]  # Remove pipenv-specific hash formatting.
+                artifact_hash = artifact_hash[  # type: ignore
+                    len("sha256:") :
+                ]  # Remove pipenv-specific hash formatting.  # type: ignore
 
                 for index_url, index_info in index_report.items():
                     if index_url == package_version.index.url:
@@ -584,7 +586,7 @@ class Project:
                         "id": "ARTIFACT-DIFFERENT-SOURCE",
                         "justification": f"Artifacts are installed from different "
                         f'sources ({",".join(other_sources.keys())}) not respecting configuration',
-                        "source": source,
+                        "source": source,  # type: ignore
                         "package_locked": package_version.to_pipfile_lock(),
                         "package_name": package_version.name,
                         "package_version": package_version.version,
@@ -601,7 +603,7 @@ class Project:
                         "justification": f"Artifacts can be installed from different sources "
                         f'({",".join(other_sources.keys())}) not respecting configuration '
                         f"that expects {package_version.index.name!r}",
-                        "source": source,
+                        "source": source,  # type: ignore
                         "package_locked": package_version.to_pipfile_lock(),
                         "package_name": package_version.name,
                         "package_version": package_version.version,
@@ -619,7 +621,7 @@ class Project:
                     "justification": f"Source index {package_version.index.name!r} explicitly "
                     f"assigned to package {package_version.name!r} but there was not found "
                     f"any record for the given package",
-                    "source": source,
+                    "source": source,  # type: ignore
                     "package_locked": package_version.to_pipfile_lock(),
                     "package_name": package_version.name,
                     "package_version": package_version.version,
@@ -629,7 +631,7 @@ class Project:
 
         # Changed hashes?
         for digest in package_version.hashes:
-            digest = digest[len("sha256:"):]
+            digest = digest[len("sha256:") :]  # type: ignore
             for index_info in index_report.values():
                 if any(item["sha256"] == digest for item in index_info):
                     break
@@ -639,17 +641,17 @@ class Project:
                         "type": "ERROR",
                         "id": "INVALID-ARTIFACT-HASH",
                         "justification": "Hash for the given artifact was not found",
-                        "source": source,
+                        "source": source,  # type: ignore
                         "package_locked": package_version.to_pipfile_lock(),
                         "package_name": package_version.name,
                         "package_version": package_version.version,
-                        "digest": digest,
+                        "digest": digest,  # type: ignore
                     }
                 )
 
         return scan_report
 
-    def check_provenance(self, whitelisted_sources: list = None, digests_fetcher: DigestsFetcherBase = None) -> dict:
+    def check_provenance(self, whitelisted_sources: list = None, digests_fetcher: DigestsFetcherBase = None) -> List:
         """Check provenance/origin of packages that are stated in the project."""
         digests_fetcher = digests_fetcher or PythonDigestsFetcher(list(self.pipfile.meta.sources.values()))
         findings, _ = self._index_scan(digests_fetcher)
@@ -698,7 +700,7 @@ class Project:
                 f"{source.name} registered in the project"
             )
 
-        package_version = PackageVersion(
-            name=package_name, version=package_version, develop=develop, index=source.name if source else None
+        pkg_vers = PackageVersion(
+            name=package_name, version=package_version, develop=develop, index=source if source else None
         )
-        self.pipfile.add_package_version(package_version)
+        self.pipfile.add_package_version(pkg_vers)

@@ -29,63 +29,45 @@ from thoth.python.exceptions import InternalError
 from .base import PythonTestCase
 
 # Share meta for all the sources.
-_META = PipfileMeta.from_dict({
-    "hash": {
-        "sha256": "ffd9f5a6a04f9aa6c56cbf43ceda5c41644b1d2304a6b798a654b6e421c7d23a"
-    },
-    "pipfile-spec": 6,
-    "requires": {},
-    "sources": [
-        {
-            "name": "pypi",
-            "url": "https://pypi.python.org/simple",
-            "verify_ssl": True
-        },
-        {
-            "name": "redhat-aicoe-experiments",
-            "url": "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com",
-            "verify_ssl": True
-        }
-
-    ]
-})
+_META = PipfileMeta.from_dict(
+    {
+        "hash": {"sha256": "ffd9f5a6a04f9aa6c56cbf43ceda5c41644b1d2304a6b798a654b6e421c7d23a"},
+        "pipfile-spec": 6,
+        "requires": {},
+        "sources": [
+            {"name": "pypi", "url": "https://pypi.python.org/simple", "verify_ssl": True},
+            {
+                "name": "redhat-aicoe-experiments",
+                "url": "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com",
+                "verify_ssl": True,
+            },
+        ],
+    }
+)
 
 
 class TestPackageVersion(PythonTestCase):
+    """Test TestPackageVersion module."""
 
     @pytest.mark.parametrize(
         "package_name,package_info,expected_values,is_locked",
         [
             (
-                'tensorflow',
-                {'version': '==1.9.0rc0', 'index': 'redhat-aicoe-experiments'},
-                {'index': 'redhat-aicoe-experiments', 'version': '==1.9.0rc0'},
-                True
+                "tensorflow",
+                {"version": "==1.9.0rc0", "index": "redhat-aicoe-experiments"},
+                {"index": "redhat-aicoe-experiments", "version": "==1.9.0rc0"},
+                True,
             ),
-            (
-                'tensorflow',
-                {'version': '*'},
-                {'index': None, 'version': '*'},
-                False
-            ),
-            (
-                'tensorflow',
-                {'version': '<1.9'},
-                {'index': None, 'version': '<1.9'},
-                False
-            )
-        ]
+            ("tensorflow", {"version": "*"}, {"index": None, "version": "*"}, False),
+            ("tensorflow", {"version": "<1.9"}, {"index": None, "version": "<1.9"}, False),
+        ],
     )
     def test_from_pipfile_entry(self, package_name, package_info, expected_values, is_locked):
-        package_version = PackageVersion.from_pipfile_entry(
-            package_name,
-            package_info,
-            develop=False,
-            meta=_META
-        )
+        """Test from pipfile entry."""
+        package_version = PackageVersion.from_pipfile_entry(package_name, package_info, develop=False, meta=_META)
 
         for name, value in expected_values.items():
-            if name == 'index':
+            if name == "index":
                 if value is None:
                     assert package_version.index is None
                     continue
@@ -94,21 +76,17 @@ class TestPackageVersion(PythonTestCase):
                 package_version.index.name == value
                 continue
 
-            assert getattr(package_version, name) == value,\
-                f"Expected value for {name} for instance does not match: {value}"
+            assert (
+                getattr(package_version, name) == value
+            ), f"Expected value for {name} for instance does not match: {value}"
 
         assert package_version.is_locked() is is_locked
 
     @pytest.mark.parametrize(
-        "package_name,package_info",
-        [
-            (
-                'igitt',
-                {'git': 'https://gitlab.com/gitmate/open-source/IGitt.git'}
-            )
-        ]
+        "package_name,package_info", [("igitt", {"git": "https://gitlab.com/gitmate/open-source/IGitt.git"})]
     )
     def test_from_pipfile_entry_error(self, package_name, package_info):
+        """Test from pipfile entry error."""
         with pytest.raises(UnsupportedConfiguration):
             PackageVersion.from_pipfile_entry(package_name, package_info, develop=False, meta=_META)
 
@@ -116,35 +94,32 @@ class TestPackageVersion(PythonTestCase):
         "package_name,package_info,expected_values",
         [
             (
-                'tensorflow',
-                {'version': '==1.9.0rc0', 'index': 'redhat-aicoe-experiments', 'hashes':
-                    [
-                        "sha256:9c2dc36b84f3729361990b4488b7fde1cbe5afb9e3b59456aafc6928684fcd4b"
-                    ]
-                 },
-                {'index': 'redhat-aicoe-experiments', 'version': '==1.9.0rc0', 'hashes':
-                    [
-                        "sha256:9c2dc36b84f3729361990b4488b7fde1cbe5afb9e3b59456aafc6928684fcd4b"
-                    ]
-                 }
+                "tensorflow",
+                {
+                    "version": "==1.9.0rc0",
+                    "index": "redhat-aicoe-experiments",
+                    "hashes": ["sha256:9c2dc36b84f3729361990b4488b7fde1cbe5afb9e3b59456aafc6928684fcd4b"],
+                },
+                {
+                    "index": "redhat-aicoe-experiments",
+                    "version": "==1.9.0rc0",
+                    "hashes": ["sha256:9c2dc36b84f3729361990b4488b7fde1cbe5afb9e3b59456aafc6928684fcd4b"],
+                },
             )
-        ]
+        ],
     )
     def test_from_pipfile_lock_entry(self, package_name, package_info, expected_values):
-        package_version = PackageVersion.from_pipfile_lock_entry(
-            package_name,
-            package_info,
-            develop=False,
-            meta=_META
-        )
+        """Test from pipfile lock entry."""
+        package_version = PackageVersion.from_pipfile_lock_entry(package_name, package_info, develop=False, meta=_META)
 
         for name, value in expected_values.items():
-            if name == 'index':
+            if name == "index":
                 assert package_version.index.name == value
                 continue
 
-            assert getattr(package_version, name) == value, \
-                f"Expected value {name} for locked package {package_name} does not match: {value}"
+            assert (
+                getattr(package_version, name) == value
+            ), f"Expected value {name} for locked package {package_name} does not match: {value}"
 
         assert package_version.is_locked() is True
 
@@ -153,79 +128,74 @@ class TestPackageVersion(PythonTestCase):
         [
             (
                 # Package index not used.
-                'igitt',
-                {'git': 'https://gitlab.com/gitmate/open-source/IGitt.git'}
+                "igitt",
+                {"git": "https://gitlab.com/gitmate/open-source/IGitt.git"},
             ),
             (
                 # No hashes present.
-                'tensorflow',
-                {'version': '==1.9.0rc0', 'index': 'redhat-aicoe-experiments', 'hashes': []}
+                "tensorflow",
+                {"version": "==1.9.0rc0", "index": "redhat-aicoe-experiments", "hashes": []},
             ),
             (
                 # Missing version information.
-                'tensorflow',
-                {'index': 'redhat-aicoe-experiments', 'hashes':
-                    [
-                        "sha256:9c2dc36b84f3729361990b4488b7fde1cbe5afb9e3b59456aafc6928684fcd4b"
-                    ]
-                 }
-            )
-        ]
+                "tensorflow",
+                {
+                    "index": "redhat-aicoe-experiments",
+                    "hashes": ["sha256:9c2dc36b84f3729361990b4488b7fde1cbe5afb9e3b59456aafc6928684fcd4b"],
+                },
+            ),
+        ],
     )
     def test_from_pipfile_lock_entry_error(self, package_name, package_info):
+        """Test from pipfile lock entry error."""
         with pytest.raises(PipfileParseError):
-            PackageVersion.from_pipfile_lock_entry(
-                package_name,
-                package_info,
-                develop=False,
-                meta=_META
-            )
+            PackageVersion.from_pipfile_lock_entry(package_name, package_info, develop=False, meta=_META)
 
     def test_parse_semver(self):
+        """Test parse semver."""
         package_version = PackageVersion(
-            name="tensorflow",
-            version="==1.9.0",
-            index="https://pypi.org/simple",
-            develop=False
+            name="tensorflow", version="==1.9.0", index="https://pypi.org/simple", develop=False
         )
         assert package_version.semantic_version.release[0] == 1
         assert package_version.semantic_version.release[1] == 9
         assert package_version.semantic_version.release[2] == 0
 
     def test_parse_semver_leading_zeros(self):
+        """Test parse semver leading zeros."""
         package_version = PackageVersion(
-            name="pyyaml",
-            version="==3.01.2",
-            index="https://pypi.org/simple",
-            develop=False
+            name="pyyaml", version="==3.01.2", index="https://pypi.org/simple", develop=False
         )
         assert package_version.semantic_version.release[0] == 3
         assert package_version.semantic_version.release[1] == 1
         assert package_version.semantic_version.release[2] == 2
 
     def test_sorted(self):
+        """Test sorted."""
         array = []
-        for version in ('==1.0.0', '==0.1.0', '==3.0.0'):
-            array.append(PackageVersion(name='tensorflow', version=version, develop=False))
+        for version in ("==1.0.0", "==0.1.0", "==3.0.0"):
+            array.append(PackageVersion(name="tensorflow", version=version, develop=False))
 
-        assert sorted(pv.locked_version for pv in array) == ['0.1.0', '1.0.0', '3.0.0']
+        assert sorted(pv.locked_version for pv in array) == ["0.1.0", "1.0.0", "3.0.0"]
 
     def test_semver_error(self):
+        """Test semver error."""
         with pytest.raises(InternalError):
-            return PackageVersion(name='tensorflow', version='>1.0.0', develop=False).semantic_version
+            return PackageVersion(name="tensorflow", version=">1.0.0", develop=False).semantic_version
 
     def test_normalize_python_package_name(self):
-        package_version = PackageVersion(name='Cython', version='0.29.13', develop=False)
+        """Test normalize python package name."""
+        package_version = PackageVersion(name="Cython", version="0.29.13", develop=False)
         assert package_version.name == "cython"
 
-        package_version = PackageVersion(name='semantic_version', version='2.6.0', develop=False)
+        package_version = PackageVersion(name="semantic_version", version="2.6.0", develop=False)
         assert package_version.name == "semantic-version"
 
-        package_version = PackageVersion(name='delegator.py', version='0.1.1', develop=False)
+        package_version = PackageVersion(name="delegator.py", version="0.1.1", develop=False)
         assert package_version.name == "delegator-py"
 
     def test_normalize_python_package_version(self):
-        package_version = PackageVersion(name='oauth2client', version='1.0beta2', develop=False)
+        """Test normalize python package version."""
+        package_version = PackageVersion(name="oauth2client", version="1.0beta2", develop=False)
         assert package_version.version == "1.0b2"
 
         package_version = PackageVersion(name="regex", version="2019.02.06", develop=False)
