@@ -43,7 +43,7 @@ class AsyncIterablePackages:
         """Initialize Async Iterable instance for Packages."""
         self.packages = _packages
 
-    async def __aiter__(self):  # Ignore PyDocStyleBear
+    def __aiter__(self):  # Ignore PyDocStyleBear
         """Return asynchronous iterator."""
         return self
 
@@ -73,7 +73,7 @@ class AsyncIterableVersions:
         """Initialize Async Iterable Versions instance for Versions."""
         self.versions = _versions
 
-    async def __aiter__(self):  # Ignore PyDocStyleBear
+    def __aiter__(self):  # Ignore PyDocStyleBear
         """Return asynchronous iterator."""
         return self
 
@@ -103,7 +103,7 @@ class AsyncIterableArtifacts:
         """Initialize Async Iterable instance for Artifacts."""
         self.artifacts = artifacts
 
-    async def __aiter__(self):  # Ignore PyDocStyleBear
+    def __aiter__(self):  # Ignore PyDocStyleBear
         """Return asynchronous iterator."""
         return self
 
