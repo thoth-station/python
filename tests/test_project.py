@@ -194,7 +194,7 @@ class TestProject(PythonTestCase):
             name="tensorflow",
             version="==1.9.0",
             develop=False,
-            index=Source("http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/"),
+            index=Source("http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple"),
         )
 
         project = Project.from_package_versions([package_version])
@@ -208,9 +208,9 @@ class TestProject(PythonTestCase):
         assert len(pipfile_dict["source"]) == 1
         assert pipfile_dict["source"] == [
             {
-                "url": "http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple/tensorflow/",
+                "name": "tensorflow-pypi-thoth-station-ninja-index-fedora28-jemalloc-simple",
                 "verify_ssl": True,
-                "name": "tensorflow-pypi-thoth-station-ninja",
+                "url": "http://tensorflow.pypi.thoth-station.ninja/index/fedora28/jemalloc/simple",
             }
         ]
 

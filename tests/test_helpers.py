@@ -94,11 +94,15 @@ class TestHelpers(PythonTestCase):
         assert len(parsed) == 2
         assert parsed[0] == [
             Source(
-                url="https://pypi.org/simple", name="pypi-org", verify_ssl=True, warehouse=True, warehouse_api_url=None
+                url="https://pypi.org/simple",
+                name="pypi-org-simple",
+                verify_ssl=True,
+                warehouse=True,
+                warehouse_api_url=None,
             ),
             Source(
                 url="https://tensorflow.pypi.thoth-station.ninja/simple",
-                name="tensorflow-pypi-thoth-station-ninja",
+                name="tensorflow-pypi-thoth-station-ninja-simple",
                 verify_ssl=True,
                 warehouse=False,
                 warehouse_api_url=None,
