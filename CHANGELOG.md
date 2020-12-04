@@ -572,3 +572,22 @@
 * :pushpin: Automatic update of dependency attrs from 19.3.0 to 20.2.0 (#309)
 * :pushpin: Automatic update of dependency thoth-common from 0.16.0 to 0.20.0 (#308)
 * :pushpin: Automatic update of dependency pytest-cov from 2.10.0 to 2.10.1 (#306)
+
+## Release 0.11.0 (2020-12-04T21:42:28)
+### Features
+* Fix testsuite for Python 3.8 (#328)
+* Adjust how source name is derived (#325)
+* :arrow_up: Automatic update of dependencies by kebechet. (#324)
+* Add missing GitHub templates
+* bump python version (#322)
+### Bug Fixes
+* Relock to fix typing extension marker issue
+### Improvements
+* make pre-commit happy (#314)
+### Automatic Updates
+* :pushpin: Automatic update of dependency aiohttp from 3.6.2 to 3.7.2 (#321)
+* :pushpin: Automatic update of dependency aiohttp from 3.6.2 to 3.7.2 (#318)
+* :pushpin: Automatic update of dependency pyelftools from 0.26 to 0.27 (#317)
+* :pushpin: Automatic update of dependency lxml from 4.5.2 to 4.6.1 (#316)
+* :pushpin: Automatic update of dependency thoth-common from 0.20.0 to 0.20.2 (#315)
+* :pushpin: Automatic update of dependency pytest from 6.0.2 to 6.1.2 (#319)
