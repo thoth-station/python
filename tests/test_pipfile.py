@@ -32,7 +32,12 @@ from .base import PythonTestCase
 class TestPipfile(PythonTestCase):
     """Test TestPipfile module."""
 
-    @pytest.mark.parametrize("pipfile", ["Pipfile_test1",])
+    @pytest.mark.parametrize(
+        "pipfile",
+        [
+            "Pipfile_test1",
+        ],
+    )
     def test_from_string(self, pipfile: str):
         """Test from string."""
         with open(os.path.join(self.data_dir, "pipfiles", pipfile), "r") as pipfile_file:
@@ -58,6 +63,19 @@ class TestPipfile(PythonTestCase):
             "sentry",
         }
         assert set(package_version.extras) == {"celery", "mongodb", "postgresql", "redis", "s3", "sentry"}
+
+    def test_pipfile_thoth(self) -> None:
+        """Test parsing Pipfile with Thoth specific section."""
+        instance = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_thoth"))
+        assert instance is not None
+        assert instance.thoth.allow_prereleases.get("daiquiri") is True
+        assert instance.to_dict() == {
+            "dev-packages": {},
+            "packages": {"daiquiri": "*"},
+            "requires": {"python_version": "3.7"},
+            "source": [{"name": "pypi", "url": "https://pypi.org/simple", "verify_ssl": True}],
+            "thoth": {"allow_prereleases": {"daiquiri": True}},
+        }
 
     def test_construct_requirements(self):
         """Test construct requirements."""
@@ -88,7 +106,12 @@ pytest
 class TestPipfileLock(PythonTestCase):
     """Test TestPipfileLock module."""
 
-    @pytest.mark.parametrize("pipfile_lock", ["Pipfile_test1.lock",])
+    @pytest.mark.parametrize(
+        "pipfile_lock",
+        [
+            "Pipfile_test1.lock",
+        ],
+    )
     def test_from_string(self, pipfile_lock: str):
         """Test from string."""
         with open(os.path.join(self.data_dir, "pipfiles", pipfile_lock), "r") as pipfile_lock_file:

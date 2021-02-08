@@ -282,7 +282,9 @@ class _PipfileBase:
     def construct_requirements_txt(self) -> str:
         """Construct requirements.txt file."""
         return self._construct_requirements(
-            self.packages.packages.values(), self.dev_packages.packages.values(), self.meta,
+            self.packages.packages.values(),
+            self.dev_packages.packages.values(),
+            self.meta,
         )
 
 
@@ -307,8 +309,7 @@ class ThothPipfileSection:
 
         if not isinstance(allow_prereleases, dict):
             _LOGGER.warning(
-                "allow_prereleases expected to be a dictionary, but got %r instead - ignoring",
-                type(allow_prereleases)
+                "allow_prereleases expected to be a dictionary, but got %r instead - ignoring", type(allow_prereleases)
             )
 
         for k, v in list(allow_prereleases.items()):
@@ -376,7 +377,7 @@ class Pipfile(_PipfileBase):
         _LOGGER.debug("Parsing Pipfile")
         packages = dict_.pop("packages", {})
         dev_packages = dict_.pop("dev-packages", {})
-        thoth_section = dict_.pop("thoth") if "thoth" in dict_ else None
+        thoth_section = ThothPipfileSection.from_dict(dict_.pop("thoth")) if "thoth" in dict_ else None
 
         # Use remaining parts - such as requires, pipenv configuration and other flags.
         meta = PipfileMeta.from_dict(dict_)
@@ -392,6 +393,12 @@ class Pipfile(_PipfileBase):
         _LOGGER.debug("Generating Pipfile")
         result = {"packages": self.packages.to_pipfile(), "dev-packages": self.dev_packages.to_pipfile()}
         result.update(self.meta.to_dict())
+
+        if self.thoth:
+            thoth_section = self.thoth.to_dict()
+            if thoth_section:
+                result["thoth"] = thoth_section
+
         return result
 
     def to_string(self) -> str:
@@ -402,7 +409,9 @@ class Pipfile(_PipfileBase):
     def construct_requirements_in(self) -> str:
         """Construct requirements.in file for the current project."""
         return self._construct_requirements(
-            self.packages.packages.values(), self.dev_packages.packages.values(), self.meta,
+            self.packages.packages.values(),
+            self.dev_packages.packages.values(),
+            self.meta,
         )
 
     def to_file(self) -> None:
