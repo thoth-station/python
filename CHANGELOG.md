@@ -591,3 +591,14 @@
 * :pushpin: Automatic update of dependency lxml from 4.5.2 to 4.6.1 (#316)
 * :pushpin: Automatic update of dependency thoth-common from 0.20.0 to 0.20.2 (#315)
 * :pushpin: Automatic update of dependency pytest from 6.0.2 to 6.1.2 (#319)
+
+## Release 0.12.0 (2021-02-08T13:32:28)
+### Features
+* :arrow_up: Automatic update of dependencies by Kebechet
+* Fix typing
+* Introduce Thoth section in Pipfile
+### Bug Fixes
+* Reformat setup.py to fix pre-commit complains
+### Improvements
+* Add tests related to Thoth section of Pipfile
+* removed bissenbay, thanks for your contributions!
