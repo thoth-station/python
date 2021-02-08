@@ -287,8 +287,48 @@ class _PipfileBase:
 
 
 @attr.s(slots=True)
+class ThothPipfileSection:
+    """Thoth specific section in Pipfile."""
+
+    allow_prereleases = attr.ib(type=Dict[str, bool], default=attr.Factory(dict))
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Get a dict representation of Thoth specific section in Pipfile."""
+        return attr.asdict(self)
+
+    @classmethod
+    def from_dict(cls, dict_: Dict[str, Any]) -> "ThothPipfileSection":
+        """Convert Thoth specific section in Pipfile to a dictionary representation."""
+        dict_ = dict(dict_)
+        allow_prereleases = dict_.pop("allow_prereleases", None)
+
+        if dict_:
+            _LOGGER.warning("Unknown entry in Thoth specific Pipfile section: %r", dict_)
+
+        if not isinstance(allow_prereleases, dict):
+            _LOGGER.warning(
+                "allow_prereleases expected to be a dictionary, but got %r instead - ignoring",
+                type(allow_prereleases)
+            )
+
+        for k, v in list(allow_prereleases.items()):
+            if not isinstance(k, str) or not k:
+                _LOGGER.warning("allow_prereleases expects package names, but got %r - ignoring", k)
+                allow_prereleases.pop(k)
+                continue
+            if not isinstance(v, bool):
+                _LOGGER.warning("allow_prereleases expects a boolean flag for package %r but got %r - ignoring", k, v)
+                allow_prereleases.pop(k)
+                continue
+
+        return cls(allow_prereleases=allow_prereleases)
+
+
+@attr.s(slots=True)
 class Pipfile(_PipfileBase):
     """A Pipfile representation - representation of direct dependencies of an application."""
+
+    thoth = attr.ib(type=ThothPipfileSection, default=None)
 
     @property
     def data(self):
@@ -336,6 +376,7 @@ class Pipfile(_PipfileBase):
         _LOGGER.debug("Parsing Pipfile")
         packages = dict_.pop("packages", {})
         dev_packages = dict_.pop("dev-packages", {})
+        thoth_section = dict_.pop("thoth") if "thoth" in dict_ else None
 
         # Use remaining parts - such as requires, pipenv configuration and other flags.
         meta = PipfileMeta.from_dict(dict_)
@@ -343,6 +384,7 @@ class Pipfile(_PipfileBase):
             packages=Packages.from_pipfile(packages, develop=False, meta=meta),
             dev_packages=Packages.from_pipfile(dev_packages, develop=True, meta=meta),
             meta=meta,
+            thoth=thoth_section,
         )
 
     def to_dict(self) -> dict:
