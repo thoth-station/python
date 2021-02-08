@@ -83,10 +83,12 @@ class TestPackageVersion(PythonTestCase):
         assert package_version.is_locked() is is_locked
 
     @pytest.mark.parametrize(
-        "package_name,package_info", [
+        "package_name,package_info",
+        [
             ("igitt", {"git": "https://gitlab.com/gitmate/open-source/IGitt.git"}),
             ("src", {"editable": True, "path": "."}),
-        ]
+            ("foo", {}),
+        ],
     )
     def test_from_pipfile_entry_error(self, package_name, package_info):
         """Test from pipfile entry error."""
