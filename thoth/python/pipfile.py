@@ -329,7 +329,7 @@ class ThothPipfileSection:
 class Pipfile(_PipfileBase):
     """A Pipfile representation - representation of direct dependencies of an application."""
 
-    thoth = attr.ib(type=ThothPipfileSection, default=None)
+    thoth = attr.ib(type=Optional[ThothPipfileSection], default=None)
 
     @property
     def data(self):
