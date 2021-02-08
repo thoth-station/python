@@ -307,14 +307,24 @@ class PackageVersion:
         else:
             if any(vcs in entry for vcs in ("git", "hg", "bzr", "svn")):
                 raise UnsupportedConfiguration(
-                    f"Package {package_name} uses a version control system instead of package index: {entry}"
+                    f"Package {package_name!r} uses a version control system instead of package index: {entry}"
+                )
+
+            if "editable" in entry:
+                raise UnsupportedConfiguration(
+                    f"Package {package_name!r} is editable local project instead of a package from a package index"
+                )
+
+            if "version" not in entry:
+                raise UnsupportedConfiguration(
+                    f"Package {package_name!r} does not state any version range specifier: {entry}"
                 )
 
             package_version = entry.pop("version")
             index = entry.pop("index", None)
             extras = entry.pop("extras", [])
             markers = entry.pop("markers", None)
-            # TODO: raise an error if VCS is in use - we do not do recommendation on these
+
             if entry:
                 _LOGGER.warning("Unparsed part of Pipfile: %s", entry)
 
