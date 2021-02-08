@@ -35,10 +35,14 @@ class TestProvenanceCheck(PythonTestCase):
         @param pinned_index: true for retrieving Pipfile with pinned index
         """
         pipfile_path = os.path.join(
-            self.data_dir, "pipfiles", "Pipfile_provenance1" if not pinned_index else "Pipfile_provenance2",
+            self.data_dir,
+            "pipfiles",
+            "Pipfile_provenance1" if not pinned_index else "Pipfile_provenance2",
         )
         pipfile_lock_path = os.path.join(
-            self.data_dir, "pipfiles", "Pipfile_provenance1.lock" if not pinned_index else "Pipfile_provenance2.lock",
+            self.data_dir,
+            "pipfiles",
+            "Pipfile_provenance1.lock" if not pinned_index else "Pipfile_provenance2.lock",
         )
         return Project.from_files(pipfile_path, pipfile_lock_path)
 
@@ -47,12 +51,20 @@ class TestProvenanceCheck(PythonTestCase):
         [
             {
                 "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com": [
-                    {"sha256": "5f6cf0a8ddf7eb8aea6f4c514427633698a684423673da8f44f6f0f303cce4a9",},
-                    {"sha256": "74b72dd2a127da25b08dcbfabf6e495065c2a2309e415d0feac5d0e0d60fcb3e",},
+                    {
+                        "sha256": "5f6cf0a8ddf7eb8aea6f4c514427633698a684423673da8f44f6f0f303cce4a9",
+                    },
+                    {
+                        "sha256": "74b72dd2a127da25b08dcbfabf6e495065c2a2309e415d0feac5d0e0d60fcb3e",
+                    },
                 ],
                 "https://pypi.org/simple": [
-                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",},
-                    {"sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",},
+                    {
+                        "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
+                    },
+                    {
+                        "sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",
+                    },
                 ],
             }
         ],
@@ -86,16 +98,28 @@ class TestProvenanceCheck(PythonTestCase):
         [
             {
                 "foo": [
-                    {"sha256": "2222222222222222222222222222222222222222222222222222222222222222",},
-                    {"sha256": "1111111111111111111111111111111111111111111111111111111111111111",},
+                    {
+                        "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+                    },
+                    {
+                        "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+                    },
                 ],
                 "https://pypi.org/simple": [
-                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",},
-                    {"sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",},
+                    {
+                        "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
+                    },
+                    {
+                        "sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",
+                    },
                 ],
                 "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com": [
-                    {"sha256": "5f6cf0a8ddf7eb8aea6f4c514427633698a684423673da8f44f6f0f303cce4a9",},
-                    {"sha256": "74b72dd2a127da25b08dcbfabf6e495065c2a2309e415d0feac5d0e0d60fcb3e",},
+                    {
+                        "sha256": "5f6cf0a8ddf7eb8aea6f4c514427633698a684423673da8f44f6f0f303cce4a9",
+                    },
+                    {
+                        "sha256": "74b72dd2a127da25b08dcbfabf6e495065c2a2309e415d0feac5d0e0d60fcb3e",
+                    },
                 ],
             }
         ],
@@ -129,11 +153,17 @@ class TestProvenanceCheck(PythonTestCase):
         [
             {
                 "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com": [
-                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",},
-                    {"sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",},
+                    {
+                        "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
+                    },
+                    {
+                        "sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",
+                    },
                 ],
                 "https://pypi.org/simple": [
-                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",}
+                    {
+                        "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
+                    }
                 ],
             }
         ],
@@ -167,8 +197,12 @@ class TestProvenanceCheck(PythonTestCase):
         [
             {
                 "https://pypi.org/simple": [
-                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",},
-                    {"sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",},
+                    {
+                        "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
+                    },
+                    {
+                        "sha256": "8e52bf8079a48e2a53f3dfeec9e04addb900c101d1591c85df69cf677d3237e7",
+                    },
                 ]
             }
         ],
@@ -196,8 +230,12 @@ class TestProvenanceCheck(PythonTestCase):
         [
             {
                 "https://pypi.org/simple": [
-                    {"sha256": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",},
-                    {"sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",},
+                    {
+                        "sha256": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+                    },
+                    {
+                        "sha256": "36fdccc5e0637b5baa8892fe2c3d927782df7d504e9020f40eb2c1502518aa5a",
+                    },
                 ]
             }
         ],

@@ -253,7 +253,10 @@ class Source:
         return list(package_info["releases"].keys())
 
     def get_sorted_package_versions(
-        self, package_name: str, graceful: bool = False, reverse: bool = True,  # default to newest first
+        self,
+        package_name: str,
+        graceful: bool = False,
+        reverse: bool = True,  # default to newest first
     ) -> Optional[List[Union[Version, LegacyVersion]]]:
         """Get sorted versions for the given package."""
         try:
@@ -428,7 +431,11 @@ class Source:
 
         return result
 
-    def get_package_release_date(self, package_name: str, package_version: str,) -> datetime:
+    def get_package_release_date(
+        self,
+        package_name: str,
+        package_version: str,
+    ) -> datetime:
         """Get time at which package was uploaded to package index."""
         package_json = self._warehouse_get_api_package_info(package_name)
         release = package_json["releases"].get(package_version)
