@@ -293,16 +293,27 @@ class ThothPipfileSection:
     """Thoth specific section in Pipfile."""
 
     allow_prereleases = attr.ib(type=Dict[str, bool], default=attr.Factory(dict))
+    only_aicoe_tensorflow = attr.ib(type=bool, default=False)
 
     def to_dict(self) -> Dict[str, Any]:
         """Get a dict representation of Thoth specific section in Pipfile."""
-        return attr.asdict(self)
+        result = attr.asdict(self)
+
+        # Keep the configuration minimal, without defaults.
+        if not result["allow_prereleases"]:
+            result.pop("allow_prereleases")
+
+        if not result["only_aicoe_tensorflow"]:
+            result.pop("only_aicoe_tensorflow")
+
+        return result
 
     @classmethod
     def from_dict(cls, dict_: Dict[str, Any]) -> "ThothPipfileSection":
         """Convert Thoth specific section in Pipfile to a dictionary representation."""
         dict_ = dict(dict_)
         allow_prereleases = dict_.pop("allow_prereleases", None)
+        only_aicoe_tensorflow = dict_.pop("only_aicoe_tensorflow", False)
 
         if dict_:
             _LOGGER.warning("Unknown entry in Thoth specific Pipfile section: %r", dict_)
@@ -322,7 +333,7 @@ class ThothPipfileSection:
                 allow_prereleases.pop(k)
                 continue
 
-        return cls(allow_prereleases=allow_prereleases)
+        return cls(allow_prereleases=allow_prereleases, only_aicoe_tensorflow=only_aicoe_tensorflow)
 
 
 @attr.s(slots=True)
