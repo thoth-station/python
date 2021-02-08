@@ -99,5 +99,10 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     ],
     cmdclass={"test": Test},
-    command_options={"build_sphinx": {"version": ("setup.py", VERSION), "release": ("setup.py", VERSION),}},
+    command_options={
+        "build_sphinx": {
+            "version": ("setup.py", VERSION),
+            "release": ("setup.py", VERSION),
+        }
+    },
 )
