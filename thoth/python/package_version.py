@@ -310,6 +310,11 @@ class PackageVersion:
                     f"Package {package_name} uses a version control system instead of package index: {entry}"
                 )
 
+            if "editable" in entry:
+                raise UnsupportedConfiguration(
+                    f"Package {package_name} is editable local project instead of a package from a package index"
+                )
+
             package_version = entry.pop("version")
             index = entry.pop("index", None)
             extras = entry.pop("extras", [])
