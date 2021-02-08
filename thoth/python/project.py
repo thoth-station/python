@@ -106,7 +106,10 @@ class Project:
 
     @classmethod
     def from_dict(
-        cls, pipfile: Dict[str, Any], pipfile_lock: Dict[str, Any], runtime_environment: RuntimeEnvironment = None,
+        cls,
+        pipfile: Dict[str, Any],
+        pipfile_lock: Dict[str, Any],
+        runtime_environment: RuntimeEnvironment = None,
     ) -> "Project":
         """Construct project out of a dict representation."""
         pip = Pipfile.from_dict(pipfile)
