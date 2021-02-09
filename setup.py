@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 
+"""Setup for python module."""
+
 import os
 import sys
 from setuptools import setup
 from pathlib import Path
-from setuptools.command.test import test as TestCommand
+from setuptools.command.test import test as test_command
 
 
 def get_requirements():
+    """Get requirements."""
     with open("requirements.txt") as fd:
         return fd.read().splitlines()
 
 
 def get_version():
+    """Get version."""
     with open(os.path.join("thoth", "python", "__init__.py")) as f:
         content = f.readlines()
 
@@ -24,7 +28,7 @@ def get_version():
     raise ValueError("No package version found")
 
 
-class Test(TestCommand):
+class Test(test_command):
     """Introduce test command to run testsuite using pytest."""
 
     _IMPLICIT_PYTEST_ARGS = [
@@ -42,15 +46,18 @@ class Test(TestCommand):
     user_options = [("pytest-args=", "a", "Arguments to pass into py.test")]
 
     def initialize_options(self):
+        """Initialize options."""
         super().initialize_options()
         self.pytest_args = None
 
     def finalize_options(self):
+        """Finalize options."""
         super().finalize_options()
         self.test_args = []
         self.test_suite = True
 
     def run_tests(self):
+        """Run tests."""
         import pytest
 
         passed_args = list(self._IMPLICIT_PYTEST_ARGS)
@@ -68,9 +75,7 @@ setup(
     name="thoth-python",
     version=VERSION,
     packages=["thoth.python"],
-    package_data={
-        "thoth.python": ["py.typed"]
-    },
+    package_data={"thoth.python": ["py.typed"]},
     install_requires=get_requirements(),
     author="Fridolin Pokorny",
     author_email="fridolin@redhat.com",
@@ -95,5 +100,10 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     ],
     cmdclass={"test": Test},
-    command_options={"build_sphinx": {"version": ("setup.py", VERSION), "release": ("setup.py", VERSION),}},
+    command_options={
+        "build_sphinx": {
+            "version": ("setup.py", VERSION),
+            "release": ("setup.py", VERSION),
+        }
+    },
 )

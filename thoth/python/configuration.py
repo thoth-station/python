@@ -18,7 +18,6 @@
 """Configuration used for computing recommendations."""
 
 import os
-import json
 
 import attr
 

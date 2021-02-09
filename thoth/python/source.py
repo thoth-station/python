@@ -19,10 +19,11 @@
 
 import logging
 import re
-import typing
 from functools import lru_cache
 from urllib.parse import urlparse
 from datetime import datetime
+
+from typing import Optional, List, Union, Generator
 
 import attr
 import requests
@@ -42,11 +43,13 @@ from thoth.common.helpers import parse_datetime
 _LOGGER = logging.getLogger(__name__)
 LEGACY_URLS = {"https://pypi.python.org/simple": "https://pypi.org/simple"}
 
-def normalize_url(url:str) -> str:
+
+def normalize_url(url: str) -> str:
     """We normalize url to remove legacy urls."""
     if url in LEGACY_URLS:
-       return LEGACY_URLS[url]
+        return LEGACY_URLS[url]
     return url
+
 
 @attr.s(frozen=True, slots=True)
 class Source:
@@ -56,7 +59,7 @@ class Source:
     name = attr.ib(type=str)
     verify_ssl = attr.ib(type=bool, default=True)
     warehouse = attr.ib(type=bool)
-    warehouse_api_url = attr.ib(default=None, type=str)
+    warehouse_api_url = attr.ib(default=None, type=Optional[str])
 
     _NORMALIZED_PACKAGE_NAME_RE = re.compile("[a-z-]+")
 
@@ -64,7 +67,8 @@ class Source:
     def default_name(self):
         """Create a name for source based on url if not explicitly provided."""
         parsed_url = urlparse(self.url)
-        return parsed_url.netloc.replace(".", "-")
+        name = parsed_url.netloc + parsed_url.path
+        return re.sub(r"[^A-Za-z0-9]", "-", name)
 
     @warehouse.default
     def warehouse_default(self):
@@ -138,15 +142,13 @@ class Source:
 
     def _warehouse_get_package_hashes(
         self, package_name: str, package_version: str, with_included_files: bool = False
-    ) -> typing.List[dict]:
+    ) -> List[dict]:
         """Gather information about SHA hashes available for the given package-version release."""
         package_info = self._warehouse_get_api_package_version_info(package_name, package_version)
 
         result = []
         for item in package_info["urls"]:
-            result.append(
-                {"name": item["filename"], "sha256": item["digests"]["sha256"]}
-            )
+            result.append({"name": item["filename"], "sha256": item["digests"]["sha256"]})
             # this checks whether to gather digests for all files in the given artifact
             if with_included_files:
                 artifact = Artifact(item["filename"], item["url"], verify_ssl=self.verify_ssl)
@@ -212,7 +214,7 @@ class Source:
         """Parse package version based on artifact name available on the package source index."""
         if artifact_name.endswith(".tar.gz"):
             # +1 for dash delimiting package name and package version.
-            version = artifact_name[len(package_name) + 1:-len(".tar.gz")]
+            version = artifact_name[len(package_name) + 1 : -len(".tar.gz")]
 
         elif artifact_name.endswith(".whl"):
             # TODO: we will need to improve this based on PEP-0503.
@@ -233,11 +235,11 @@ class Source:
 
     def _simple_repository_list_versions(self, package_name: str) -> list:
         """List versions of package available on a simple repository."""
-        result = set()
+        simple_repos = set()
         for artifact_name, _ in self._simple_repository_list_artifacts(package_name):
-            result.add(self._parse_artifact_version(package_name, artifact_name))
+            simple_repos.add(self._parse_artifact_version(package_name, artifact_name))
 
-        result = list(result)
+        result = list(simple_repos)
         _LOGGER.debug("Versions available on %r (index with name %r): %r", self.url, self.name, result)
         return result
 
@@ -251,8 +253,11 @@ class Source:
         return list(package_info["releases"].keys())
 
     def get_sorted_package_versions(
-        self, package_name: str, graceful: bool = False, reverse: bool = True,  # default to newest first
-    ) -> typing.Optional[typing.List[typing.Union[Version, LegacyVersion]]]:
+        self,
+        package_name: str,
+        graceful: bool = False,
+        reverse: bool = True,  # default to newest first
+    ) -> Optional[List[Union[Version, LegacyVersion]]]:
         """Get sorted versions for the given package."""
         try:
             all_versions = self.get_package_versions(package_name)
@@ -279,17 +284,18 @@ class Source:
 
     def get_latest_package_version(
         self, package_name: str, graceful: bool = False
-    ) -> typing.Optional[typing.Union[Version, LegacyVersion]]:
+    ) -> Optional[Union[Version, LegacyVersion]]:
         """Get the latest version for the given package."""
-
         semver_versions = self.get_sorted_package_versions(package_name=package_name, graceful=graceful)
+        if semver_versions is None:  # only None if graceful so don't check
+            return None
         return semver_versions[0]
 
     def _simple_repository_list_artifacts(self, package_name: str) -> list:
         """Parse simple repository package listing (HTML) and return artifacts present there."""
         url = self.url + "/" + package_name
 
-        _LOGGER.debug(f"Discovering package %r artifacts from %r", package_name, url)
+        _LOGGER.debug(f"Discovering package {package_name} artifacts from {url}")
         response = requests.get(url, verify=self.verify_ssl)
         if response.status_code == 404:
             raise NotFound(f"Package {package_name} is not present on index {self.url} (index {self.name})")
@@ -299,12 +305,12 @@ class Source:
         links = soup.find_all("a")
         artifacts = []
         for link in links:
-            artifact_name = str(link["href"]).rsplit("/", maxsplit=1)
-            if len(artifact_name) == 2:
+            artifact_names = str(link["href"]).rsplit("/", maxsplit=1)
+            if len(artifact_names) == 2:
                 # If full URL provided by index.
-                artifact_name = artifact_name[1]
+                artifact_name = artifact_names[1]
             else:
-                artifact_name = artifact_name[0]
+                artifact_name = artifact_names[0]
 
             artifact_parts = artifact_name.rsplit("#", maxsplit=1)
             if len(artifact_parts) == 2:
@@ -347,7 +353,7 @@ class Source:
 
     def _download_artifacts_data(
         self, package_name: str, package_version: str, with_included_files: bool = False
-    ) -> typing.Generator[tuple, None, None]:
+    ) -> Generator[tuple, None, None]:
         """Download the given artifact from Warehouse and compute desired info."""
         possible_continuations = [".win32", ".tar.gz", ".whl", ".zip", ".exe", ".egg", "-"]
         for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
@@ -374,7 +380,10 @@ class Source:
                 hashes = artifact.gather_hashes()
 
             yield (
-                artifact_name, artifact.sha, hashes, symbols,
+                artifact_name,
+                artifact.sha,
+                hashes,
+                symbols,
             )
 
     def provides_package_version(self, package_name: str, package_version: str) -> bool:
@@ -422,7 +431,11 @@ class Source:
 
         return result
 
-    def get_package_release_date(self, package_name: str, package_version: str,) -> datetime:
+    def get_package_release_date(
+        self,
+        package_name: str,
+        package_version: str,
+    ) -> datetime:
         """Get time at which package was uploaded to package index."""
         package_json = self._warehouse_get_api_package_info(package_name)
         release = package_json["releases"].get(package_version)

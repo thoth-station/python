@@ -29,7 +29,24 @@ from .source import Source
 from .aiosource import AIOSource, AsyncIterablePackages, AsyncIterableVersions, AsyncIterableArtifacts
 
 
-__version__ = "0.10.1"
+__version__ = "0.12.0"
 __author__ = "Fridolin Pokorny <fridolin@redhat.com>, Christoph Görn <goern@redhat.com>"
 __copyright__ = "Copyright 2018, 2019 Red Hat, Inc."
 __license__ = "GPLv3+"
+
+
+__all__ = [
+    "DigestsFetcherBase",
+    "PythonDigestsFetcher",
+    "Packages",
+    "PackageVersion",
+    "Pipfile",
+    "PipfileMeta",
+    "PipfileLock",
+    "Project",
+    "Source",
+    "AIOSource",
+    "AsyncIterablePackages",
+    "AsyncIterableVersions",
+    "AsyncIterableArtifacts",
+]
