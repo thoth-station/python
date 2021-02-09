@@ -75,6 +75,7 @@ setup(
     name="thoth-python",
     version=VERSION,
     packages=["thoth.python"],
+    package_data={"thoth.python": ["py.typed"]},
     install_requires=get_requirements(),
     author="Fridolin Pokorny",
     author_email="fridolin@redhat.com",
