@@ -21,6 +21,7 @@
 import pytest
 
 from thoth.python.package_version import PackageVersion
+from thoth.python.package_version import Version
 from thoth.python.pipfile import PipfileMeta
 from thoth.python.exceptions import UnsupportedConfiguration
 from thoth.python.exceptions import PipfileParseError
@@ -44,6 +45,15 @@ _META = PipfileMeta.from_dict(
         ],
     }
 )
+
+
+class TestVersion(PythonTestCase):
+    """Tests related to version handling."""
+
+    def test_is_legacy_version(self):
+        """Test proper handling of legacy versions."""
+        assert Version("foo").is_legacy_version
+        assert not Version("1.0.0rc0").is_legacy_version
 
 
 class TestPackageVersion(PythonTestCase):

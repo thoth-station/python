@@ -22,6 +22,7 @@ import logging
 from copy import copy
 
 import attr
+from packaging.version import LegacyVersion
 from packaging.version import parse as parse_version
 from packaging.utils import canonicalize_name
 
@@ -75,21 +76,33 @@ class Version:
         return str(self._version)
 
     def __lt__(self, other: "Version") -> bool:
+        """Compare two versions."""
         return self._version.__lt__(other._version)
 
     def __le__(self, other: "Version") -> bool:
+        """Compare two versions."""
         return self._version.__le__(other._version)
 
-    def __eq__(self, other: "Version") -> bool:
+    def __eq__(self, other: object) -> bool:
+        """Compare two versions."""
+        if not isinstance(other, Version):
+            raise NotImplementedError
+
         return self._version.__eq__(other._version)
 
     def __ge__(self, other: "Version") -> bool:
+        """Compare two versions."""
         return self._version.__ge__(other._version)
 
     def __gt__(self, other: "Version") -> bool:
+        """Compare two versions."""
         return self._version.__gt__(other._version)
 
-    def __ne__(self, other: "Version") -> bool:
+    def __ne__(self, other: object) -> bool:
+        """Compare two versions."""
+        if not isinstance(other, Version):
+            raise NotImplementedError
+
         return self._version.__ne__(other._version)
 
     @property
@@ -150,18 +163,29 @@ class Version:
         return self._version.is_devrelease
 
     @property
+    def is_legacy_version(self) -> bool:
+        """Check if the given version is a legacy version identifier."""
+        return isinstance(self._version, LegacyVersion)
+
+    @property
     def major(self) -> int:
         """Get version major release."""
+        if isinstance(self._version, LegacyVersion):
+            return 0  # Compatibility handling.
         return self._version.major
 
     @property
     def minor(self) -> int:
         """Get version minor release."""
+        if isinstance(self._version, LegacyVersion):
+            return 0  # Compatibility handling.
         return self._version.minor
 
     @property
     def micro(self) -> int:
         """Get version micro release."""
+        if isinstance(self._version, LegacyVersion):
+            return 0  # Compatibility handling.
         return self._version.micro
 
 
