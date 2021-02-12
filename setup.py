@@ -33,7 +33,7 @@ class Test(test_command):
 
     _IMPLICIT_PYTEST_ARGS = [
         "tests/",
-        "--timeout=10",
+        "--timeout=600",
         "--cov=./thoth",
         "--mypy",
         "--capture=no",

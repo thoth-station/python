@@ -22,9 +22,8 @@ import logging
 from copy import copy
 
 import attr
-from packaging.version import parse as parse_version
-from packaging.version import Version
 from packaging.version import LegacyVersion
+from packaging.version import parse as parse_version
 from packaging.utils import canonicalize_name
 
 
@@ -59,6 +58,137 @@ def _normalize_python_package_version(package_version: Optional[str]) -> Optiona
     return str(parse_version(package_version))
 
 
+class Version:
+    """A simple wrapper around packaging's version to support seamless API for legacy and current version handling."""
+
+    __slots__ = ["_version"]
+
+    def __init__(self, version_identifier: str):
+        """Initialize version."""
+        self._version = parse_version(version_identifier)
+
+    def __repr__(self) -> str:
+        """Get version representation."""
+        return repr(self._version)
+
+    def __str__(self):
+        """Get version string."""
+        return str(self._version)
+
+    def __lt__(self, other: "Version") -> bool:
+        """Compare two versions."""
+        return self._version.__lt__(other._version)
+
+    def __le__(self, other: "Version") -> bool:
+        """Compare two versions."""
+        return self._version.__le__(other._version)
+
+    def __eq__(self, other: object) -> bool:
+        """Compare two versions."""
+        if not isinstance(other, Version):
+            raise NotImplementedError
+
+        return self._version.__eq__(other._version)
+
+    def __ge__(self, other: "Version") -> bool:
+        """Compare two versions."""
+        return self._version.__ge__(other._version)
+
+    def __gt__(self, other: "Version") -> bool:
+        """Compare two versions."""
+        return self._version.__gt__(other._version)
+
+    def __ne__(self, other: object) -> bool:
+        """Compare two versions."""
+        if not isinstance(other, Version):
+            raise NotImplementedError
+
+        return self._version.__ne__(other._version)
+
+    @property
+    def epoch(self) -> int:
+        """Get version epoch."""
+        return self._version.epoch
+
+    @property
+    def release(self) -> Tuple[int, ...]:
+        """Get version release."""
+        # LegacyVersion from packaging can return None here. That is not something we want to have. Return
+        # an empty tuple instead.
+        return self._version.release or tuple()
+
+    @property
+    def pre(self) -> Optional[Tuple[str, int]]:
+        """Get version pre."""
+        return self._version.pre
+
+    @property
+    def post(self) -> Optional[Tuple[str, int]]:
+        """Get version post."""
+        return self._version.post
+
+    @property
+    def dev(self) -> Optional[Tuple[str, int]]:
+        """Get version dev."""
+        return self._version.dev
+
+    @property
+    def local(self) -> Optional[str]:
+        """Get version local."""
+        return self._version.local
+
+    @property
+    def public(self) -> str:
+        """Get version public."""
+        return self._version.public
+
+    @property
+    def base_version(self) -> str:
+        """Get version base."""
+        return self._version.base_version
+
+    @property
+    def is_prerelease(self) -> bool:
+        """Check if version is a pre-release."""
+        return self._version.is_prerelease
+
+    @property
+    def is_postrelease(self) -> bool:
+        """Check if version is a post-release."""
+        return self._version.is_postrelease
+
+    @property
+    def is_devrelease(self) -> bool:
+        """Check if version is a dev-release."""
+        return self._version.is_devrelease
+
+    @property
+    def is_legacy_version(self) -> bool:
+        """Check if the given version is a legacy version identifier."""
+        return isinstance(self._version, LegacyVersion)
+
+    @property
+    def major(self) -> int:
+        """Get version major release."""
+        if isinstance(self._version, LegacyVersion):
+            return 0  # Compatibility handling.
+        return self._version.major
+
+    @property
+    def minor(self) -> int:
+        """Get version minor release."""
+        if isinstance(self._version, LegacyVersion):
+            return 0  # Compatibility handling.
+        return self._version.minor
+
+    @property
+    def micro(self) -> int:
+        """Get version micro release."""
+        if isinstance(self._version, LegacyVersion):
+            return 0  # Compatibility handling.
+        return self._version.micro
+
+
 @attr.s(slots=True)
 class PackageVersion:
     """A package version as described in the Pipfile.lock entry."""
@@ -70,7 +200,7 @@ class PackageVersion:
     hashes = attr.ib(default=attr.Factory(list))
     markers = attr.ib(default=None, type=Optional[str])
     extras = attr.ib(default=attr.Factory(list))
-    _semantic_version = attr.ib(default=None, type=Union[LegacyVersion, Version])
+    _semantic_version = attr.ib(default=None, type=Version)
     _locked_version = attr.ib(default=None, type=Optional[str])
     _package_tuple = attr.ib(default=None, type=Optional[Tuple[str, str, Optional[str]]])
     _package_tuple_locked = attr.ib(default=None, type=Optional[Tuple[str, str, Optional[str]]])
@@ -169,7 +299,7 @@ class PackageVersion:
         return self._locked_version
 
     @property
-    def semantic_version(self) -> Union[Version, LegacyVersion]:
+    def semantic_version(self) -> Version:
         """Get semantic version respecting version specified - package has to be locked to a specific version."""
         if not self._semantic_version:
             if not self.is_locked():
@@ -177,14 +307,14 @@ class PackageVersion:
                     f"Cannot get semantic version for not-locked package {self.name} in version {self.version}"
                 )
 
-            self._semantic_version = self.parse_semantic_version(self.locked_version)
+            self._semantic_version = Version(self.locked_version)
 
         return self._semantic_version
 
     @staticmethod
-    def parse_semantic_version(version_identifier: str) -> Union[Version, LegacyVersion]:
+    def parse_semantic_version(version_identifier: str) -> Version:
         """Parse the given version identifier into a semver representation."""
-        return parse_version(version_identifier)
+        return Version(version_identifier)
 
     @staticmethod
     def _get_index_from_meta(meta: "PipfileMeta", package_name: str, index_name: Optional[str]) -> Optional[Source]:

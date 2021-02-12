@@ -23,7 +23,6 @@ import pytest
 import os
 
 import attr
-from packaging.version import Version
 
 from thoth.common import cwd
 from thoth.python import Project
@@ -31,6 +30,7 @@ from thoth.python import Source
 from thoth.python import Pipfile
 from thoth.python import PipfileLock
 from thoth.python import PackageVersion
+from thoth.python.package_version import Version
 from thoth.python.exceptions import InternalError
 from thoth.python.exceptions import FileLoadError
 
