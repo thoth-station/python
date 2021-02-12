@@ -300,7 +300,7 @@ class Project:
             "runtime_environment": self.runtime_environment.to_dict(),
         }
 
-    def get_configuration_check_report(self) -> Optional[Tuple[dict, List[dict]]]:
+    def get_configuration_check_report(self) -> Optional[Tuple[Optional[dict], List[dict]]]:
         """Get a report on project configuration for the given runtime environment."""
         result = []
         changes_in_config = False
