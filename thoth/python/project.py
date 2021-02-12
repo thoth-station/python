@@ -109,14 +109,20 @@ class Project:
         cls,
         pipfile: Dict[str, Any],
         pipfile_lock: Dict[str, Any],
-        runtime_environment: RuntimeEnvironment = None,
+        runtime_environment: Optional[RuntimeEnvironment] = None,
     ) -> "Project":
         """Construct project out of a dict representation."""
         pip = Pipfile.from_dict(pipfile)
+        if runtime_environment:
+            return cls(
+                pipfile=pip,
+                pipfile_lock=PipfileLock.from_dict(pipfile_lock, pipfile=pip),
+                runtime_environment=runtime_environment,
+            )
+
         return cls(
             pipfile=pip,
             pipfile_lock=PipfileLock.from_dict(pipfile_lock, pipfile=pip),
-            runtime_environment=runtime_environment,
         )
 
     @classmethod
@@ -236,7 +242,10 @@ class Project:
         if package_versions_lock:
             pipfile_lock = PipfileLock.from_package_versions(pipfile=pipfile, packages=package_versions_lock, meta=meta)
 
-        return cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
+        if runtime_environment:
+            return cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
+
+        return cls(pipfile, pipfile_lock)
 
     @classmethod
     def from_package_versions(
