@@ -602,3 +602,14 @@
 ### Improvements
 * Add tests related to Thoth section of Pipfile
 * removed bissenbay, thanks for your contributions!
+
+## Release 0.13.0 (2021-02-15T12:42:31)
+### Features
+* Fix signature and make sure factory for default is called (#346)
+* Fix signature to correctly describe return type (#345)
+* Introduce supported version properties (#343)
+* Register pytest markers
+### Bug Fixes
+* Raise an error if editable installs are used (#341)
+### Improvements
+* pep561 for type checking (#333)
