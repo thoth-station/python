@@ -13,3 +13,6 @@ python_version = "3.7"
 
 [thoth.allow_prereleases]
 daiquiri = true
+
+[thoth]
+disable_index_adjustment = true

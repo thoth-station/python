@@ -293,16 +293,27 @@ class ThothPipfileSection:
     """Thoth specific section in Pipfile."""
 
     allow_prereleases = attr.ib(type=Dict[str, bool], default=attr.Factory(dict))
+    disable_index_adjustment = attr.ib(type=bool, default=False)
 
     def to_dict(self) -> Dict[str, Any]:
         """Get a dict representation of Thoth specific section in Pipfile."""
-        return attr.asdict(self)
+        result = attr.asdict(self)
+
+        # Keep the Thoth section minimal.
+        if not result["allow_prereleases"]:
+            result.pop("allow_prereleases")
+
+        if not result["disable_index_adjustment"]:
+            result.pop("disable_index_adjustment")
+
+        return result
 
     @classmethod
     def from_dict(cls, dict_: Dict[str, Any]) -> "ThothPipfileSection":
         """Convert Thoth specific section in Pipfile to a dictionary representation."""
         dict_ = dict(dict_)
-        allow_prereleases = dict_.pop("allow_prereleases", None)
+        allow_prereleases = dict_.pop("allow_prereleases", {})
+        disable_index_adjustment = dict_.pop("disable_index_adjustment", False)
 
         if dict_:
             _LOGGER.warning("Unknown entry in Thoth specific Pipfile section: %r", dict_)
@@ -310,6 +321,11 @@ class ThothPipfileSection:
         if not isinstance(allow_prereleases, dict):
             _LOGGER.warning(
                 "allow_prereleases expected to be a dictionary, but got %r instead - ignoring", type(allow_prereleases)
+            )
+        if not isinstance(disable_index_adjustment, bool):
+            _LOGGER.warning(
+                "disable_index_adjustment expected to be a boolean, but got %r instead - ignoring",
+                type(disable_index_adjustment),
             )
 
         for k, v in list(allow_prereleases.items()):
@@ -322,14 +338,14 @@ class ThothPipfileSection:
                 allow_prereleases.pop(k)
                 continue
 
-        return cls(allow_prereleases=allow_prereleases)
+        return cls(allow_prereleases=allow_prereleases, disable_index_adjustment=disable_index_adjustment)
 
 
 @attr.s(slots=True)
 class Pipfile(_PipfileBase):
     """A Pipfile representation - representation of direct dependencies of an application."""
 
-    thoth = attr.ib(type=Optional[ThothPipfileSection], default=None)
+    thoth = attr.ib(type=ThothPipfileSection, default=attr.Factory(ThothPipfileSection))
 
     @property
     def data(self):
@@ -377,7 +393,7 @@ class Pipfile(_PipfileBase):
         _LOGGER.debug("Parsing Pipfile")
         packages = dict_.pop("packages", {})
         dev_packages = dict_.pop("dev-packages", {})
-        thoth_section = ThothPipfileSection.from_dict(dict_.pop("thoth")) if "thoth" in dict_ else None
+        thoth_section = ThothPipfileSection.from_dict(dict_.pop("thoth", {}))
 
         # Use remaining parts - such as requires, pipenv configuration and other flags.
         meta = PipfileMeta.from_dict(dict_)
@@ -394,10 +410,9 @@ class Pipfile(_PipfileBase):
         result = {"packages": self.packages.to_pipfile(), "dev-packages": self.dev_packages.to_pipfile()}
         result.update(self.meta.to_dict())
 
-        if self.thoth:
-            thoth_section = self.thoth.to_dict()
-            if thoth_section:
-                result["thoth"] = thoth_section
+        thoth_section = self.thoth.to_dict()
+        if thoth_section:
+            result["thoth"] = thoth_section
 
         return result
 
