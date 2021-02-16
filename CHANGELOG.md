@@ -613,3 +613,7 @@
 * Raise an error if editable installs are used (#341)
 ### Improvements
 * pep561 for type checking (#333)
+
+## Release 0.14.0 (2021-02-16T14:23:54)
+### Features
+* Introduce disable index adjustment in Thoth's section in Pipfile (#349)
