@@ -69,12 +69,13 @@ class TestPipfile(PythonTestCase):
         instance = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_thoth"))
         assert instance is not None
         assert instance.thoth.allow_prereleases.get("daiquiri") is True
+        assert instance.thoth.disable_index_adjustment is True
         assert instance.to_dict() == {
             "dev-packages": {},
             "packages": {"daiquiri": "*"},
             "requires": {"python_version": "3.7"},
             "source": [{"name": "pypi", "url": "https://pypi.org/simple", "verify_ssl": True}],
-            "thoth": {"allow_prereleases": {"daiquiri": True}},
+            "thoth": {"allow_prereleases": {"daiquiri": True}, "disable_index_adjustment": True},
         }
 
     def test_construct_requirements(self):
