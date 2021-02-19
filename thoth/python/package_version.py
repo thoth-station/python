@@ -53,7 +53,7 @@ def _normalize_python_package_name(package_name: str) -> str:
 
 def _normalize_python_package_version(package_version: Optional[str]) -> Optional[str]:
     """Normalize Python package version based on PEP-440."""
-    if package_version is None:
+    if package_version is None or package_version == "*":
         return None
     return str(parse_version(package_version))
 
@@ -416,9 +416,9 @@ class PackageVersion:
 
         if not result:
             # Only version information is available.
-            return {self.name: self.version}
+            return {self.name: self.version if self.version is not None else "*"}
 
-        result["version"] = self.version
+        result["version"] = self.version if self.version is not None else "*"
         return {self.name: result}
 
     @classmethod

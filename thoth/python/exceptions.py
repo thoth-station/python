@@ -41,6 +41,14 @@ class InternalError(ThothPythonException):
     """An exception raised on bugs in the code base."""
 
 
+class PackageVersionAlreadyPresentError(ThothPythonException):
+    """An exception raised when adding a package in specific version that is already present."""
+
+
+class SourceNotFoundError(ThothPythonException):
+    """An exception raise when the given package source is not found."""
+
+
 class VersionIdentifierError(ThothPythonException):
     """An exception raised if the given version identifier is not a semver identifier."""
 

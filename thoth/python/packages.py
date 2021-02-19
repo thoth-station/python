@@ -24,6 +24,7 @@ import attr
 
 from .package_version import PackageVersion
 from .exceptions import InternalError
+from .exceptions import PackageVersionAlreadyPresentError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -118,13 +119,13 @@ class Packages:
         """Get the given package from section."""
         return self.packages[item]
 
-    def add_package_version(self, package_version: PackageVersion):
+    def add_package_version(self, package_version: PackageVersion, *, force: bool = False):
         """Add the given package version to package list."""
         if (package_version.develop and not self.develop) or (not package_version.develop and self.develop):
             raise InternalError(f"Adding package {package_version!r} to package listing without proper develop flag")
 
-        if package_version.name in self.packages:
-            raise InternalError(
+        if package_version.name in self.packages and not force:
+            raise PackageVersionAlreadyPresentError(
                 f"Adding package {package_version!r} to packages, but this package is already present there"
             )
 

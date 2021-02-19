@@ -17,6 +17,7 @@
 
 """Parse string representation of a Pipfile or Pipfile.lock and represent it in an object."""
 
+import os
 import json
 import hashlib
 import logging
@@ -29,9 +30,11 @@ from itertools import chain
 
 import toml
 import attr
+from packaging.requirements import Requirement
 
 from .exceptions import PipfileParseError
 from .exceptions import InternalError
+from .exceptions import SourceNotFoundError
 from .packages import Packages
 from .source import Source
 from .package_version import PackageVersion
@@ -138,6 +141,14 @@ class PipfileMeta:
     def add_source(self, source: Source):
         """Add the given package source."""
         self.sources[source.name] = source
+
+    def get_source_by_url(self, index_url) -> Source:
+        """Get source registered by its index url."""
+        for source in self.sources.values():
+            if source.url == index_url:
+                return source
+        else:
+            raise SourceNotFoundError(f"Package source with url {index_url} not found")
 
 
 @attr.s(slots=True)
@@ -365,9 +376,13 @@ class Pipfile(_PipfileBase):
         )
 
     @classmethod
-    def from_file(cls, file_path: str = None) -> "Pipfile":
+    def from_file(cls, file_path: Optional[str] = None) -> "Pipfile":
         """Parse Pipfile file and return its Pipfile representation."""
+        if file_path and os.path.isdir(file_path):
+            file_path = os.path.join(file_path, "Pipfile")
+
         file_path = file_path or "Pipfile"
+
         _LOGGER.debug("Loading Pipfile from %r", file_path)
         with open(file_path, "r") as pipfile_file:
             return cls.from_string(pipfile_file.read())
@@ -429,18 +444,62 @@ class Pipfile(_PipfileBase):
             self.meta,
         )
 
-    def to_file(self) -> None:
+    def to_file(self, *, path: str = "Pipfile") -> None:
         """Convert the current state of Pipfile to actual Pipfile file stored in CWD."""
-        with open("Pipfile", "w") as pipfile:
+        if os.path.isdir(path):
+            path = os.path.join(path, "Pipfile")
+
+        with open(path, "w") as pipfile:
             pipfile.write(self.to_string())
 
     def hash(self):
-        """Compute hash of Pipifile."""
+        """Compute hash of Pipfile."""
         # TODO: this can be implementation dependent on Pipfile version - we are simply reusing the current version.
         content = json.dumps(self.data, sort_keys=True, separators=(",", ":"))
         hexdigest = hashlib.sha256(content.encode("utf8")).hexdigest()
         _LOGGER.debug("Computed hash for %r: %r", content, hexdigest)
         return {"sha256": hexdigest}
+
+    def add_requirement(
+        self,
+        requirement: str,
+        *,
+        is_dev: bool = False,
+        index_url: Optional[str] = None,
+        force: bool = False,
+    ) -> None:
+        """Parse and add a requirement to direct dependency listing."""
+        parsed_requirement = Requirement(requirement)
+
+        if parsed_requirement.url:
+            raise NotImplementedError("Adding packages specified by URL or by using editables is not supported")
+
+        source = None
+        if index_url is not None:
+            try:
+                source = self.meta.get_source_by_url(index_url)
+            except SourceNotFoundError:
+                if not force:
+                    raise
+
+                source = Source(index_url)
+                self.meta.add_source(source)
+
+        if len(self.meta.sources) == 1:
+            # Do not assign any source (even when provided explictly) if there is only one source to be
+            # compatible with TOML output of Pipenv.
+            source = None
+
+        package_version = PackageVersion(
+            name=parsed_requirement.name,
+            version=str(parsed_requirement.specifier) or None,
+            develop=is_dev,
+            index=source,
+            markers=str(parsed_requirement.marker) if parsed_requirement.marker else None,
+            extras=list(parsed_requirement.extras),
+        )
+        packages = self.packages if not is_dev else self.dev_packages
+        packages.add_package_version(package_version, force=force)
 
 
 @attr.s(slots=True)
@@ -462,9 +521,13 @@ class PipfileLock(_PipfileBase):
         )
 
     @classmethod
-    def from_file(cls, file_path: str = None, pipfile: Pipfile = None) -> "PipfileLock":
+    def from_file(cls, file_path: Optional[str] = None, pipfile: Optional[Pipfile] = None) -> "PipfileLock":
         """Parse Pipfile.lock file and return its PipfileLock representation."""
+        if file_path and os.path.isdir(file_path):
+            file_path = os.path.join(file_path, "Pipfile.lock")
+
         file_path = file_path or "Pipfile.lock"
+
         _LOGGER.debug("Loading Pipfile.lock from %r", file_path)
         with open(file_path, "r") as pipfile_file:
             return cls.from_string(pipfile_file.read(), pipfile)
@@ -497,9 +560,12 @@ class PipfileLock(_PipfileBase):
         _LOGGER.debug("Converting Pipfile.lock to JSON")
         return json.dumps(self.to_dict(pipfile), sort_keys=True, indent=4) + "\n"
 
-    def to_file(self, pipfile: Pipfile = None) -> None:
+    def to_file(self, *, path: str = "Pipfile.lock", pipfile: Optional[Pipfile] = None) -> None:
         """Convert the current state of PipfileLock to actual Pipfile.lock file stored in CWD."""
-        with open("Pipfile.lock", "w") as pipfile_lock:
+        if os.path.isdir(path):
+            path = os.path.join(path, "Pipfile.lock")
+
+        with open(path, "w") as pipfile_lock:
             pipfile_lock.write(self.to_string(pipfile))
 
     def to_dict(self, pipfile: Pipfile = None) -> dict:
