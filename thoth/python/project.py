@@ -137,11 +137,16 @@ class Project:
         )
 
     def to_files(
-        self, pipfile_path: str = None, pipfile_lock_path: str = None, without_pipfile_lock: bool = False
+        self,
+        pipfile_path: str = None,
+        pipfile_lock_path: str = None,
+        *,
+        without_pipfile_lock: bool = False,
+        keep_thoth_section: bool = False,
     ) -> None:
         """Write the current state of project into Pipfile and Pipfile.lock files."""
         with open(pipfile_path or "Pipfile", "w") as pipfile_file:
-            pipfile_file.write(self.pipfile.to_string())
+            pipfile_file.write(self.pipfile.to_string(keep_thoth_section=keep_thoth_section))
 
         if not without_pipfile_lock:
             with open(pipfile_lock_path or "Pipfile.lock", "w") as pipfile_lock_file:

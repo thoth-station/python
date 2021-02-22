@@ -306,15 +306,15 @@ class ThothPipfileSection:
     allow_prereleases = attr.ib(type=Dict[str, bool], default=attr.Factory(dict))
     disable_index_adjustment = attr.ib(type=bool, default=False)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self, keep_defaults: bool = False) -> Dict[str, Any]:
         """Get a dict representation of Thoth specific section in Pipfile."""
         result = attr.asdict(self)
 
         # Keep the Thoth section minimal.
-        if not result["allow_prereleases"]:
+        if not keep_defaults and not result["allow_prereleases"]:
             result.pop("allow_prereleases")
 
-        if not result["disable_index_adjustment"]:
+        if not keep_defaults and not result["disable_index_adjustment"]:
             result.pop("disable_index_adjustment")
 
         return result
@@ -419,22 +419,22 @@ class Pipfile(_PipfileBase):
             thoth=thoth_section,
         )
 
-    def to_dict(self) -> dict:
+    def to_dict(self, keep_thoth_section: bool = False) -> dict:
         """Return Pipfile representation as dict."""
         _LOGGER.debug("Generating Pipfile")
         result = {"packages": self.packages.to_pipfile(), "dev-packages": self.dev_packages.to_pipfile()}
         result.update(self.meta.to_dict())
 
-        thoth_section = self.thoth.to_dict()
+        thoth_section = self.thoth.to_dict(keep_defaults=keep_thoth_section)
         if thoth_section:
             result["thoth"] = thoth_section
 
         return result
 
-    def to_string(self) -> str:
+    def to_string(self, *, keep_thoth_section: bool = False) -> str:
         """Convert representation of Pipfile to actual Pipfile file content."""
         _LOGGER.debug("Converting Pipfile to toml")
-        return toml.dumps(self.to_dict())
+        return toml.dumps(self.to_dict(keep_thoth_section=keep_thoth_section))
 
     def construct_requirements_in(self) -> str:
         """Construct requirements.in file for the current project."""
@@ -444,13 +444,13 @@ class Pipfile(_PipfileBase):
             self.meta,
         )
 
-    def to_file(self, *, path: str = "Pipfile") -> None:
+    def to_file(self, *, path: str = "Pipfile", keep_thoth_section: bool = False) -> None:
         """Convert the current state of Pipfile to actual Pipfile file stored in CWD."""
         if os.path.isdir(path):
             path = os.path.join(path, "Pipfile")
 
         with open(path, "w") as pipfile:
-            pipfile.write(self.to_string())
+            pipfile.write(self.to_string(keep_thoth_section=keep_thoth_section))
 
     def hash(self):
         """Compute hash of Pipfile."""
