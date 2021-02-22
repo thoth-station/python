@@ -68,35 +68,29 @@ class Project:
     @classmethod
     def from_files(
         cls,
-        pipfile_path: str = None,
-        pipfile_lock_path: str = None,
+        pipfile_path: Optional[str] = None,
+        pipfile_lock_path: Optional[str] = None,
         *,
-        runtime_environment: RuntimeEnvironment = None,
+        runtime_environment: Optional[RuntimeEnvironment] = None,
         without_pipfile_lock: bool = False,
     ):
         """Create project from Pipfile and Pipfile.lock files."""
         try:
-            with open(pipfile_path or "Pipfile", "r") as pipfile_file:
-                pipfile_str = pipfile_file.read()
+            pipfile = Pipfile.from_file(pipfile_path)
         except Exception as exc:
             raise FileLoadError(
                 f"Failed to load Pipfile (path: {os.getcwd() if not pipfile_path else pipfile_path}: {str(exc)}"
             ) from exc
 
-        pipfile = Pipfile.from_string(pipfile_str)
-
         pipfile_lock = None
         if not without_pipfile_lock:
             try:
-                with open(pipfile_lock_path or "Pipfile.lock", "r") as pipfile_lock_file:
-                    pipfile_lock_str = pipfile_lock_file.read()
+                pipfile_lock = PipfileLock.from_file(pipfile_lock_path, pipfile=pipfile)
             except Exception as exc:
                 raise FileLoadError(
                     f"Failed to load Pipfile.lock "
                     f"(path: {os.getcwd() if not pipfile_lock_path else pipfile_lock_path}: {str(exc)}"
                 ) from exc
-
-            pipfile_lock = PipfileLock.from_string(pipfile_lock_str, pipfile=pipfile)
 
         return cls(
             pipfile,

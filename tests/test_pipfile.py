@@ -25,6 +25,8 @@ import toml
 
 from thoth.python import Pipfile
 from thoth.python import PipfileLock
+from thoth.python.exceptions import SourceNotFoundError
+from thoth.python.exceptions import PackageVersionAlreadyPresentError
 
 from .base import PythonTestCase
 
@@ -102,6 +104,78 @@ pytest
 """
         assert pipfile.construct_requirements_in() == expected
         assert pipfile.construct_requirements_txt() == expected
+
+    @pytest.mark.parametrize("is_dev", [True, False])
+    def test_add_requirement(self, is_dev: bool) -> None:
+        """Test adding requirement to requirements section."""
+        pipfile = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_requirements"))
+
+        assert pipfile.packages.get("thamos") is None
+
+        pipfile.add_requirement("Thamos[thoth,aicoe]==1.12.0; python_version > '3.5'", is_dev=is_dev)
+
+        if not is_dev:
+            added_package_version = pipfile.packages.get("thamos")
+        else:
+            added_package_version = pipfile.dev_packages.get("thamos")
+
+        assert added_package_version.develop is is_dev
+        assert added_package_version.index is None
+        assert added_package_version.hashes == []
+        assert added_package_version.name == "thamos"
+        assert added_package_version.version == "==1.12.0"
+        assert added_package_version.markers == 'python_version > "3.5"'
+        assert set(added_package_version.extras) == {"thoth", "aicoe"}
+
+    def test_add_requirement_no_version_specifier(self) -> None:
+        """Test adding requirement to requirements section without any version specifier."""
+        pipfile = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_requirements"))
+
+        assert pipfile.packages.get("thamos") is None
+
+        pipfile.add_requirement("thamos")
+        added_package_version = pipfile.packages.get("thamos")
+        assert added_package_version.version is None
+
+    def test_add_requirement_unknown_index(self) -> None:
+        """Test adding requirement with unknown index raises an exception."""
+        pipfile = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_requirements"))
+
+        assert pipfile.packages.get("thamos") is None
+
+        with pytest.raises(SourceNotFoundError):
+            pipfile.add_requirement("thamos", index_url="some-unknown-index")
+
+    def test_add_requirement_already_present(self) -> None:
+        """Test adding an already existing requirement raises an exception."""
+        pipfile = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_requirements"))
+
+        assert pipfile.packages.get("tensorflow") is not None
+
+        with pytest.raises(PackageVersionAlreadyPresentError):
+            pipfile.add_requirement("tensorflow")
+
+    def test_add_requirement_already_present_force(self) -> None:
+        """Test force adding an already existing requirement raises an exception."""
+        pipfile = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_requirements"))
+
+        existing_tf = pipfile.packages.get("tensorflow")
+        assert existing_tf is not None
+        assert existing_tf.version is not None
+
+        pipfile.add_requirement("tensorflow", force=True)
+
+        added_tf = pipfile.packages.get("tensorflow")
+        assert added_tf != existing_tf
+        assert added_tf.version is None
+
+    def test_add_requirement_url(self) -> None:
+        """Test force adding an already existing requirement raises an exception."""
+        pipfile = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_requirements"))
+
+        assert pipfile.packages.get("thamos") is None
+        with pytest.raises(NotImplementedError):
+            pipfile.add_requirement("thoth-python @ https://github.com/thoth-station/python", force=True)
 
 
 class TestPipfileLock(PythonTestCase):
