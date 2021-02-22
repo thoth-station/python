@@ -617,3 +617,8 @@
 ## Release 0.14.0 (2021-02-16T14:23:54)
 ### Features
 * Introduce disable index adjustment in Thoth's section in Pipfile (#349)
+
+## Release 0.15.0 (2021-02-22T13:35:51)
+### Features
+* Optionally keep thoth specific configuration in Pipfile
+* Add routines to support adding packages to Pipfile
