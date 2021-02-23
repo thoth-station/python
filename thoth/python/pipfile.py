@@ -326,7 +326,7 @@ class ThothPipfileSection:
     def from_dict(cls, dict_: Dict[str, Any]) -> "ThothPipfileSection":
         """Convert Thoth specific section in Pipfile to a dictionary representation."""
         dict_ = dict(dict_)
-        allow_prereleases = dict_.pop("allow_prereleases") or {}
+        allow_prereleases = dict_.pop("allow_prereleases", None) or {}
         disable_index_adjustment = dict_.pop("disable_index_adjustment", False)
 
         if dict_:
