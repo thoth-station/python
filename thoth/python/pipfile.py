@@ -311,7 +311,9 @@ class ThothPipfileSection:
         result = attr.asdict(self)
 
         # Keep the Thoth section minimal.
-        if not keep_defaults and not result["allow_prereleases"]:
+        if not result["allow_prereleases"]:
+            # We always pop allow_prereleases as an empty dict serialized and deserialized back
+            # does not result in a dict in TOML.
             result.pop("allow_prereleases")
 
         if not keep_defaults and not result["disable_index_adjustment"]:
