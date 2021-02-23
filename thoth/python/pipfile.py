@@ -323,7 +323,7 @@ class ThothPipfileSection:
     def from_dict(cls, dict_: Dict[str, Any]) -> "ThothPipfileSection":
         """Convert Thoth specific section in Pipfile to a dictionary representation."""
         dict_ = dict(dict_)
-        allow_prereleases = dict_.pop("allow_prereleases", {})
+        allow_prereleases = dict_.pop("allow_prereleases") or {}
         disable_index_adjustment = dict_.pop("disable_index_adjustment", False)
 
         if dict_:
@@ -333,11 +333,13 @@ class ThothPipfileSection:
             _LOGGER.warning(
                 "allow_prereleases expected to be a dictionary, but got %r instead - ignoring", type(allow_prereleases)
             )
+            allow_prereleases = {}
         if not isinstance(disable_index_adjustment, bool):
             _LOGGER.warning(
                 "disable_index_adjustment expected to be a boolean, but got %r instead - ignoring",
                 type(disable_index_adjustment),
             )
+            disable_index_adjustment = False
 
         for k, v in list(allow_prereleases.items()):
             if not isinstance(k, str) or not k:
