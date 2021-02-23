@@ -622,3 +622,13 @@
 ### Features
 * Optionally keep thoth specific configuration in Pipfile
 * Add routines to support adding packages to Pipfile
+
+## Release 0.15.1 (2021-02-23T08:21:20)
+### Features
+* Do not serialize empty dict in TOML in Pipfile
+### Bug Fixes
+* Do not serialize allow_prereleases if not configured so
+### Improvements
+* Fix serialization and loading of requirements files
+### Other
+* Override entries in Thoth section if they do not meet type expected
