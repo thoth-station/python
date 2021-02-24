@@ -632,3 +632,8 @@
 * Fix serialization and loading of requirements files
 ### Other
 * Override entries in Thoth section if they do not meet type expected
+
+## Release 0.15.2 (2021-02-24T13:02:32)
+### Features
+* :arrow_up: Automatic update of dependencies by Kebechet
+* pre-releases do not need to be always stated in Pipfile
