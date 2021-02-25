@@ -29,7 +29,7 @@ from .source import Source
 from .aiosource import AIOSource, AsyncIterablePackages, AsyncIterableVersions, AsyncIterableArtifacts
 
 
-__version__ = "0.15.2"
+__version__ = "0.15.3"
 __author__ = "Fridolin Pokorny <fridolin@redhat.com>, Christoph Görn <goern@redhat.com>"
 __copyright__ = "Copyright 2018, 2019 Red Hat, Inc."
 __license__ = "GPLv3+"

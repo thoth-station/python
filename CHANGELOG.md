@@ -637,3 +637,7 @@
 ### Features
 * :arrow_up: Automatic update of dependencies by Kebechet
 * pre-releases do not need to be always stated in Pipfile
+
+## Release 0.15.3 (2021-02-25T13:12:54)
+### Features
+* Copy dict before performing pop
