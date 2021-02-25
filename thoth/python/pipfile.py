@@ -411,6 +411,7 @@ class Pipfile(_PipfileBase):
     def from_dict(cls, dict_) -> "Pipfile":
         """Retrieve instance of Pipfile from its dictionary representation."""
         _LOGGER.debug("Parsing Pipfile")
+        dict_ = dict(dict_)
         packages = dict_.pop("packages", {})
         dev_packages = dict_.pop("dev-packages", {})
         thoth_section = ThothPipfileSection.from_dict(dict_.pop("thoth", {}))
