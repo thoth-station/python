@@ -203,6 +203,8 @@ class Project:
                 sources, package_versions = parse_requirements(requirements_path)
                 if requirements_lock_path is not None:
                     sources_lock, package_versions_lock = parse_requirements(requirements_lock_path)
+                elif os.path.exists("requirements.txt"):
+                    sources_lock, package_versions_lock = parse_requirements("requirements.txt")
         else:
             requirements_lock_path = requirements_lock_path or "requirements.txt"
             sources, package_versions = parse_requirements(requirements_path)

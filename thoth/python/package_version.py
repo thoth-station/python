@@ -54,7 +54,7 @@ def _normalize_python_package_name(package_name: str) -> str:
 def _normalize_python_package_version(package_version: Optional[str]) -> Optional[str]:
     """Normalize Python package version based on PEP-440."""
     if package_version is None or package_version == "*":
-        return None
+        return "*"
     return str(parse_version(package_version))
 
 
@@ -194,7 +194,7 @@ class PackageVersion:
     """A package version as described in the Pipfile.lock entry."""
 
     name = attr.ib(type=str, converter=_normalize_python_package_name)
-    version = attr.ib(type=Optional[str], converter=_normalize_python_package_version)
+    version = attr.ib(type=str, converter=_normalize_python_package_version)
     develop = attr.ib(type=bool)
     index = attr.ib(default=None, type=Optional[Source])
     hashes = attr.ib(default=attr.Factory(list))
