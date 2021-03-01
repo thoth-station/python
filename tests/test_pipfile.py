@@ -135,7 +135,7 @@ pytest
 
         pipfile.add_requirement("thamos")
         added_package_version = pipfile.packages.get("thamos")
-        assert added_package_version.version is None
+        assert added_package_version.version == "*"
 
     def test_add_requirement_unknown_index(self) -> None:
         """Test adding requirement with unknown index raises an exception."""
@@ -161,13 +161,13 @@ pytest
 
         existing_tf = pipfile.packages.get("tensorflow")
         assert existing_tf is not None
-        assert existing_tf.version is not None
+        assert existing_tf.version != "*"
 
         pipfile.add_requirement("tensorflow", force=True)
 
         added_tf = pipfile.packages.get("tensorflow")
         assert added_tf != existing_tf
-        assert added_tf.version is None
+        assert added_tf.version == "*"
 
     def test_add_requirement_url(self) -> None:
         """Test force adding an already existing requirement raises an exception."""
