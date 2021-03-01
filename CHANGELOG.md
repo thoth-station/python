@@ -641,3 +641,13 @@
 ## Release 0.15.3 (2021-02-25T13:12:54)
 ### Features
 * Copy dict before performing pop
+
+## Release 0.15.4 (2021-03-01T21:23:12)
+### Features
+* :arrow_up: Automatic update of dependencies by Kebechet (#365)
+* Version identifier should be always non-None value
+### Bug Fixes
+* Fix loading Pipfile files when requirements are used
+### Improvements
+* Revert "Fix serialization and loading of requirements files"
+* Adjust test checking for any version
