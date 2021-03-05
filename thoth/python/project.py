@@ -300,10 +300,10 @@ class Project:
             return None
         return self.pipfile.meta.requires.get("python_version", None)
 
-    def to_dict(self):
+    def to_dict(self, *, keep_thoth_section: bool = False):
         """Create a dictionary representation of this project."""
         return {
-            "requirements": self.pipfile.to_dict(),
+            "requirements": self.pipfile.to_dict(keep_thoth_section=keep_thoth_section),
             "requirements_locked": self.pipfile_lock.to_dict() if self.pipfile_lock else None,
             "runtime_environment": self.runtime_environment.to_dict(),
         }
