@@ -651,3 +651,11 @@
 ### Improvements
 * Revert "Fix serialization and loading of requirements files"
 * Adjust test checking for any version
+
+## Release 0.15.5 (2021-03-05T12:36:36)
+### Features
+* Make pre-commit happy
+* Optionally keep Thoth section when generating project
+* Update OWNERS
+* :sparkles: let's run pre-commit
+* Add missing Kebechet templates
