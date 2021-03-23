@@ -188,7 +188,7 @@ class _PipfileBase:
         requirements_file = self.meta.to_requirements_index_conf()
 
         for package_version in self.packages.packages.values() if not develop else self.dev_packages.packages.values():
-            if package_version.version and package_version != "*":
+            if package_version.version and package_version.version != "*":
                 requirements_file += f"{package_version.name}{package_version.version}\n"
             else:
                 requirements_file += f"{package_version.name}\n"
