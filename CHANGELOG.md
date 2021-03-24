@@ -659,3 +659,11 @@
 * Update OWNERS
 * :sparkles: let's run pre-commit
 * Add missing Kebechet templates
+
+## Release 0.15.6 (2021-03-24T09:29:14)
+### Features
+* Fix serialization of packages without version specifier (#386)
+* :arrow_up: Automatic update of dependencies by Kebechet (#385)
+* :arrow_up: Automatic update of dependencies by Kebechet (#383)
+* :arrow_up: Automatic update of dependencies by Kebechet (#380)
+* add prow check with specific args (#378)
