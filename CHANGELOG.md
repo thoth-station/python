@@ -667,3 +667,8 @@
 * :arrow_up: Automatic update of dependencies by Kebechet (#383)
 * :arrow_up: Automatic update of dependencies by Kebechet (#380)
 * add prow check with specific args (#378)
+
+## Release 0.16.0 (2021-04-26T20:05:49)
+### Features
+* :arrow_up: Automatic update of dependencies by Kebechet (#390)
+* Add support for constraints (#389)
