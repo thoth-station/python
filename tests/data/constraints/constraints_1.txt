@@ -1,0 +1,3 @@
+# This constraint file should error out as multiple entries for flask are present.
+flask>=1.0
+flask<2.0

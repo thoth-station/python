@@ -49,6 +49,10 @@ class SourceNotFoundError(ThothPythonException):
     """An exception raise when the given package source is not found."""
 
 
+class ConstraintsError(ThothPythonException):
+    """An exception raised when an issue with constraints found."""
+
+
 class VersionIdentifierError(ThothPythonException):
     """An exception raised if the given version identifier is not a semver identifier."""
 
