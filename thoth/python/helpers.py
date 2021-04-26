@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # thoth-python
-# Copyright(C) 2018, 2019, 2020 Fridolin Pokorny
+# Copyright(C) 2018-2021 Fridolin Pokorny
 #
 # This program is free software: you can redistribute it and / or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,11 +18,12 @@
 
 """Helper functions and utilities."""
 
-from typing import Tuple
-from typing import List
-from typing import Dict
-from typing import Set
 from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Set
+from typing import Tuple
 from typing import TYPE_CHECKING
 from itertools import chain
 import logging
@@ -144,17 +145,24 @@ def parse_requirement_str(requirement_str: str) -> Dict[str, Any]:
 
 def parse_requirements(file_path: str) -> Tuple[List[Source], List[PackageVersion]]:
     """Parse requirements.{txt,in} file."""
-    sources = []
-    package_versions = []
-
     try:
         with open(file_path, "r") as input_file:
             content = input_file.read()
     except Exception as exc:
         raise FileLoadError(f"Failed to load requirements file at {file_path!r}: {str(exc)}") from exc
 
+    return parse_requirements_str(content)
+
+
+def parse_requirements_str(
+    requirements: str, _file_path: Optional[str] = None
+) -> Tuple[List[Source], List[PackageVersion]]:
+    """Parse content of requirements.{txt,in} file."""
+    sources = []
+    package_versions = []
+
     # Remove escaped new lines.
-    content = content.replace("\\\n", "")
+    content = requirements.replace("\\\n", "")
     for line in content.splitlines():
         line = line.lstrip()
         if line.startswith("#"):
@@ -169,7 +177,11 @@ def parse_requirements(file_path: str) -> Tuple[List[Source], List[PackageVersio
             continue
 
         if line.startswith("-"):
-            _LOGGER.warning("Ignoring line in %r: %s", file_path, line)
+            if _file_path:
+                _LOGGER.warning("Ignoring line in %r: %s", _file_path, line)
+            else:
+                _LOGGER.warning("Ignoring line: %s", line)
+
             continue
 
         parts = line.split("--hash=")

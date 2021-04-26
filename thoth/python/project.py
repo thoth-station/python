@@ -30,18 +30,19 @@ from thoth.common import RuntimeEnvironment
 from thoth.analyzer import run_command
 from thoth.analyzer import CommandError
 
+from .constraints import Constraints
 from .digests_fetcher import DigestsFetcherBase
 from .digests_fetcher import PythonDigestsFetcher
+from .exceptions import FileLoadError
+from .exceptions import InternalError
+from .exceptions import NotFound
+from .exceptions import UnableLock
+from .helpers import parse_requirements
+from .package_version import PackageVersion
 from .pipfile import Pipfile
 from .pipfile import PipfileLock
 from .pipfile import PipfileMeta
 from .source import Source
-from .package_version import PackageVersion
-from .exceptions import UnableLock
-from .exceptions import InternalError
-from .exceptions import NotFound
-from .exceptions import FileLoadError
-from .helpers import parse_requirements
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -53,6 +54,7 @@ class Project:
     pipfile = attr.ib(type=Pipfile)
     pipfile_lock = attr.ib(type=Optional[PipfileLock])
     runtime_environment = attr.ib(type=RuntimeEnvironment, default=attr.Factory(RuntimeEnvironment.from_dict))
+    constraints = attr.ib(type=Constraints, default=attr.Factory(Constraints))
     _graph_db = attr.ib(default=None)
     _workdir = attr.ib(default=None)
 
@@ -68,9 +70,10 @@ class Project:
     @classmethod
     def from_files(
         cls,
-        pipfile_path: Optional[str] = None,
+        pipfile_path: str,
         pipfile_lock_path: Optional[str] = None,
         *,
+        constraints: Optional[Constraints] = None,
         runtime_environment: Optional[RuntimeEnvironment] = None,
         without_pipfile_lock: bool = False,
     ):
@@ -95,7 +98,8 @@ class Project:
         return cls(
             pipfile,
             pipfile_lock,
-            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({}),
+            runtime_environment=runtime_environment or RuntimeEnvironment.from_dict({}),
+            constraints=constraints or Constraints(),
         )
 
     @classmethod
@@ -104,24 +108,31 @@ class Project:
         pipfile: Dict[str, Any],
         pipfile_lock: Dict[str, Any],
         runtime_environment: Optional[RuntimeEnvironment] = None,
+        constraints: Optional[Constraints] = None,
     ) -> "Project":
         """Construct project out of a dict representation."""
-        pip = Pipfile.from_dict(pipfile)
+        kwargs: Dict[str, Any] = {}
+        if constraints:
+            kwargs["constraints"] = constraints
         if runtime_environment:
-            return cls(
-                pipfile=pip,
-                pipfile_lock=PipfileLock.from_dict(pipfile_lock, pipfile=pip),
-                runtime_environment=runtime_environment,
-            )
+            kwargs["runtime_environment"] = runtime_environment
+
+        pip = Pipfile.from_dict(pipfile)
 
         return cls(
-            pipfile=pip,
+            pipfile=Pipfile.from_dict(pipfile),
             pipfile_lock=PipfileLock.from_dict(pipfile_lock, pipfile=pip),
+            **kwargs,
         )
 
     @classmethod
     def from_strings(
-        cls, pipfile_str: str, pipfile_lock_str: str = None, *, runtime_environment: RuntimeEnvironment = None
+        cls,
+        pipfile_str: str,
+        pipfile_lock_str: str = None,
+        *,
+        runtime_environment: Optional[RuntimeEnvironment] = None,
+        constraints: Optional[Constraints] = None,
     ):
         """Create project from Pipfile and Pipfile.lock loaded into strings."""
         pipfile = Pipfile.from_string(pipfile_str)
@@ -133,7 +144,8 @@ class Project:
         return cls(
             pipfile,
             pipfile_lock,
-            runtime_environment=runtime_environment if runtime_environment else RuntimeEnvironment.from_dict({}),
+            runtime_environment=runtime_environment or RuntimeEnvironment.from_dict({}),
+            constraints=constraints or Constraints(),
         )
 
     def to_files(
@@ -192,8 +204,10 @@ class Project:
         requirements_lock_path: Optional[str] = None,
         allow_without_lock: bool = False,
         runtime_environment: Optional[RuntimeEnvironment] = None,
+        constraints: Optional[Constraints] = None,
     ) -> "Project":
         """Parse project from files compatible with pip/pip-tools."""
+        constraints = constraints or Constraints()
         sources_lock, package_versions_lock = None, None
         if allow_without_lock:
             if not os.path.exists(requirements_path):
@@ -242,34 +256,36 @@ class Project:
             pipfile_lock = PipfileLock.from_package_versions(pipfile=pipfile, packages=package_versions_lock, meta=meta)
 
         if runtime_environment:
-            return cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
+            return cls(pipfile, pipfile_lock, runtime_environment=runtime_environment, constraints=constraints)
 
-        return cls(pipfile, pipfile_lock)
+        return cls(pipfile, pipfile_lock, constraints=constraints)
 
     @classmethod
     def from_package_versions(
         cls,
         packages: List[PackageVersion],
         packages_locked: List[PackageVersion] = None,
-        meta: PipfileMeta = None,
+        meta: Optional[PipfileMeta] = None,
         *,
-        runtime_environment: RuntimeEnvironment = None,
+        runtime_environment: Optional[RuntimeEnvironment] = None,
+        constraints: Optional[Constraints] = None,
     ):
         """Create project from PackageVersion objects.
 
         If locked packages are omitted, the lock has to be explicitly performed to generate
         in-memory Pipfile.lock representation.
         """
+        constraints = constraints or Constraints()
         pipfile = Pipfile.from_package_versions(packages, meta=meta)
         pipfile_lock = None
         if packages_locked:
             pipfile_lock = PipfileLock.from_package_versions(pipfile, packages_locked, meta=pipfile.meta)
 
         if runtime_environment:
-            instance = cls(pipfile, pipfile_lock, runtime_environment=runtime_environment)
+            instance = cls(pipfile, pipfile_lock, runtime_environment=runtime_environment, constraints=constraints)
         else:
             # Let default be expanded.
-            instance = cls(pipfile, pipfile_lock)
+            instance = cls(pipfile, pipfile_lock, constraints=constraints)
 
         instance.sanitize_source_indexes()
         return instance
@@ -306,6 +322,7 @@ class Project:
             "requirements": self.pipfile.to_dict(keep_thoth_section=keep_thoth_section),
             "requirements_locked": self.pipfile_lock.to_dict() if self.pipfile_lock else None,
             "runtime_environment": self.runtime_environment.to_dict(),
+            "constraints": self.constraints.to_dict(),
         }
 
     def get_configuration_check_report(self) -> Optional[Tuple[Optional[dict], List[dict]]]:
