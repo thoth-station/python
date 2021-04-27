@@ -672,3 +672,7 @@
 ### Features
 * :arrow_up: Automatic update of dependencies by Kebechet (#390)
 * Add support for constraints (#389)
+
+## Release 0.16.1 (2021-04-27T10:16:07)
+### Features
+* Instantiate Pipfile instance just once (#393)
