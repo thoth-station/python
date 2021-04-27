@@ -120,7 +120,7 @@ class Project:
         pip = Pipfile.from_dict(pipfile)
 
         return cls(
-            pipfile=Pipfile.from_dict(pipfile),
+            pipfile=pip,
             pipfile_lock=PipfileLock.from_dict(pipfile_lock, pipfile=pip),
             **kwargs,
         )
