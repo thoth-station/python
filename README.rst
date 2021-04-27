@@ -7,6 +7,7 @@ library:
 
 * manipulating with project (see ``Project`` abstraction)
 * operations on top of requirements.txt files and/or ``Pipfile`` and ``Pipfile.lock`` files
+* operations on top of ``constraints.txt`` files
 * operations for operating with Python package source indexes (`PEP-0503 <https://www.python.org/dev/peps/pep-0503/>`_ compatible simple repository API)
 * operations for Python packages (default and the development ones) and their in memory hierarchical structures
 
