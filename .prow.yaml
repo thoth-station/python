@@ -13,8 +13,11 @@ presubmits:
             - "--all-files"
           resources:
             requests:
-              memory: "2Gi"
-              cpu: "2"
+              memory: "500Mi"
+              cpu: "300m"
+            limits:
+              memory: "500Mi"
+              cpu: "300m"
   - name: thoth-mypy-py38
     decorate: true
     skip_report: false
@@ -29,5 +32,8 @@ presubmits:
             - "--ignore-missing-imports"
           resources:
             requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
               memory: "2Gi"
-              cpu: "2"
+              cpu: "1"
