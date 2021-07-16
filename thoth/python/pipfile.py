@@ -539,7 +539,7 @@ class PipfileLock(_PipfileBase):
             return cls.from_string(pipfile_file.read(), pipfile)
 
     @classmethod
-    def from_string(cls, pipfile_content: str, pipfile: Optional[Pipfile]) -> "PipfileLock":  # type: ignore
+    def from_string(cls, pipfile_content: str, pipfile: Optional[Pipfile] = None) -> "PipfileLock":  # type: ignore
         """Parse Pipfile.lock from its string content."""
         _LOGGER.debug("Parsing Pipfile.lock JSON representation from string")
         try:
@@ -550,7 +550,7 @@ class PipfileLock(_PipfileBase):
         return cls.from_dict(parsed, pipfile)
 
     @classmethod
-    def from_dict(cls, dict_: dict, pipfile: Optional[Pipfile]) -> "PipfileLock":
+    def from_dict(cls, dict_: dict, pipfile: Optional[Pipfile] = None) -> "PipfileLock":
         """Construct PipfileLock class from a parsed JSON representation as stated in actual Pipfile.lock."""
         _LOGGER.debug("Parsing Pipfile.lock")
         meta = PipfileMeta.from_dict(dict_["_meta"])
@@ -561,7 +561,7 @@ class PipfileLock(_PipfileBase):
             pipfile=pipfile,
         )
 
-    def to_string(self, pipfile: Pipfile = None) -> str:
+    def to_string(self, pipfile: Optional[Pipfile] = None) -> str:
         """Convert the current state of PipfileLock to its Pipfile.lock file representation."""
         _LOGGER.debug("Converting Pipfile.lock to JSON")
         return json.dumps(self.to_dict(pipfile), sort_keys=True, indent=4) + "\n"
