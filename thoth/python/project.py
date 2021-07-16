@@ -35,8 +35,8 @@ from .digests_fetcher import DigestsFetcherBase
 from .digests_fetcher import PythonDigestsFetcher
 from .exceptions import FileLoadError
 from .exceptions import InternalError
-from .exceptions import NotFound
-from .exceptions import UnableLock
+from .exceptions import NotFoundError
+from .exceptions import UnableLockError
 from .helpers import parse_requirements
 from .package_version import PackageVersion
 from .pipfile import Pipfile
@@ -389,14 +389,14 @@ class Project:
                     try:
                         latest = index.get_latest_package_version(package_version.name)
                         found = True
-                    except NotFound:
+                    except NotFoundError:
                         continue
 
                     if package_version.semantic_version != latest:
                         result[package_version.name] = (package_version, latest)
 
                 if not found:
-                    raise NotFound(
+                    raise NotFoundError(
                         f"Package {package_version!r} was not found on any package index"
                         f"configured: {self.pipfile_lock.meta.to_dict()}"
                     )
@@ -415,7 +415,7 @@ class Project:
                 _LOGGER.exception(
                     "Unable to lock application stack (return code: %d):\n%s\n", exc.return_code, exc.stdout, exc.stderr
                 )
-                raise UnableLock("Failed to perform lock") from exc
+                raise UnableLockError("Failed to perform lock") from exc
 
             _LOGGER.debug("pipenv stdout:\n%s", result.stdout)
             _LOGGER.debug("pipenv stderr:\n%s", result.stderr)

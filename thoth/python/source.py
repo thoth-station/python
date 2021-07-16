@@ -32,7 +32,7 @@ from packaging.version import Version
 from packaging.version import LegacyVersion
 from packaging.version import parse as parse_version
 
-from .exceptions import NotFound
+from .exceptions import NotFoundError
 from .exceptions import InternalError
 from .exceptions import VersionIdentifierError
 from .configuration import config
@@ -124,7 +124,7 @@ class Source:
         _LOGGER.debug("Gathering package version information from Warehouse API: %r", url)
         response = requests.get(url, verify=self.verify_ssl)
         if response.status_code == 404:
-            raise NotFound(
+            raise NotFoundError(
                 f"Package {package_name} in version {package_version} not found on warehouse {self.url} ({self.name})"
             )
         response.raise_for_status()
@@ -136,7 +136,7 @@ class Source:
         _LOGGER.debug("Gathering package information from Warehouse API: %r", url)
         response = requests.get(url, verify=self.verify_ssl)
         if response.status_code == 404:
-            raise NotFound(f"Package {package_name} not found on warehouse {self.url} ({self.name})")
+            raise NotFoundError(f"Package {package_name} not found on warehouse {self.url} ({self.name})")
         response.raise_for_status()
         return response.json()
 
@@ -261,7 +261,7 @@ class Source:
         """Get sorted versions for the given package."""
         try:
             all_versions = self.get_package_versions(package_name)
-        except NotFound:
+        except NotFoundError:
             if graceful:
                 _LOGGER.warning(f"Package {package_name!r} was not found on index {self.name} ({self.url!r})")
                 return None
@@ -298,7 +298,7 @@ class Source:
         _LOGGER.debug(f"Discovering package {package_name} artifacts from {url}")
         response = requests.get(url, verify=self.verify_ssl)
         if response.status_code == 404:
-            raise NotFound(f"Package {package_name} is not present on index {self.url} (index {self.name})")
+            raise NotFoundError(f"Package {package_name} is not present on index {self.url} (index {self.name})")
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "lxml")
 
@@ -390,7 +390,7 @@ class Source:
         """Check if the given source provides package in the given version."""
         try:
             return package_version in self.get_package_versions(package_name)
-        except NotFound:
+        except NotFoundError:
             # Package was not found on the index.
             return False
 
@@ -440,10 +440,10 @@ class Source:
         package_json = self._warehouse_get_api_package_info(package_name)
         release = package_json["releases"].get(package_version)
         if release is None:
-            raise NotFound(f"Version {package_version} not found for {package_name} on {self.warehouse_api_url}.")
+            raise NotFoundError(f"Version {package_version} not found for {package_name} on {self.warehouse_api_url}.")
         artifact = next(x for x in release if x["python_version"] == "source")
         if artifact is None:
-            raise NotFound(
+            raise NotFoundError(
                 f"No source distribution for {package_name}==={package_version} found on {self.warehouse_api_url}."
             )
 

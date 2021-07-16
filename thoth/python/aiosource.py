@@ -27,7 +27,7 @@ import aiohttp
 
 from bs4 import BeautifulSoup
 
-from .exceptions import NotFound
+from .exceptions import NotFoundError
 from .artifact import Artifact
 from .source import Source
 
@@ -141,7 +141,7 @@ class AIOSource(Source):
         async with aiohttp.ClientSession(raise_for_status=True) as session:
             async with session.get(url) as response:
                 if response.status == 404:
-                    raise NotFound(
+                    raise NotFoundError(
                         f"Package {package_name} in version {package_version} not "
                         f"found on warehouse {self.url} ({self.name})"
                     )
@@ -174,7 +174,7 @@ class AIOSource(Source):
         async with aiohttp.ClientSession(raise_for_status=True) as session:
             async with session.get(url) as response:
                 if response.status == 404:
-                    raise NotFound(f"Package {package_name} not found on warehouse {self.url} ({self.name})")
+                    raise NotFoundError(f"Package {package_name} not found on warehouse {self.url} ({self.name})")
 
                 return await response.json()
 
@@ -201,7 +201,9 @@ class AIOSource(Source):
         async with aiohttp.ClientSession(raise_for_status=True) as session:
             async with session.get(url) as response:
                 if response.status == 404:
-                    raise NotFound(f"Package {package_name} is not present on index {self.url} (index {self.name})")
+                    raise NotFoundError(
+                        f"Package {package_name} is not present on index {self.url} (index {self.name})"
+                    )
 
                 text = await response.text()
                 soup = BeautifulSoup(text, "lxml")
