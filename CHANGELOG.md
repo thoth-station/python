@@ -676,3 +676,13 @@
 ## Release 0.16.1 (2021-04-27T10:16:07)
 ### Features
 * Instantiate Pipfile instance just once (#393)
+
+## Release 0.16.2 (2021-07-19T04:52:31)
+### Features
+* Make optional parameters optional
+* :arrow_up: Automatic update of dependencies by Kebechet
+* :arrow_up: Automatic update of dependencies by Kebechet (#398)
+* :hatched_chick: update the prow resource limits (#397)
+* Add note about constraints.txt to the README file (#396)
+### Improvements
+* make pre-commit happy

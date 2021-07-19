@@ -33,7 +33,7 @@ from .project import Project
 from .source import Source
 
 
-__version__ = "0.16.1"
+__version__ = "0.16.2"
 __author__ = "Fridolin Pokorny <fridolin@redhat.com>, Christoph Görn <goern@redhat.com>"
 __copyright__ = "Copyright 2018, 2019 Red Hat, Inc."
 __license__ = "GPLv3+"
