@@ -18,52 +18,52 @@
 """Exceptions used in the thoth-python package."""
 
 
-class ThothPythonException(Exception):
+class ThothPythonExceptionError(Exception):
     """A base class for thoth-python exceptions."""
 
 
-class DirectDependencyRemoval(ThothPythonException):
+class DirectDependencyRemovalError(ThothPythonExceptionError):
     """Raised if trying to remove direct dependency from application stack.
 
     Or there is no option to remove the given dependency from application stack.
     """
 
 
-class UnableLock(ThothPythonException):
+class UnableLockError(ThothPythonExceptionError):
     """Raised if trying to lock invalid application stack or resolution cannot be done."""
 
 
-class PipfileParseError(ThothPythonException):
+class PipfileParseError(ThothPythonExceptionError):
     """An exception raised on invalid Pipfile or Pipfile.lock."""
 
 
-class InternalError(ThothPythonException):
+class InternalError(ThothPythonExceptionError):
     """An exception raised on bugs in the code base."""
 
 
-class PackageVersionAlreadyPresentError(ThothPythonException):
+class PackageVersionAlreadyPresentError(ThothPythonExceptionError):
     """An exception raised when adding a package in specific version that is already present."""
 
 
-class SourceNotFoundError(ThothPythonException):
+class SourceNotFoundError(ThothPythonExceptionError):
     """An exception raise when the given package source is not found."""
 
 
-class ConstraintsError(ThothPythonException):
+class ConstraintsError(ThothPythonExceptionError):
     """An exception raised when an issue with constraints found."""
 
 
-class VersionIdentifierError(ThothPythonException):
+class VersionIdentifierError(ThothPythonExceptionError):
     """An exception raised if the given version identifier is not a semver identifier."""
 
 
-class UnsupportedConfiguration(ThothPythonException):
+class UnsupportedConfigurationError(ThothPythonExceptionError):
     """Raised on unsupported configuration options."""
 
 
-class NotFound(ThothPythonException):
+class NotFoundError(ThothPythonExceptionError):
     """Raised if the given artifact cannot be found."""
 
 
-class FileLoadError(ThothPythonException):
+class FileLoadError(ThothPythonExceptionError):
     """Raised when failed to open or parse a file."""

@@ -27,7 +27,7 @@ from packaging.version import parse as parse_version
 from packaging.utils import canonicalize_name
 
 
-from .exceptions import UnsupportedConfiguration
+from .exceptions import UnsupportedConfigurationError
 from .exceptions import PipfileParseError
 from .exceptions import InternalError
 from .source import Source
@@ -436,17 +436,17 @@ class PackageVersion:
             package_version = entry
         else:
             if any(vcs in entry for vcs in ("git", "hg", "bzr", "svn")):
-                raise UnsupportedConfiguration(
+                raise UnsupportedConfigurationError(
                     f"Package {package_name!r} uses a version control system instead of package index: {entry}"
                 )
 
             if "editable" in entry:
-                raise UnsupportedConfiguration(
+                raise UnsupportedConfigurationError(
                     f"Package {package_name!r} is editable local project instead of a package from a package index"
                 )
 
             if "version" not in entry:
-                raise UnsupportedConfiguration(
+                raise UnsupportedConfigurationError(
                     f"Package {package_name!r} does not state any version range specifier: {entry}"
                 )
 

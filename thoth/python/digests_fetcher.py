@@ -21,7 +21,7 @@ import typing
 import logging
 
 from .source import Source
-from .exceptions import NotFound
+from .exceptions import NotFoundError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class PythonDigestsFetcher(DigestsFetcherBase):
         for source in self._sources:
             try:
                 report[source.url] = source.get_package_hashes(package_name, package_version)
-            except NotFound as exc:
+            except NotFoundError as exc:
                 _LOGGER.debug(
                     f"Package {package_name} in version {package_version} not "
                     f"found on index {source.name}: {str(exc)}"
