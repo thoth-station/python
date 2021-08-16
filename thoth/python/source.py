@@ -223,7 +223,7 @@ class Source:
                 _LOGGER.warning(
                     f"It looks like package name does not match the one parsed from artifact when "
                     f"parsing version from wheel - package name is {package_name}, "
-                    f"pared version is {version}, artifact is {artifact_name}"
+                    f"parsed version is {version}, artifact is {artifact_name}"
                 )
         else:
             raise InternalError(
