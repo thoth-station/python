@@ -58,7 +58,7 @@ class AsyncIterablePackages:
 
     async def fetch_data(self) -> Optional[str]:  # Ignore PyDocStyleBear
         """Fetch data."""
-        await asyncio.sleep(0.1)  # Other coros get to run
+        await asyncio.sleep(0)  # Other coros get to run
 
         if len(self.packages) == 0:
             return None
@@ -88,7 +88,7 @@ class AsyncIterableVersions:
 
     async def fetch_data(self) -> Optional[str]:  # Ignore PyDocStyleBear
         """Fetch data."""
-        await asyncio.sleep(0.1)  # Other coros get to run
+        await asyncio.sleep(0)  # Other coros get to run
 
         if len(self.versions) == 0:
             return None
@@ -118,7 +118,7 @@ class AsyncIterableArtifacts:
 
     async def fetch_data(self) -> Optional[Tuple]:  # Ignore PyDocStyleBear
         """Fetch data."""
-        await asyncio.sleep(0.1)  # Other coros get to run
+        await asyncio.sleep(0)  # Other coros get to run
 
         if len(self.artifacts) == 0:
             return None
