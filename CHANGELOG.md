@@ -1,4 +1,15 @@
 
+## Release 0.16.3 (2021-08-24T13:10:44)
+### Features
+* :arrow_up: Automatic update of dependencies by Kebechet
+* :arrow_up: Automatic update of dependencies by Kebechet (#404)
+### Bug Fixes
+* Properly handle not found exception on async source requests
+* Describe where files are looked up on an error
+### Improvements
+* change sleep to 0 because it still gives up core
+* Fix typo
+
 ## Release 0.4.0 (2018-12-11T19:14:21)
 * Adjust report messages so that they are more generic
 * Use index url in reports rather than index name
