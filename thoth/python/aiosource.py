@@ -139,14 +139,17 @@ class AIOSource(Source):
         _LOGGER.debug("Gathering package version information from Warehouse API: %r", url)
 
         async with aiohttp.ClientSession(raise_for_status=True) as session:
-            async with session.get(url) as response:
-                if response.status == 404:
+            try:
+                async with session.get(url) as response:
+                    return await response.json()
+            except aiohttp.ClientResponseError as exc:
+                if exc.status == 404:
                     raise NotFoundError(
                         f"Package {package_name} in version {package_version} not "
                         f"found on warehouse {self.url} ({self.name})"
                     )
 
-                return await response.json()
+                raise
 
     async def _warehouse_get_package_hashes(  # type: ignore
         self, package_name: str, package_version: str, with_included_files: bool = False
@@ -172,11 +175,14 @@ class AIOSource(Source):
         _LOGGER.debug("Gathering package information from Warehouse API: %r", url)
 
         async with aiohttp.ClientSession(raise_for_status=True) as session:
-            async with session.get(url) as response:
-                if response.status == 404:
+            try:
+                async with session.get(url) as response:
+                    return await response.json()
+            except aiohttp.ClientResponseError as exc:
+                if exc.status == 404:
                     raise NotFoundError(f"Package {package_name} not found on warehouse {self.url} ({self.name})")
 
-                return await response.json()
+                raise
 
     async def _simple_repository_list_versions(self, package_name: str) -> List:  # type: ignore
         """List versions of package available on a simple repository."""
@@ -199,16 +205,18 @@ class AIOSource(Source):
         _LOGGER.debug("Discovering package %r artifacts from %r", package_name, url)
 
         async with aiohttp.ClientSession(raise_for_status=True) as session:
-            async with session.get(url) as response:
-                if response.status == 404:
+            try:
+                async with session.get(url) as response:
+                    text = await response.text()
+                    soup = BeautifulSoup(text, "lxml")
+                    links = soup.find_all("a")
+            except aiohttp.ClientResponseError as exc:
+                if exc.status == 404:
                     raise NotFoundError(
                         f"Package {package_name} is not present on index {self.url} (index {self.name})"
                     )
 
-                text = await response.text()
-                soup = BeautifulSoup(text, "lxml")
-
-                links = soup.find_all("a")
+                raise
 
         artifacts = []  # List[Tuple[str,str]]
         for link in links:
