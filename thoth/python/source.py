@@ -21,6 +21,7 @@ import logging
 import re
 from functools import lru_cache
 from urllib.parse import urlparse
+from urllib.parse import unquote
 from datetime import datetime
 
 from typing import Optional, List, Union, Generator
@@ -231,6 +232,7 @@ class Source:
             )
 
         _LOGGER.debug(f"Parsed package version for package {package_name} from artifact {artifact_name}: {version}")
+
         return version
 
     def _simple_repository_list_versions(self, package_name: str) -> list:
@@ -323,6 +325,9 @@ class Source:
             artifact_url = link["href"]
             if not artifact_url.startswith(("http://", "https://")):
                 artifact_url = url + f"/{artifact_name}"
+
+            # Decode characters in link retrieved
+            artifact_name = unquote(artifact_name)
 
             artifacts.append((artifact_name, artifact_url))
 
