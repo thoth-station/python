@@ -1,4 +1,9 @@
 
+## Release 0.16.4 (2021-09-30T08:10:53)
+### Features
+* replace string with correct symbol
+* :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
+
 ## Release 0.16.3 (2021-08-24T13:10:44)
 ### Features
 * :arrow_up: Automatic update of dependencies by Kebechet
