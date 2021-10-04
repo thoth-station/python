@@ -24,6 +24,7 @@ from functools import lru_cache
 import attr
 import asyncio
 import aiohttp
+from urllib.parse import unquote
 
 from bs4 import BeautifulSoup
 
@@ -238,6 +239,9 @@ class AIOSource(Source):
             artifact_url = link["href"]
             if not artifact_url.startswith(("http://", "https://")):
                 artifact_url = url + f"/{artifact_name}"
+
+            # Decode characters in link retrieved
+            artifact_name = unquote(artifact_name)
 
             artifacts.append((artifact_name, artifact_url))
 
