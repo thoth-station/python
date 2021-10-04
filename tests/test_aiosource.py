@@ -20,7 +20,7 @@
 
 import pytest
 
-from thoth.python.aiosource import AIOSource, AsyncIterablePackages
+from thoth.python.aiosource import AIOSource, AsyncIterablePackages, AsyncIterableVersions
 
 from .base import PythonTestCase
 
@@ -90,6 +90,29 @@ class TestAIOSource(PythonTestCase):
 
         async for package_name in package_name_iterator:
             assert package_name in ["tensorflow-serving-api", "tensorflow-cpu", "tensorflow-gpu", "tensorflow"]
+
+    @pytest.mark.online
+    @pytest.mark.timeout(60)
+    @pytest.mark.asyncio
+    async def test_get_package_versions_decoded(self):
+        """Test get packages versions with await."""
+        source_info = {
+            "name": None,
+            "url": "https://download.pytorch.org/whl/cpu",
+            "verify_ssl": True,
+            "warehouse": None,
+        }
+
+        package_name = "torch"
+
+        async_package_index = AIOSource.from_dict(source_info)
+
+        package_versions_iterator = await async_package_index.get_package_versions(package_name)
+
+        assert type(package_versions_iterator) is AsyncIterableVersions
+
+        async for package_version in package_versions_iterator:
+            assert "%2B" not in package_version
 
     @pytest.mark.online
     @pytest.mark.timeout(60)
