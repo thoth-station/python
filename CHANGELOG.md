@@ -1,4 +1,9 @@
 
+## Release 0.16.5 (2021-10-04T11:29:28)
+### Features
+* :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
+* Add unquote to aiosource also
+
 ## Release 0.16.4 (2021-09-30T08:10:53)
 ### Features
 * replace string with correct symbol
