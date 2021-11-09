@@ -450,6 +450,7 @@ class PackageVersion:
                     f"Package {package_name!r} does not state any version range specifier: {entry}"
                 )
 
+            entry = dict(entry)
             package_version = entry.pop("version")
             index = entry.pop("index", None)
             extras = entry.pop("extras", [])
