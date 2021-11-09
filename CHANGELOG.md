@@ -1,4 +1,8 @@
 
+## Release 0.16.6 (2021-11-09T10:01:56)
+* Perform shallow copy when parsing Pipfile package entry
+* :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
+
 ## Release 0.16.5 (2021-10-04T11:29:28)
 ### Features
 * :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
