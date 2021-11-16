@@ -458,7 +458,7 @@ class Pipfile(_PipfileBase):
         with open(path, "w") as pipfile:
             pipfile.write(self.to_string(keep_thoth_section=keep_thoth_section))
 
-    def hash(self):
+    def hash(self) -> Dict[str, str]:
         """Compute hash of Pipfile."""
         # TODO: this can be implementation dependent on Pipfile version - we are simply reusing the current version.
         content = json.dumps(self.data, sort_keys=True, separators=(",", ":"))
