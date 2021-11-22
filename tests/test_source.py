@@ -232,3 +232,26 @@ class TestSource(PythonTestCase):
             "1.2.1",
             "1.2.0rc0",
         }
+
+    @pytest.mark.online
+    @pytest.mark.timeout(60)
+    @pytest.mark.asyncio
+    async def test_get_package_versions_decoded(self):
+        """Test get packages versions."""
+        source_info = {
+            "name": None,
+            "url": "https://download.pytorch.org/whl/cpu",
+            "verify_ssl": True,
+            "warehouse": None,
+        }
+
+        package_name = "torch"
+
+        package_index = Source.from_dict(source_info)
+
+        package_versions = package_index.get_package_versions(package_name)
+
+        assert type(package_versions) is list
+
+        for package_version in package_versions:
+            assert "%2B" not in package_version

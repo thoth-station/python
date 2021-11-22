@@ -123,12 +123,12 @@ class Version:
         return self._version.pre
 
     @property
-    def post(self) -> Optional[Tuple[str, int]]:
+    def post(self) -> Optional[int]:
         """Get version post."""
         return self._version.post
 
     @property
-    def dev(self) -> Optional[Tuple[str, int]]:
+    def dev(self) -> Optional[int]:
         """Get version dev."""
         return self._version.dev
 

@@ -23,7 +23,7 @@ import pytest
 from thoth.python.package_version import PackageVersion
 from thoth.python.package_version import Version
 from thoth.python.pipfile import PipfileMeta
-from thoth.python.exceptions import UnsupportedConfiguration
+from thoth.python.exceptions import UnsupportedConfigurationError
 from thoth.python.exceptions import PipfileParseError
 from thoth.python.exceptions import InternalError
 
@@ -102,7 +102,7 @@ class TestPackageVersion(PythonTestCase):
     )
     def test_from_pipfile_entry_error(self, package_name, package_info):
         """Test from pipfile entry error."""
-        with pytest.raises(UnsupportedConfiguration):
+        with pytest.raises(UnsupportedConfigurationError):
             PackageVersion.from_pipfile_entry(package_name, package_info, develop=False, meta=_META)
 
     @pytest.mark.parametrize(
