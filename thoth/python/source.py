@@ -47,6 +47,7 @@ LEGACY_URLS = {"https://pypi.python.org/simple": "https://pypi.org/simple"}
 
 def normalize_url(url: str) -> str:
     """We normalize url to remove legacy urls."""
+    url = url.rstrip("/")
     if url in LEGACY_URLS:
         return LEGACY_URLS[url]
     return url
