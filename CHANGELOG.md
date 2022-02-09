@@ -1,4 +1,18 @@
 
+## Release 0.16.7 (2022-02-09T20:11:20)
+* Add myself to maintainers
+* Add myself to approvers
+* :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
+* Strip any terminating slashes from index URL
+* Check lockfile hash on provenance checks
+* :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
+* :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
+* Update pyproject.toml to use Python 3.8
+* :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
+* add kebechet to crossroads in docs
+* :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
+* Add tests for decoded artifact for package versions
+
 ## Release 0.16.6 (2021-11-09T10:01:56)
 * Perform shallow copy when parsing Pipfile package entry
 * :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
