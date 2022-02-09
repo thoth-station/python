@@ -682,6 +682,16 @@ class Project:
 
     def check_provenance(self, whitelisted_sources: list = None, digests_fetcher: DigestsFetcherBase = None) -> List:
         """Check provenance/origin of packages that are stated in the project."""
+        if self.pipfile_lock and self.pipfile.hash() != self.pipfile_lock.meta.hash:
+            return [
+                {
+                    "type": "ERROR",
+                    "id": "INVALID-LOCK-HASH",
+                    "justification": f"Hash recorded in the lockfile ({self.pipfile_lock.meta.hash['sha256']!r}) does "
+                    f"not correspond to the hash computed ({self.pipfile.hash()['sha256']!r})",
+                }
+            ]
+
         digests_fetcher = digests_fetcher or PythonDigestsFetcher(list(self.pipfile.meta.sources.values()))
         findings, _ = self._index_scan(digests_fetcher)
         findings.extend(self._check_sources(whitelisted_sources))
@@ -717,7 +727,12 @@ class Project:
         return source
 
     def add_package(
-        self, package_name: str, package_version: str = None, *, source: Source = None, develop: bool = False
+        self,
+        package_name: str,
+        package_version: Optional[str] = None,
+        *,
+        source: Optional[Source] = None,
+        develop: bool = False,
     ):
         """Add the given package to project.
 

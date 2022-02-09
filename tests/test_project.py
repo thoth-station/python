@@ -40,6 +40,24 @@ from .base import PythonTestCase
 class TestProject(PythonTestCase):
     """Test TestProject module."""
 
+    def test_check_provenance_hash(self) -> None:
+        """Check that provenance checks report invalid hash."""
+        pipfile = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_test1"))
+        pipfile_lock = PipfileLock.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_test1.lock"))
+        project = Project(pipfile=pipfile, pipfile_lock=pipfile_lock)
+
+        project.add_package("foo", "==1.2.3")
+        assert project.check_provenance() == [
+            {
+                "id": "INVALID-LOCK-HASH",
+                "justification": "Hash recorded in the lockfile "
+                "('56b5d981088c3245bc6c3e080a20ca7f942fcfe37983635166e4a556f8627616') "
+                "does not correspond to the hash computed "
+                "('da180c2e1a2f031cc11b107e152f1b52bbe7b0231df4514b16340d2b5d86c451')",
+                "type": "ERROR",
+            },
+        ]
+
     def test_add_package(self):
         """Test add package."""
         pipfile = Pipfile.from_file(os.path.join(self.data_dir, "pipfiles", "Pipfile_test1"))
