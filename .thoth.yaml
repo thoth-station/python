@@ -24,6 +24,7 @@ managers:
         - harshad16
         - pacospace
         - KPostOffice
+        - mayaCostantini
       assignees:
         - sesheta
       labels: [bot]
