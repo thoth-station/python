@@ -298,10 +298,13 @@ class AIOSource(Source):
         possible_continuations = [".win32", ".tar.gz", ".whl", ".zip", ".exe", ".egg", "-"]
         async for artifact_name, artifact_url in await self._simple_repository_list_artifacts(package_name):
             # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
-            artifact_name.lower()
+            artifact_name = artifact_name.lower()
 
             for i in possible_continuations:
-                if artifact_name.startswith(f"{package_name}-{package_version}{i}"):
+                if (
+                    artifact_name.startswith(f"{package_name}-{package_version}")
+                    or artifact_name.startswith(f"{package_name.replace('-', '_')}-{package_version}")
+                ) and artifact_name.endswith(i):
                     break
             else:
                 _LOGGER.debug(
