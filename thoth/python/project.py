@@ -93,7 +93,7 @@ class Project:
             except Exception as exc:
                 raise FileLoadError(
                     f"Failed to load Pipfile.lock "
-                    f"(path: {os.getcwd() if not pipfile_lock_path else os.path.abspath(pipfile_lock_path)}: {str(exc)}"
+                    f"path: {os.getcwd() if not pipfile_lock_path else os.path.abspath(pipfile_lock_path)}: {str(exc)}"
                 ) from exc
 
         return cls(
