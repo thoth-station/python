@@ -20,8 +20,9 @@
 import logging
 import re
 from functools import lru_cache
-from urllib.parse import urlparse
 from urllib.parse import unquote
+from urllib.parse import urljoin
+from urllib.parse import urlparse
 from datetime import datetime
 
 from typing import Optional, List, Union, Generator
@@ -325,7 +326,7 @@ class Source:
 
             artifact_url = link["href"]
             if not artifact_url.startswith(("http://", "https://")):
-                artifact_url = url + f"/{artifact_name}"
+                artifact_url = urljoin(url, artifact_url)
 
             # Decode characters in link retrieved
             artifact_name = unquote(artifact_name)
