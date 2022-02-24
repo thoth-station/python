@@ -1,4 +1,10 @@
 
+## Release 0.16.9 (2022-02-24T17:10:01)
+* Fix constructing artifact url
+* :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
+* Add parentheses
+* Fix typo in error message
+
 ## Release 0.16.8 (2022-02-14T14:42:58)
 * Fix artifact obtaining on the Pulp instance
 * :arrow_up: Automatic update of dependencies by Kebechet for the ubi8 environment
