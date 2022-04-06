@@ -582,7 +582,9 @@ class PipfileLock(_PipfileBase):
         if not pipfile:
             raise InternalError("Pipfile has to be provided when generating Pipfile.lock to compute SHA hashes")
 
-        self.meta.set_hash(pipfile.hash())
+        if self.meta.hash is None:
+            self.meta.set_hash(pipfile.hash())
+
         self.sanitize_source_indexes()
 
         content = {
