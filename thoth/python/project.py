@@ -22,7 +22,7 @@ import logging
 from itertools import chain
 import tempfile
 
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, Dict, Any, List, Tuple, cast
 
 import attr
 from thoth.common import cwd
@@ -684,11 +684,12 @@ class Project:
     def check_provenance(self, whitelisted_sources: list = None, digests_fetcher: DigestsFetcherBase = None) -> List:
         """Check provenance/origin of packages that are stated in the project."""
         if self.pipfile_lock and self.pipfile.hash() != self.pipfile_lock.meta.hash:
+            _hash: dict = cast(dict, self.pipfile_lock.meta.hash)
             return [
                 {
                     "type": "ERROR",
                     "id": "INVALID-LOCK-HASH",
-                    "justification": f"Hash recorded in the lockfile ({self.pipfile_lock.meta.hash['sha256']!r}) does "
+                    "justification": f"Hash recorded in the lockfile ({_hash['sha256']!r}) does "
                     f"not correspond to the hash computed ({self.pipfile.hash()['sha256']!r})",
                 }
             ]
