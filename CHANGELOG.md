@@ -1,4 +1,10 @@
 
+## Release 0.16.11 (2022-10-20T06:35:02)
+* 4d2790a Catch the 403 from the index which are forbidden
+* 00b5794 Remove GitHub issue templates
+* fb5704f Remove CODEOWNERS
+* 9fca997 Enable TLS for Thoth
+
 ## Release 0.16.10 (2022-04-06T08:43:35)
 * 242cf8a Overwrite supplied hash only if no hash was provided
 * 4a263b9 Add myself as an approver and remove .thoth.yaml maintainers
