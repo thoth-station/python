@@ -35,6 +35,7 @@ from packaging.version import LegacyVersion
 from packaging.version import parse as parse_version
 
 from .exceptions import NotFoundError
+from .exceptions import HTTPError
 from .exceptions import InternalError
 from .exceptions import VersionIdentifierError
 from .configuration import config
@@ -130,6 +131,10 @@ class Source:
             raise NotFoundError(
                 f"Package {package_name} in version {package_version} not found on warehouse {self.url} ({self.name})"
             )
+        if response.status_code == 403:
+            raise HTTPError(
+                f"Package {package_name} in version {package_version} doesn't exists on {self.url} ({self.name})"
+            )
         response.raise_for_status()
         return response.json()
 
@@ -140,6 +145,8 @@ class Source:
         response = requests.get(url, verify=self.verify_ssl)
         if response.status_code == 404:
             raise NotFoundError(f"Package {package_name} not found on warehouse {self.url} ({self.name})")
+        if response.status_code == 403:
+            raise HTTPError(f"Package {package_name} doesn't exists on warehouse {self.url} ({self.name})")
         response.raise_for_status()
         return response.json()
 
@@ -303,6 +310,8 @@ class Source:
         response = requests.get(url, verify=self.verify_ssl)
         if response.status_code == 404:
             raise NotFoundError(f"Package {package_name} is not present on index {self.url} (index {self.name})")
+        if response.status_code == 403:
+            raise HTTPError(f"Package {package_name} is not present on index {self.url} (index {self.name})")
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "lxml")
 

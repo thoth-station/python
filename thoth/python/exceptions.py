@@ -65,5 +65,9 @@ class NotFoundError(ThothPythonExceptionError):
     """Raised if the given artifact cannot be found."""
 
 
+class HTTPError(ThothPythonExceptionError):
+    """Raised if the given Http url doesn't exists."""
+
+
 class FileLoadError(ThothPythonExceptionError):
     """Raised when failed to open or parse a file."""
