@@ -1,2 +1,2 @@
-include requirements.txt
 include pytest.ini
+include Pipfile
