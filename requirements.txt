@@ -1,0 +1,11 @@
+aiohttp
+attrs
+beautifulsoup4==4.6.3
+click
+lxml
+packaging<22
+pyelftools
+requests
+thoth-analyzer
+thoth-common
+toml
