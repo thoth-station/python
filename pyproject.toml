@@ -1,3 +1,52 @@
+[project]
+name = "thoth-python"
+description = "A Python ecosystem specific library"
+license = {file = "LICENSE"}
+authors = [
+ {name = "Fridolin Pokorny", email = "fridolin@redhat.com"}
+]
+keywords = [
+    "python",
+    "dependency",
+    "pypi",
+    "dependencies",
+    "tool",
+    "library",
+    "thoth",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.4",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+]
+
+dynamic = ["version", "dependencies"]
+readme = "README.rst"
+
+[build-system]
+requires = ["setuptools", "wheel", "setuptools-pipfile"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools-pipfile]
+
+[tool.setupotools.package-data]
+thoth.python = "py.typed"
+
+
+[tool.setuptools.dynamic]
+version = {attr = "thoth.python.__version__"}
+
+[project.urls]
+Documentation = "https://github.com/thoth-station/python"
+Source = "https://github.com/thoth-station/python"
+
 [tool.black]
 line-length = 120
 target-version = ['py38']
