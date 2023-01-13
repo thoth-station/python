@@ -1,4 +1,12 @@
 
+## Release 0.17.0 (2023-01-13T20:17:43)
+* f656e65 Iterate over each artifacts instead of capturing in a list (#486)
+* 1c03db4 Remove pipfile-requirements from thoth.yaml and updated OWNERS (#493)
+* 4a55e80 Limit packaging to <22 (#489)
+* 145f030 Convert to full pyproject.toml + Pipfile and get rid of requirements.txt (#491)
+* 10fd504 git ls-files -z -- .pre-commit-config.yaml | xargs -0 sed -i 's#https://gitlab.com/PyCQA/flake8#https://github.com/PyCQA/flake8#' (#485)
+* 3ed4736 :recycle: HouseKeeping: Updated pre-commit and OWNERS
+
 ## Release 0.16.11 (2022-10-20T06:35:02)
 * 4d2790a Catch the 403 from the index which are forbidden
 * 00b5794 Remove GitHub issue templates
