@@ -25,7 +25,7 @@ from urllib.parse import urljoin
 from urllib.parse import urlparse
 from datetime import datetime
 
-from typing import Optional, List, Union, Generator
+from typing import Optional, List, Union, Generator, Dict
 
 import attr
 import requests
@@ -344,32 +344,6 @@ class Source:
 
         return artifacts
 
-    def get_package_artifacts(self, package_name: str, package_version: str):
-        """Return list of artifacts corresponding to package name and package version."""
-        to_return = []
-        possible_continuations = [".win32", ".tar.gz", ".whl", ".zip", ".exe", ".egg", "-"]
-        for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
-            # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
-            artifact_name = artifact_name.lower()
-
-            for i in possible_continuations:
-                if (
-                    artifact_name.startswith(f"{package_name}-{package_version}")
-                    or artifact_name.startswith(f"{package_name.replace('-', '_')}-{package_version}")
-                ) and artifact_name.endswith(i):
-                    break
-            else:
-                _LOGGER.debug(
-                    "Skipping artifact %r as it does not match required version %r for package %r",
-                    artifact_name,
-                    package_version,
-                    package_name,
-                )
-                continue
-            to_return.append(Artifact(artifact_name, artifact_url, verify_ssl=self.verify_ssl))
-
-        return to_return
-
     def _download_artifacts_data(
         self, package_name: str, package_version: str, with_included_files: bool = False
     ) -> Generator[tuple, None, None]:
@@ -414,38 +388,39 @@ class Source:
             return False
 
     @lru_cache(maxsize=10)
-    def get_package_data(self, package_name: str, package_version: str, with_included_files: bool = False) -> list:
-        """Get information about release hashes and symbols available in this source index."""
-        if self.warehouse:
-            return self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
-
-        artifacts = self.get_package_artifacts(package_name, package_version)
-        result = []
-        for artifact in artifacts:
-            doc = {}
-            doc["name"] = artifact.artifact_name
-            doc["sha256"] = artifact.sha
-            if with_included_files:
-                doc["digests"] = artifact.gather_hashes()
-                doc["symbols"] = artifact.get_versioned_symbols()
-            result.append(doc)
-
-        return result
-
-    @lru_cache(maxsize=10)
     def get_package_hashes(self, package_name: str, package_version: str, with_included_files: bool = False) -> list:
         """Get information about release hashes available in this source index."""
         if self.warehouse:
             return self._warehouse_get_package_hashes(package_name, package_version, with_included_files)
 
-        artifacts = self.get_package_artifacts(package_name, package_version)
         result = []
-        for artifact in artifacts:
-            doc = {}
-            doc["name"] = artifact.artifact_name
-            doc["sha256"] = artifact.sha
+        possible_continuations = [".win32", ".tar.gz", ".whl", ".zip", ".exe", ".egg", "-"]
+        for artifact_name, artifact_url in self._simple_repository_list_artifacts(package_name):
+            # Convert all artifact names to lowercase - as a shortcut we simply convert everything to lowercase.
+            artifact_name = artifact_name.lower()
+
+            for i in possible_continuations:
+                if (
+                    artifact_name.startswith(f"{package_name}-{package_version}")
+                    or artifact_name.startswith(f"{package_name.replace('-', '_')}-{package_version}")
+                ) and artifact_name.endswith(i):
+                    break
+            else:
+                _LOGGER.debug(
+                    "Skipping artifact %r as it does not match required version %r for package %r",
+                    artifact_name,
+                    package_version,
+                    package_name,
+                )
+                continue
+
+            artifact_obj = Artifact(artifact_name, artifact_url, verify_ssl=self.verify_ssl)
+            doc = {}  # type: Dict[str, Union[str, List, Dict]]
+            doc["name"] = artifact_obj.artifact_name
+            doc["sha256"] = artifact_obj.sha
             if with_included_files:
-                doc["digests"] = artifact.gather_hashes()
+                doc["digests"] = artifact_obj.gather_hashes()
+                doc["symbols"] = artifact_obj.get_versioned_symbols()
             result.append(doc)
 
         return result
