@@ -1,28 +1,28 @@
 [[source]]
+name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-name = "pypi"
 
 [packages]
-requests = "*"
+aiohttp = "*"
+attrs = "*"
+beautifulsoup4 = "*"
 click = "*"
+lxml = "*"
+packaging = "<22"
+pyelftools = "*"
+requests = "*"
 thoth-analyzer = "*"
 thoth-common = "*"
-attrs = "*"
-beautifulsoup4 = "==4.6.3"
-lxml = "*"
-pyelftools = "*"
-packaging = "<22"
 toml = "*"
-aiohttp = "*"
 
 [dev-packages]
+flexmock = "*"
 pytest = "*"
-pytest-timeout = "*"
+pytest-asyncio = "*"
 pytest-cov = "*"
 pytest-mypy = "*"
-pytest-asyncio = "*"
-flexmock = "*"
+pytest-timeout = "*"
 
 [requires]
 python_version = "3.8"
