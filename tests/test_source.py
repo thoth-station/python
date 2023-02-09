@@ -38,7 +38,7 @@ class TestSource(PythonTestCase):
     def test_dict(self):
         """Test dict."""
         source_info = {
-            "url": "https://index-aicoe.a3c1.starter-us-west-1.openshiftapps.com/",
+            "url": "https://pypi.python.org",
             "verify_ssl": True,
             "name": "redhat-aicoe-experiments",
             "warehouse": True,
