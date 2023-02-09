@@ -55,7 +55,7 @@ class TestAIOSource(PythonTestCase):
         }
 
         source = AIOSource.from_dict(source_info)
-        hashes = await source.get_package_hashes("tensorflow", "2.0.0")
+        hashes = await source.get_package_hashes("tensorflow-cpu", "2.0.0")
         assert type(hashes) is list
 
         for actual in hashes:

@@ -88,7 +88,7 @@ class TestPipfile(PythonTestCase):
 # as provided by pip-tools.
 #
 --index-url https://pypi.org/simple
---extra-index-url https://tensorflow.pypi.thoth-station.ninja/index/manylinux2010/AVX2/simple/
+--extra-index-url https://tensorflow.pypi.thoth-station.ninja/index/manylinux2010/AVX2/simple
 
 attrs>=10
 connexion[swagger-ui]>=1.2; python_version < '2.7.9' or (python_version >= '3.0' and python_version < '3.4')
