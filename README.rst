@@ -33,4 +33,4 @@ You can use Pipenv for managing this project and execute testsuite using
   git clone https://github.com/thoth-station/python.git thoth-python
   cd thoth-python
   pipenv install --dev
-  pipenv run python3 setup.py test
+  pipenv run python pytest

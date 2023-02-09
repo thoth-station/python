@@ -1,0 +1,78 @@
+on:
+  pull_request:
+    branches:
+      - master
+
+name: Run Tox tests on Linux
+
+jobs:
+  tox_test:
+    name: Tox test
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: run Tox tests
+        id: test
+        uses: fedora-python/tox-github-action@master
+        with:
+          tox_env: ${{ matrix.tox_env }}
+          dnf_install: /usr/bin/make
+    strategy:
+      matrix:
+        tox_env: [
+            # This list has to be maintained manually :(
+            # You can get it from `tox -l | sed "s/$/,/"`
+            py36-pip90-toml,
+            py36-pip192-toml,
+            py36-pip193-toml,
+            py36-pip203-toml,
+            py36-pip213-toml,
+            py36-pip90-pytoml,
+            py37-pip90-toml,
+            py37-pip192-toml,
+            py37-pip193-toml,
+            py37-pip203-toml,
+            py37-pip213-toml,
+            py37-piplatest-toml,
+            py37-pipgit-toml,
+            py38-pip90-toml,
+            py38-pip192-toml,
+            py38-pip193-toml,
+            py38-pip203-toml,
+            py38-pip213-toml,
+            py38-piplatest-toml,
+            py38-pipgit-toml,
+            py39-pip90-toml,
+            py39-pip192-toml,
+            py39-pip193-toml,
+            py39-pip203-toml,
+            py39-pip213-toml,
+            py39-piplatest-toml,
+            py39-pipgit-toml,
+            py38-pip90-pytoml,
+            py38-piplatest-pytoml,
+            py38-pipgit-pytoml,
+            py39-pip90-pytoml,
+            py39-piplatest-pytoml,
+            py39-pipgit-pytoml,
+            py310-pip192-toml,
+            py310-pip193-toml,
+            py310-pip203-toml,
+            py310-pip213-toml,
+            py310-piplatest-toml,
+            py310-pipgit-toml,
+            py310-piplatest-pytoml,
+            py310-pipgit-pytoml,
+            py310-piplatest-tomli,
+            py310-pipgit-tomli,
+            py311-pip192,
+            py311-pip193,
+            py311-pip203,
+            py311-pip213,
+            py311-piplatest,
+            py311-pipgit,
+            mypy,
+          ]
+
+    # Use GitHub's Linux Docker host
+    runs-on: ubuntu-latest
